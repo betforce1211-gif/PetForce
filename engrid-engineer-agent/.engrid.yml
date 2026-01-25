@@ -1,0 +1,415 @@
+# .engrid.yml - Engrid Engineering Configuration
+
+version: 1
+
+# ==============================================
+# PROJECT CONFIGURATION
+# ==============================================
+project:
+  name: 'my-app'
+  type: 'fullstack'           # fullstack | frontend | backend | library
+  language: 'typescript'
+  
+  structure:
+    src_dir: 'src'
+    test_dir: 'tests'
+    docs_dir: 'docs'
+    config_dir: 'config'
+
+# ==============================================
+# PLATFORM TARGETS
+# ==============================================
+platforms:
+  web:
+    enabled: true
+    framework: 'react'        # react | vue | angular | svelte
+    bundler: 'vite'           # vite | webpack | esbuild
+    ssr: false
+    pwa: true
+    
+  mobile:
+    enabled: true
+    framework: 'react-native' # react-native | flutter | capacitor
+    targets:
+      ios:
+        enabled: true
+        minVersion: '14.0'
+      android:
+        enabled: true
+        minSdk: 24
+        
+  desktop:
+    enabled: false
+    framework: 'electron'     # electron | tauri
+    targets:
+      macos: true
+      windows: true
+      linux: true
+
+# ==============================================
+# ARCHITECTURE
+# ==============================================
+architecture:
+  # Code organization pattern
+  pattern: 'feature-based'    # feature-based | layer-based | domain-driven
+  
+  # Directory structure
+  directories:
+    core: 'src/core'          # Business logic (platform-agnostic)
+    infrastructure: 'src/infrastructure'  # External integrations
+    platform: 'src/platform'  # Platform-specific code
+    ui: 'src/ui'              # User interface
+    shared: 'src/shared'      # Shared utilities
+    
+  # Dependency rules
+  dependencies:
+    # Core should have no external dependencies
+    core:
+      allow: []
+      deny: ['infrastructure', 'platform', 'ui']
+    # UI can depend on core
+    ui:
+      allow: ['core', 'shared']
+      deny: ['infrastructure']
+
+# ==============================================
+# CODE QUALITY
+# ==============================================
+quality:
+  # Linting
+  linter: 'eslint'
+  linterConfig: '.eslintrc.js'
+  
+  # Formatting
+  formatter: 'prettier'
+  formatterConfig: '.prettierrc'
+  
+  # TypeScript
+  typescript:
+    strict: true
+    noImplicitAny: true
+    noImplicitReturns: true
+    noUnusedLocals: true
+    noUnusedParameters: true
+  
+  # Complexity thresholds
+  complexity:
+    maxCyclomaticComplexity: 10
+    maxCognitiveComplexity: 15
+    maxFileLines: 300
+    maxFunctionLines: 50
+    maxFunctionParameters: 4
+    maxNestingDepth: 4
+    
+  # Import rules
+  imports:
+    sortImports: true
+    groupOrder:
+      - 'builtin'
+      - 'external'
+      - 'internal'
+      - 'parent'
+      - 'sibling'
+      - 'type'
+    noCircularDependencies: true
+
+# ==============================================
+# CONFIGURATION MANAGEMENT
+# ==============================================
+configuration:
+  # Config file format
+  format: 'typescript'        # typescript | yaml | json
+  
+  # Config hierarchy (highest to lowest priority)
+  hierarchy:
+    - runtime_overrides       # Admin panel / feature flags
+    - environment_variables   # Process env
+    - environment_files       # .env files
+    - config_files            # config/*.ts
+    - defaults                # Default values in code
+  
+  # Required configuration
+  required:
+    - 'api.baseUrl'
+    - 'auth.secretKey'
+    
+  # Configuration validation
+  validation:
+    enabled: true
+    schema: 'config/schema.ts'
+    validateOnStartup: true
+
+# ==============================================
+# TESTING
+# ==============================================
+testing:
+  # Framework
+  framework: 'jest'           # jest | vitest | mocha
+  
+  # Coverage thresholds
+  coverage:
+    statements: 80
+    branches: 75
+    functions: 80
+    lines: 80
+    
+  # Critical paths (higher coverage required)
+  criticalPaths:
+    - pattern: 'src/core/**'
+      coverage: 90
+    - pattern: 'src/auth/**'
+      coverage: 95
+      
+  # Test organization
+  organization:
+    unitTests: 'tests/unit'
+    integrationTests: 'tests/integration'
+    e2eTests: 'tests/e2e'
+    
+  # Mocking
+  mocking:
+    autoMockPlatform: true
+    autoMockNetwork: true
+
+# ==============================================
+# PERFORMANCE
+# ==============================================
+performance:
+  # Bundle size budgets
+  bundleSize:
+    maxInitialKB: 200
+    maxTotalKB: 500
+    maxChunkKB: 100
+    
+  # Web vitals targets
+  webVitals:
+    LCP: 2500                 # Largest Contentful Paint (ms)
+    FID: 100                  # First Input Delay (ms)
+    CLS: 0.1                  # Cumulative Layout Shift
+    FCP: 1800                 # First Contentful Paint (ms)
+    TTFB: 600                 # Time to First Byte (ms)
+    
+  # API performance
+  api:
+    targetResponseTimeMs: 200
+    maxResponseTimeMs: 500
+    
+  # Mobile performance
+  mobile:
+    targetFPS: 60
+    maxMemoryMB: 150
+    
+  # Monitoring
+  monitoring:
+    enabled: true
+    sampleRate: 0.1           # 10% of sessions
+    reportSlowRenders: true
+    reportSlowNetworkRequests: true
+
+# ==============================================
+# SECURITY
+# ==============================================
+security:
+  # Dependency scanning
+  dependencyScanning:
+    enabled: true
+    failOnSeverity: 'high'    # critical | high | medium | low
+    autoUpdate: false
+    
+  # Code scanning
+  codeScanning:
+    enabled: true
+    rules:
+      - no-eval
+      - no-inner-html
+      - no-unsafe-regex
+      - sql-injection
+      - xss-prevention
+      
+  # Secret detection
+  secretDetection:
+    enabled: true
+    patterns:
+      - 'api[_-]?key'
+      - 'secret[_-]?key'
+      - 'password'
+      - 'token'
+      - 'credential'
+      
+  # Headers (for web)
+  headers:
+    enableHSTS: true
+    enableCSP: true
+    enableXFrameOptions: true
+    enableXContentTypeOptions: true
+    
+  # Authentication
+  authentication:
+    tokenExpiry: 900          # 15 minutes
+    refreshTokenExpiry: 604800  # 7 days
+    maxLoginAttempts: 5
+    lockoutDurationMinutes: 15
+
+# ==============================================
+# API DESIGN
+# ==============================================
+api:
+  # Style
+  style: 'rest'               # rest | graphql | grpc
+  
+  # Versioning
+  versioning:
+    strategy: 'url'           # url | header | query
+    current: 'v1'
+    
+  # Pagination
+  pagination:
+    defaultPageSize: 20
+    maxPageSize: 100
+    style: 'cursor'           # cursor | offset
+    
+  # Rate limiting
+  rateLimiting:
+    enabled: true
+    requestsPerMinute: 100
+    burstLimit: 20
+    
+  # Documentation
+  documentation:
+    enabled: true
+    format: 'openapi'
+    generateFromCode: true
+
+# ==============================================
+# DATABASE
+# ==============================================
+database:
+  # ORM/Query builder
+  orm: 'prisma'               # prisma | typeorm | knex | drizzle
+  
+  # Connection pooling
+  pooling:
+    min: 2
+    max: 10
+    idleTimeoutMs: 30000
+    
+  # Migrations
+  migrations:
+    auto: false
+    directory: 'prisma/migrations'
+    
+  # Seeding
+  seeding:
+    directory: 'prisma/seeds'
+
+# ==============================================
+# CACHING
+# ==============================================
+caching:
+  # Cache provider
+  provider: 'redis'           # redis | memcached | memory
+  
+  # Default TTLs
+  ttl:
+    short: 60                 # 1 minute
+    medium: 300               # 5 minutes
+    long: 3600                # 1 hour
+    
+  # Cache strategies
+  strategies:
+    api_responses: 'stale-while-revalidate'
+    static_assets: 'cache-first'
+    user_data: 'network-first'
+
+# ==============================================
+# OBSERVABILITY
+# ==============================================
+observability:
+  # Logging
+  logging:
+    level: 'info'             # debug | info | warn | error
+    format: 'json'            # json | pretty
+    includeTimestamp: true
+    includeRequestId: true
+    
+  # Metrics
+  metrics:
+    enabled: true
+    provider: 'prometheus'
+    
+  # Tracing
+  tracing:
+    enabled: true
+    provider: 'opentelemetry'
+    sampleRate: 0.1
+    
+  # Error tracking
+  errorTracking:
+    enabled: true
+    provider: 'sentry'
+
+# ==============================================
+# CI/CD INTEGRATION
+# ==============================================
+ci:
+  # Pre-commit hooks
+  preCommit:
+    - lint
+    - typecheck
+    - test:unit
+    
+  # Pre-push hooks
+  prePush:
+    - test:all
+    - security-scan
+    
+  # Required checks
+  requiredChecks:
+    - lint
+    - typecheck
+    - test
+    - build
+    - security-scan
+
+# ==============================================
+# CODE GENERATION
+# ==============================================
+generation:
+  # Component templates
+  components:
+    template: 'templates/component'
+    defaultLocation: 'src/ui/components'
+    includeTests: true
+    includeStories: true
+    
+  # Service templates
+  services:
+    template: 'templates/service'
+    defaultLocation: 'src/core/services'
+    includeTests: true
+    
+  # API templates
+  api:
+    template: 'templates/api'
+    defaultLocation: 'src/infrastructure/api'
+    includeValidation: true
+    includeTests: true
+
+# ==============================================
+# DOCUMENTATION
+# ==============================================
+documentation:
+  # API documentation
+  api:
+    generate: true
+    output: 'docs/api'
+    
+  # Architecture decisions
+  adr:
+    location: 'docs/architecture/decisions'
+    template: 'templates/adr.md'
+    
+  # Code documentation
+  code:
+    requireJsDoc: true
+    minimumCoverage: 80

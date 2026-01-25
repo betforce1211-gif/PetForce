@@ -1,0 +1,367 @@
+// =============================================================================
+// Samantha's Security Middleware
+// Security is not a product, but a process.
+// =============================================================================
+
+import { Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { randomUUID } from 'crypto';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface RateLimitConfig {
+  windowMs: number;
+  max: number;
+  message?: string;
+}
+
+interface SecurityConfig {
+  trustProxy?: boolean;
+  cors?: {
+    origins: string[];
+    credentials?: boolean;
+  };
+  rateLimit?: {
+    global?: RateLimitConfig;
+    auth?: RateLimitConfig;
+    api?: RateLimitConfig;
+  };
+  csp?: {
+    directives: Record<string, string[]>;
+  };
+}
+
+// =============================================================================
+// DEFAULT CONFIGURATION
+// =============================================================================
+
+const defaultConfig: SecurityConfig = {
+  trustProxy: false,
+  rateLimit: {
+    global: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100,
+    },
+    auth: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 5,
+      message: 'Too many login attempts, please try again later',
+    },
+    api: {
+      windowMs: 60 * 1000, // 1 minute
+      max: 100,
+    },
+  },
+  csp: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+};
+
+// =============================================================================
+// SECURITY HEADERS MIDDLEWARE
+// =============================================================================
+
+/**
+ * Configures comprehensive security headers using Helmet
+ */
+export function securityHeaders(config: SecurityConfig = defaultConfig) {
+  return helmet({
+    // Content Security Policy
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: config.csp?.directives.defaultSrc || ["'self'"],
+        scriptSrc: config.csp?.directives.scriptSrc || ["'self'"],
+        styleSrc: config.csp?.directives.styleSrc || ["'self'", "'unsafe-inline'"],
+        imgSrc: config.csp?.directives.imgSrc || ["'self'", 'data:', 'https:'],
+        fontSrc: config.csp?.directives.fontSrc || ["'self'"],
+        connectSrc: config.csp?.directives.connectSrc || ["'self'"],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    
+    // HTTP Strict Transport Security
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    
+    // Prevent clickjacking
+    frameguard: { action: 'deny' },
+    
+    // Prevent MIME type sniffing
+    noSniff: true,
+    
+    // Referrer Policy
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    
+    // Cross-Origin policies
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    crossOriginResourcePolicy: { policy: 'same-origin' },
+    
+    // Hide X-Powered-By
+    hidePoweredBy: true,
+    
+    // XSS Protection (legacy browsers)
+    xssFilter: true,
+  });
+}
+
+// =============================================================================
+// RATE LIMITING MIDDLEWARE
+// =============================================================================
+
+/**
+ * Creates a rate limiter with the specified configuration
+ */
+export function createRateLimiter(config: RateLimitConfig) {
+  return rateLimit({
+    windowMs: config.windowMs,
+    max: config.max,
+    message: {
+      error: {
+        message: config.message || 'Too many requests, please try again later',
+        code: 'RATE_LIMIT_EXCEEDED',
+      },
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Skip successful requests for auth endpoints
+    skipSuccessfulRequests: false,
+    // Key generator (by IP)
+    keyGenerator: (req) => {
+      return req.ip || req.connection.remoteAddress || 'unknown';
+    },
+    // Handler for when limit is exceeded
+    handler: (req, res) => {
+      res.status(429).json({
+        error: {
+          message: config.message || 'Too many requests, please try again later',
+          code: 'RATE_LIMIT_EXCEEDED',
+          retryAfter: Math.ceil(config.windowMs / 1000),
+        },
+      });
+    },
+  });
+}
+
+/**
+ * Pre-configured rate limiters
+ */
+export const rateLimiters = {
+  global: createRateLimiter(defaultConfig.rateLimit!.global!),
+  auth: createRateLimiter(defaultConfig.rateLimit!.auth!),
+  api: createRateLimiter(defaultConfig.rateLimit!.api!),
+};
+
+// =============================================================================
+// CORS MIDDLEWARE
+// =============================================================================
+
+import cors from 'cors';
+
+/**
+ * Configures CORS with security best practices
+ */
+export function secureCors(allowedOrigins: string[]) {
+  return cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID', 'X-RateLimit-Remaining'],
+    maxAge: 86400, // 24 hours
+  });
+}
+
+// =============================================================================
+// REQUEST ID MIDDLEWARE
+// =============================================================================
+
+/**
+ * Adds a unique request ID to each request for tracing
+ */
+export function requestId(req: Request, res: Response, next: NextFunction) {
+  const id = req.headers['x-request-id'] as string || randomUUID();
+  req.id = id;
+  res.setHeader('X-Request-ID', id);
+  next();
+}
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      id: string;
+    }
+  }
+}
+
+// =============================================================================
+// INPUT SANITIZATION MIDDLEWARE
+// =============================================================================
+
+import DOMPurify from 'isomorphic-dompurify';
+
+/**
+ * Sanitizes HTML in request body to prevent XSS
+ */
+export function sanitizeInput(
+  allowedTags: string[] = ['b', 'i', 'em', 'strong', 'a', 'p', 'br']
+) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.body && typeof req.body === 'object') {
+      req.body = sanitizeObject(req.body, allowedTags);
+    }
+    next();
+  };
+}
+
+function sanitizeObject(obj: Record<string, any>, allowedTags: string[]): Record<string, any> {
+  const sanitized: Record<string, any> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string') {
+      sanitized[key] = DOMPurify.sanitize(value, {
+        ALLOWED_TAGS: allowedTags,
+        ALLOWED_ATTR: ['href', 'target'],
+      });
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = Array.isArray(value)
+        ? value.map(v => typeof v === 'string' 
+            ? DOMPurify.sanitize(v, { ALLOWED_TAGS: allowedTags })
+            : sanitizeObject(v, allowedTags))
+        : sanitizeObject(value, allowedTags);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  
+  return sanitized;
+}
+
+// =============================================================================
+// SECURITY ERROR HANDLER
+// =============================================================================
+
+/**
+ * Security-aware error handler that doesn't leak sensitive information
+ */
+export function securityErrorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  // Log the full error internally
+  console.error('Security error:', {
+    requestId: req.id,
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+  });
+  
+  // Don't leak error details to client in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Check for specific security errors
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: {
+        message: 'CORS policy violation',
+        code: 'CORS_ERROR',
+        requestId: req.id,
+      },
+    });
+  }
+  
+  // Generic error response
+  res.status(500).json({
+    error: {
+      message: isProduction ? 'An unexpected error occurred' : err.message,
+      code: 'INTERNAL_ERROR',
+      requestId: req.id,
+    },
+  });
+}
+
+// =============================================================================
+// COMBINED SECURITY MIDDLEWARE
+// =============================================================================
+
+/**
+ * Applies all security middleware in the correct order
+ */
+export function applySecurity(app: any, config: SecurityConfig = defaultConfig) {
+  // Trust proxy if behind load balancer
+  if (config.trustProxy) {
+    app.set('trust proxy', 1);
+  }
+  
+  // Request ID (first, for logging)
+  app.use(requestId);
+  
+  // Security headers
+  app.use(securityHeaders(config));
+  
+  // CORS
+  if (config.cors) {
+    app.use(secureCors(config.cors.origins));
+  }
+  
+  // Global rate limiting
+  if (config.rateLimit?.global) {
+    app.use(createRateLimiter(config.rateLimit.global));
+  }
+  
+  // Input sanitization
+  app.use(sanitizeInput());
+  
+  // Error handler (should be last)
+  app.use(securityErrorHandler);
+  
+  return app;
+}
+
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+export {
+  SecurityConfig,
+  RateLimitConfig,
+  defaultConfig,
+};

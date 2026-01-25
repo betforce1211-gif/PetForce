@@ -1,0 +1,217 @@
+{
+  "_comment": "Axel's Webhook Payload Template - Your API is your most important user interface",
+  
+  "webhook_payload": {
+    "id": "evt_{{EVENT_ID}}",
+    "type": "{{RESOURCE}}.{{ACTION}}",
+    "api_version": "{{API_VERSION}}",
+    "created_at": "{{ISO_TIMESTAMP}}",
+    "data": {
+      "object": {
+        "_comment": "The full object that triggered the event",
+        "id": "{{RESOURCE_ID}}",
+        "...": "Full resource representation"
+      },
+      "previous_attributes": {
+        "_comment": "Only included for .updated events",
+        "...": "Fields that changed (previous values)"
+      }
+    },
+    "request": {
+      "_comment": "Optional: Info about the API request that triggered this event",
+      "id": "req_{{REQUEST_ID}}",
+      "idempotency_key": "{{IDEMPOTENCY_KEY}}"
+    }
+  },
+  
+  "headers": {
+    "Content-Type": "application/json",
+    "X-Webhook-ID": "wh_{{WEBHOOK_ID}}",
+    "X-Webhook-Signature": "sha256={{SIGNATURE}}",
+    "X-Webhook-Timestamp": "{{UNIX_TIMESTAMP}}",
+    "User-Agent": "{{API_NAME}}-Webhooks/1.0"
+  },
+  
+  "signature_generation": {
+    "_comment": "How to generate the signature",
+    "algorithm": "HMAC-SHA256",
+    "payload": "{{TIMESTAMP}}.{{JSON_BODY}}",
+    "secret": "whsec_{{WEBHOOK_SECRET}}",
+    "result": "sha256={{HEX_SIGNATURE}}"
+  },
+  
+  "signature_verification": {
+    "_comment": "Pseudocode for verifying signatures",
+    "steps": [
+      "1. Extract timestamp from X-Webhook-Timestamp header",
+      "2. Check timestamp is within tolerance (e.g., 5 minutes)",
+      "3. Concatenate: timestamp + '.' + raw_body",
+      "4. Compute HMAC-SHA256 with your webhook secret",
+      "5. Compare with signature from X-Webhook-Signature header",
+      "6. Use constant-time comparison to prevent timing attacks"
+    ],
+    "code_example": {
+      "javascript": "const crypto = require('crypto');\nconst expectedSig = crypto.createHmac('sha256', secret)\n  .update(`${timestamp}.${body}`)\n  .digest('hex');\nconst isValid = crypto.timingSafeEqual(\n  Buffer.from(signature),\n  Buffer.from(`sha256=${expectedSig}`)\n);",
+      "python": "import hmac\nimport hashlib\n\nexpected = hmac.new(\n    secret.encode(),\n    f'{timestamp}.{body}'.encode(),\n    hashlib.sha256\n).hexdigest()\nis_valid = hmac.compare_digest(signature, f'sha256={expected}')"
+    }
+  },
+  
+  "event_types": {
+    "_comment": "Standard event type naming convention: resource.action",
+    "user": [
+      "user.created",
+      "user.updated",
+      "user.deleted"
+    ],
+    "order": [
+      "order.created",
+      "order.updated",
+      "order.completed",
+      "order.cancelled"
+    ],
+    "payment": [
+      "payment.initiated",
+      "payment.processing",
+      "payment.succeeded",
+      "payment.failed",
+      "payment.refunded"
+    ],
+    "subscription": [
+      "subscription.created",
+      "subscription.renewed",
+      "subscription.cancelled",
+      "subscription.expired"
+    ],
+    "invoice": [
+      "invoice.created",
+      "invoice.paid",
+      "invoice.payment_failed",
+      "invoice.voided"
+    ]
+  },
+  
+  "retry_policy": {
+    "_comment": "Retry schedule for failed deliveries",
+    "max_attempts": 5,
+    "backoff": "exponential",
+    "schedule": [
+      { "attempt": 1, "delay": "immediate" },
+      { "attempt": 2, "delay": "5 minutes" },
+      { "attempt": 3, "delay": "30 minutes" },
+      { "attempt": 4, "delay": "2 hours" },
+      { "attempt": 5, "delay": "24 hours" }
+    ],
+    "success_codes": [200, 201, 202, 204],
+    "retry_codes": [408, 429, 500, 502, 503, 504],
+    "fail_codes": [400, 401, 403, 404]
+  },
+  
+  "best_practices": {
+    "for_senders": [
+      "Always sign payloads with HMAC",
+      "Include timestamp to prevent replay attacks",
+      "Use idempotency keys for safe retries",
+      "Implement exponential backoff",
+      "Log all delivery attempts",
+      "Provide webhook management API",
+      "Allow customers to filter by event type"
+    ],
+    "for_receivers": [
+      "Verify signature before processing",
+      "Check timestamp is recent (< 5 min)",
+      "Process asynchronously (return 200 quickly)",
+      "Handle duplicates idempotently",
+      "Log received webhooks for debugging",
+      "Monitor for missing events"
+    ]
+  },
+  
+  "examples": {
+    "order_created": {
+      "id": "evt_abc123xyz",
+      "type": "order.created",
+      "api_version": "2024-01-01",
+      "created_at": "2024-01-15T10:30:00Z",
+      "data": {
+        "object": {
+          "id": "ord_xyz789",
+          "status": "pending",
+          "customer_id": "cus_abc123",
+          "items": [
+            {
+              "id": "itm_001",
+              "product_id": "prod_abc",
+              "quantity": 2,
+              "unit_price": 29.99
+            }
+          ],
+          "subtotal": 59.98,
+          "tax": 4.80,
+          "total": 64.78,
+          "currency": "usd",
+          "created_at": "2024-01-15T10:30:00Z"
+        }
+      }
+    },
+    
+    "order_completed": {
+      "id": "evt_def456uvw",
+      "type": "order.completed",
+      "api_version": "2024-01-01",
+      "created_at": "2024-01-15T14:30:00Z",
+      "data": {
+        "object": {
+          "id": "ord_xyz789",
+          "status": "completed",
+          "customer_id": "cus_abc123",
+          "total": 64.78,
+          "currency": "usd",
+          "completed_at": "2024-01-15T14:30:00Z"
+        },
+        "previous_attributes": {
+          "status": "processing"
+        }
+      }
+    },
+    
+    "payment_succeeded": {
+      "id": "evt_ghi789rst",
+      "type": "payment.succeeded",
+      "api_version": "2024-01-01",
+      "created_at": "2024-01-15T10:31:00Z",
+      "data": {
+        "object": {
+          "id": "pay_abc123",
+          "order_id": "ord_xyz789",
+          "amount": 6478,
+          "currency": "usd",
+          "status": "succeeded",
+          "payment_method": {
+            "type": "card",
+            "last4": "4242",
+            "brand": "visa"
+          },
+          "created_at": "2024-01-15T10:31:00Z"
+        }
+      }
+    },
+    
+    "user_updated": {
+      "id": "evt_jkl012mno",
+      "type": "user.updated",
+      "api_version": "2024-01-01",
+      "created_at": "2024-01-15T11:00:00Z",
+      "data": {
+        "object": {
+          "id": "usr_abc123",
+          "email": "new-email@example.com",
+          "name": "Jane Doe",
+          "updated_at": "2024-01-15T11:00:00Z"
+        },
+        "previous_attributes": {
+          "email": "old-email@example.com"
+        }
+      }
+    }
+  }
+}

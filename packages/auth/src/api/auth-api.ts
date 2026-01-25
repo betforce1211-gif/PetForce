@@ -1,0 +1,589 @@
+// Authentication API using Supabase
+// Phase 1: Email/Password authentication
+
+import { getSupabaseClient } from './supabase-client';
+import { logger } from '../utils/logger';
+import type {
+  RegisterRequest,
+  LoginRequest,
+  PasswordResetRequest,
+  AuthTokens,
+  User,
+  AuthError,
+} from '../types/auth';
+
+/**
+ * Register a new user with email and password
+ * Sends email verification link
+ */
+export async function register(
+  data: RegisterRequest
+): Promise<{ success: boolean; message: string; confirmationRequired?: boolean; error?: AuthError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log registration attempt start
+    logger.authEvent('registration_attempt_started', requestId, {
+      email: data.email,
+      hasFirstName: !!data.firstName,
+      hasLastName: !!data.lastName,
+    });
+
+    const supabase = getSupabaseClient();
+
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/verify`,
+      },
+    });
+
+    if (error) {
+      // Log registration failure
+      logger.authEvent('registration_failed', requestId, {
+        email: data.email,
+        errorCode: error.name || 'REGISTRATION_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        message: error.message,
+        error: {
+          code: error.name || 'REGISTRATION_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    if (!authData.user) {
+      // Log missing user in response
+      logger.error('Registration succeeded but no user in response', {
+        requestId,
+        email: data.email,
+      });
+
+      return {
+        success: false,
+        message: 'Registration failed',
+        error: {
+          code: 'REGISTRATION_ERROR',
+          message: 'No user returned from registration',
+        },
+      };
+    }
+
+    // Check email confirmation status
+    const isConfirmed = authData.user.email_confirmed_at !== null;
+    const confirmationRequired = !isConfirmed;
+
+    // Log successful registration with confirmation state
+    logger.authEvent('registration_completed', requestId, {
+      userId: authData.user.id,
+      email: data.email,
+      emailConfirmed: isConfirmed,
+      confirmationRequired,
+      confirmationEmailSent: true,
+    });
+
+    // Log if user is unconfirmed (the bug we're fixing!)
+    if (confirmationRequired) {
+      logger.info('User created but email not confirmed yet', {
+        requestId,
+        userId: authData.user.id,
+        email: data.email,
+        message: 'User must click verification link in email before they can login',
+      });
+    }
+
+    return {
+      success: true,
+      message: confirmationRequired
+        ? 'Registration successful. Please check your email to verify your account before logging in.'
+        : 'Registration successful.',
+      confirmationRequired,
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error during registration', {
+      requestId,
+      email: data.email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Log in with email and password
+ * Returns JWT tokens
+ */
+export async function login(
+  data: LoginRequest
+): Promise<{ success: boolean; tokens?: AuthTokens; user?: User; error?: AuthError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log login attempt start
+    logger.authEvent('login_attempt_started', requestId, {
+      email: data.email,
+    });
+
+    const supabase = getSupabaseClient();
+
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      // Log login failure
+      logger.authEvent('login_failed', requestId, {
+        email: data.email,
+        errorCode: error.name || 'LOGIN_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: error.name || 'LOGIN_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    if (!authData.session || !authData.user) {
+      // Log missing session
+      logger.error('Login succeeded but no session in response', {
+        requestId,
+        email: data.email,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: 'LOGIN_ERROR',
+          message: 'No session returned from login',
+        },
+      };
+    }
+
+    // Check email confirmation status (addresses the bug!)
+    const isConfirmed = authData.user.email_confirmed_at !== null;
+
+    if (!isConfirmed) {
+      // Log unconfirmed login attempt
+      logger.authEvent('login_rejected_unconfirmed', requestId, {
+        userId: authData.user.id,
+        email: data.email,
+        reason: 'Email not confirmed',
+      });
+
+      return {
+        success: false,
+        error: {
+          code: 'EMAIL_NOT_CONFIRMED',
+          message: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        },
+      };
+    }
+
+    // Log successful login
+    logger.authEvent('login_completed', requestId, {
+      userId: authData.user.id,
+      email: data.email,
+      sessionExpiresIn: authData.session.expires_in,
+    });
+
+    return {
+      success: true,
+      tokens: {
+        accessToken: authData.session.access_token,
+        refreshToken: authData.session.refresh_token,
+        expiresIn: authData.session.expires_in || 900,
+      },
+      user: mapSupabaseUserToUser(authData.user),
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error during login', {
+      requestId,
+      email: data.email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Log out current user
+ */
+export async function logout(): Promise<{ success: boolean; error?: AuthError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log logout attempt
+    logger.authEvent('logout_attempt_started', requestId, {});
+
+    const supabase = getSupabaseClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      // Log logout failure
+      logger.authEvent('logout_failed', requestId, {
+        errorCode: error.name || 'LOGOUT_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: error.name || 'LOGOUT_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    // Log successful logout
+    logger.authEvent('logout_completed', requestId, {});
+
+    return { success: true };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error during logout', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Resend email confirmation link
+ */
+export async function resendConfirmationEmail(
+  email: string
+): Promise<{ success: boolean; message: string; error?: AuthError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log resend confirmation attempt
+    logger.authEvent('confirmation_email_resend_requested', requestId, {
+      email,
+    });
+
+    const supabase = getSupabaseClient();
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/verify`,
+      },
+    });
+
+    if (error) {
+      // Log resend failure
+      logger.authEvent('confirmation_email_resend_failed', requestId, {
+        email,
+        errorCode: error.name || 'RESEND_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        message: error.message,
+        error: {
+          code: error.name || 'RESEND_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    // Log successful resend
+    logger.authEvent('confirmation_email_resent', requestId, {
+      email,
+    });
+
+    return {
+      success: true,
+      message: 'Confirmation email sent. Please check your inbox.',
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error resending confirmation email', {
+      requestId,
+      email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Request password reset email
+ */
+export async function requestPasswordReset(
+  data: PasswordResetRequest
+): Promise<{ success: boolean; message: string; error?: AuthError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log password reset request
+    logger.authEvent('password_reset_requested', requestId, {
+      email: data.email,
+    });
+
+    const supabase = getSupabaseClient();
+
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+
+    if (error) {
+      // Log password reset failure (but still return success to prevent enumeration)
+      logger.authEvent('password_reset_failed', requestId, {
+        email: data.email,
+        errorCode: error.name || 'PASSWORD_RESET_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        message: error.message,
+        error: {
+          code: error.name || 'PASSWORD_RESET_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    // Log password reset email sent
+    logger.authEvent('password_reset_email_sent', requestId, {
+      email: data.email,
+    });
+
+    // Always return success to prevent email enumeration
+    return {
+      success: true,
+      message: 'If an account exists with that email, a password reset link has been sent.',
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error during password reset', {
+      requestId,
+      email: data.email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Get current user
+ */
+export async function getCurrentUser(): Promise<{
+  user: User | null;
+  error?: AuthError;
+}> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    const supabase = getSupabaseClient();
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      // Log get user failure
+      logger.authEvent('get_user_failed', requestId, {
+        errorCode: error.name || 'GET_USER_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        user: null,
+        error: {
+          code: error.name || 'GET_USER_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    // Log get user success
+    if (user) {
+      logger.authEvent('get_user_completed', requestId, {
+        userId: user.id,
+        email: user.email,
+        emailVerified: user.email_confirmed_at !== null,
+      });
+    } else {
+      logger.debug('Get user completed - no user session', { requestId });
+    }
+
+    return {
+      user: user ? mapSupabaseUserToUser(user) : null,
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error getting current user', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      user: null,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Refresh session tokens
+ */
+export async function refreshSession(): Promise<{
+  success: boolean;
+  tokens?: AuthTokens;
+  error?: AuthError;
+}> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    // Log refresh attempt
+    logger.authEvent('session_refresh_started', requestId, {});
+
+    const supabase = getSupabaseClient();
+
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.refreshSession();
+
+    if (error) {
+      // Log refresh failure
+      logger.authEvent('session_refresh_failed', requestId, {
+        errorCode: error.name || 'REFRESH_ERROR',
+        errorMessage: error.message,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: error.name || 'REFRESH_ERROR',
+          message: error.message,
+        },
+      };
+    }
+
+    if (!session) {
+      // Log missing session
+      logger.error('Session refresh succeeded but no session returned', {
+        requestId,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: 'REFRESH_ERROR',
+          message: 'No session returned',
+        },
+      };
+    }
+
+    // Log successful refresh
+    logger.authEvent('session_refresh_completed', requestId, {
+      userId: session.user?.id,
+      expiresIn: session.expires_in,
+    });
+
+    return {
+      success: true,
+      tokens: {
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+        expiresIn: session.expires_in || 900,
+      },
+    };
+  } catch (error) {
+    // Log unexpected error
+    logger.error('Unexpected error refreshing session', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+// Helper to map Supabase user to our User type
+function mapSupabaseUserToUser(supabaseUser: any): User {
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    emailVerified: supabaseUser.email_confirmed_at !== null,
+    firstName: supabaseUser.user_metadata?.first_name,
+    lastName: supabaseUser.user_metadata?.last_name,
+    profilePhotoUrl: supabaseUser.user_metadata?.avatar_url,
+    authMethods: ['email_password'], // Default, will be enhanced in Phase 2+
+    preferredAuthMethod: 'email_password',
+    twoFactorEnabled: false,
+    createdAt: supabaseUser.created_at,
+    updatedAt: supabaseUser.updated_at || supabaseUser.created_at,
+  };
+}

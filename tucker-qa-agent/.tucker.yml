@@ -1,0 +1,433 @@
+# .tucker.yml - Tucker QA Guardian Configuration
+
+version: 1
+
+# ==============================================
+# TEST FRAMEWORK CONFIGURATION
+# ==============================================
+testing:
+  # Test frameworks in use
+  frameworks:
+    unit: 'jest'              # jest | mocha | vitest
+    integration: 'jest'       # jest | mocha | vitest
+    e2e: 'playwright'         # playwright | cypress | puppeteer
+    api: 'supertest'          # supertest | axios | got
+    performance: 'k6'         # k6 | artillery | locust
+    security: 'npm-audit'     # npm-audit | snyk | owasp-zap
+
+  # Test file locations
+  paths:
+    unit: 'tests/unit/**/*.test.{js,ts}'
+    integration: 'tests/integration/**/*.test.{js,ts}'
+    e2e: 'tests/e2e/**/*.spec.{js,ts}'
+    api: 'tests/api/**/*.test.{js,ts}'
+    smoke: 'tests/smoke/**/*.test.{js,ts}'
+    performance: 'tests/performance/**/*.{js,ts}'
+
+  # Parallelization settings
+  parallel:
+    unit: true
+    integration: true
+    e2e: false              # E2E usually needs sequential
+    api: true
+
+  # Timeout settings (in milliseconds)
+  timeouts:
+    unit: 5000
+    integration: 30000
+    e2e: 60000
+    api: 10000
+
+# ==============================================
+# COVERAGE REQUIREMENTS
+# ==============================================
+coverage:
+  # Enable coverage tracking
+  enabled: true
+  
+  # Global thresholds (percentages)
+  global:
+    lines: 80
+    branches: 75
+    functions: 85
+    statements: 80
+
+  # Critical modules (stricter thresholds)
+  critical:
+    paths:
+      - 'src/auth/**'
+      - 'src/payments/**'
+      - 'src/security/**'
+      - 'src/api/**'
+    thresholds:
+      lines: 95
+      branches: 90
+      functions: 100
+
+  # Fail build if coverage decreases
+  fail_on_decrease: true
+  decrease_threshold: 2       # Allow 2% fluctuation
+
+  # Exclude from coverage
+  exclude:
+    - '**/*.test.{js,ts}'
+    - '**/*.spec.{js,ts}'
+    - '**/tests/**'
+    - '**/mocks/**'
+    - '**/fixtures/**'
+    - '**/test-utils/**'
+
+# ==============================================
+# REGRESSION TESTING
+# ==============================================
+regression:
+  # Smoke tests (every commit)
+  smoke:
+    enabled: true
+    timeout: 5m
+    run_on:
+      - push
+    tests:
+      - 'tests/smoke/**'
+    critical_paths:
+      - 'app starts'
+      - 'can authenticate'
+      - 'core feature accessible'
+
+  # Core regression (every PR)
+  core:
+    enabled: true
+    timeout: 30m
+    run_on:
+      - pull_request
+    tests:
+      - 'tests/unit/**'
+      - 'tests/integration/**'
+      - 'tests/e2e/critical/**'
+      - 'tests/api/**'
+
+  # Full regression (releases)
+  full:
+    enabled: true
+    timeout: 2h
+    run_on:
+      - release
+      - manual
+    tests:
+      - 'tests/**'
+    include:
+      cross_browser: true
+      performance: true
+      security: true
+      accessibility: true
+
+# ==============================================
+# EDGE CASE TESTING
+# ==============================================
+edge_cases:
+  # Auto-generate edge case suggestions
+  auto_suggest: true
+  
+  # Categories Tucker always tests
+  categories:
+    numeric:
+      - zero
+      - negative
+      - max_int
+      - min_int
+      - float_precision
+      - nan
+      - infinity
+    
+    string:
+      - empty
+      - whitespace_only
+      - max_length
+      - unicode
+      - emoji
+      - special_chars
+      - sql_injection
+      - xss_payload
+    
+    collection:
+      - empty
+      - single_element
+      - at_limit
+      - over_limit
+      - duplicates
+      - null_elements
+    
+    datetime:
+      - leap_year
+      - dst_transition
+      - timezone_boundary
+      - epoch_edge
+      - far_future
+      - invalid_date
+    
+    async:
+      - timeout
+      - concurrent_access
+      - race_condition
+      - partial_failure
+      - retry_scenario
+
+# ==============================================
+# PERFORMANCE TESTING
+# ==============================================
+performance:
+  # Enable performance tests
+  enabled: true
+  
+  # Baseline thresholds
+  thresholds:
+    response_time:
+      p50: 100ms
+      p95: 500ms
+      p99: 1000ms
+    error_rate: 0.01          # 1%
+    throughput: 100           # requests/second minimum
+
+  # Load test scenarios
+  scenarios:
+    smoke:
+      vus: 1                  # Virtual users
+      duration: 1m
+    
+    normal:
+      vus: 50
+      duration: 5m
+    
+    peak:
+      vus: 200
+      duration: 10m
+      ramp_up: 2m
+    
+    stress:
+      vus: 500
+      duration: 5m
+      ramp_up: 1m
+    
+    soak:
+      vus: 100
+      duration: 1h
+
+  # Compare against baseline
+  compare_baseline: true
+  baseline_tolerance: 10      # 10% degradation allowed
+
+# ==============================================
+# SECURITY TESTING
+# ==============================================
+security:
+  # Enable security scans
+  enabled: true
+  
+  # OWASP Top 10 checks
+  owasp:
+    enabled: true
+    categories:
+      - injection
+      - broken_auth
+      - sensitive_data
+      - xxe
+      - broken_access
+      - misconfig
+      - xss
+      - insecure_deserialization
+      - vulnerable_components
+      - insufficient_logging
+
+  # Scan types
+  scans:
+    dependency_audit:
+      enabled: true
+      fail_on: high           # critical | high | moderate | low
+    
+    secret_detection:
+      enabled: true
+      patterns:
+        - 'password\s*=\s*[''"][^''"]+'
+        - 'api_key\s*=\s*[''"][^''"]+'
+        - 'secret\s*=\s*[''"][^''"]+'
+        - 'token\s*=\s*[''"][^''"]+'
+        - 'AWS_ACCESS_KEY_ID'
+        - 'AWS_SECRET_ACCESS_KEY'
+    
+    sast:
+      enabled: true
+      tool: 'codeql'
+    
+    dast:
+      enabled: false          # Enable for production testing
+      tool: 'zap'
+
+  # Severity thresholds
+  fail_on:
+    - critical
+    - high
+
+# ==============================================
+# ACCESSIBILITY TESTING
+# ==============================================
+accessibility:
+  # Enable a11y tests
+  enabled: true
+  
+  # WCAG conformance level
+  wcag_level: 'AA'            # A | AA | AAA
+  
+  # Rules to check
+  rules:
+    - color-contrast
+    - keyboard-navigation
+    - aria-labels
+    - focus-management
+    - alt-text
+    - heading-hierarchy
+    - form-labels
+    - link-purpose
+
+  # Fail on violation severity
+  fail_on:
+    - critical
+    - serious
+
+# ==============================================
+# FLAKY TEST MANAGEMENT
+# ==============================================
+flaky:
+  # Detection settings
+  detection:
+    enabled: true
+    window: 10                # Check last N runs
+    threshold: 3              # Failures to flag as flaky
+  
+  # Quarantine flaky tests
+  quarantine:
+    enabled: true
+    auto_quarantine: false    # Require manual review
+    max_days: 14              # Auto-unquarantine after fix
+  
+  # Retry settings
+  retry:
+    enabled: true
+    count: 2                  # Retry failed tests N times
+    only_on_ci: true          # Only retry in CI
+
+# ==============================================
+# TEST DATA MANAGEMENT
+# ==============================================
+test_data:
+  # Database handling
+  database:
+    strategy: 'transaction'   # transaction | truncate | recreate
+    seed_before_suite: true
+    cleanup_after_test: true
+  
+  # Fixtures location
+  fixtures_path: 'tests/fixtures/'
+  
+  # Factory path
+  factories_path: 'tests/factories/'
+
+# ==============================================
+# REPORTING
+# ==============================================
+reporting:
+  # Report formats
+  formats:
+    - html
+    - json
+    - junit
+    - lcov
+  
+  # Output directory
+  output_dir: 'test-reports/'
+  
+  # Upload artifacts
+  artifacts:
+    enabled: true
+    retention_days: 30
+  
+  # Screenshots on failure
+  screenshots:
+    enabled: true
+    on_failure: true
+    full_page: true
+  
+  # Video recording
+  video:
+    enabled: true
+    on_failure: true
+
+# ==============================================
+# NOTIFICATIONS
+# ==============================================
+notifications:
+  # When to notify
+  on_failure: true
+  on_flaky: true
+  on_recovery: true
+  on_coverage_drop: true
+  
+  # Channels
+  channels:
+    slack:
+      enabled: true
+      webhook: ${SLACK_WEBHOOK_URL}
+      channel: '#qa-alerts'
+    
+    email:
+      enabled: false
+      recipients:
+        - 'qa-team@company.com'
+    
+    github:
+      enabled: true
+      pr_comment: true
+      status_check: true
+
+# ==============================================
+# CI/CD INTEGRATION
+# ==============================================
+ci:
+  # Block merge on failure
+  block_merge: true
+  
+  # Required checks
+  required_checks:
+    - smoke-tests
+    - unit-tests
+    - integration-tests
+    - security-scan
+  
+  # Optional checks (warning only)
+  optional_checks:
+    - performance-tests
+    - accessibility-tests
+    - cross-browser-tests
+
+# ==============================================
+# BROWSER TESTING
+# ==============================================
+browsers:
+  # Primary browser (always test)
+  primary: 'chromium'
+  
+  # Additional browsers (release testing)
+  additional:
+    - 'firefox'
+    - 'webkit'
+  
+  # Mobile viewports
+  mobile_viewports:
+    - name: 'iPhone 12'
+      width: 390
+      height: 844
+    - name: 'Pixel 5'
+      width: 393
+      height: 851
+    - name: 'iPad'
+      width: 768
+      height: 1024

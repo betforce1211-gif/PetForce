@@ -1,0 +1,347 @@
+# .thomas.yml - Thomas Documentation Guardian Configuration
+
+version: 1
+
+# ==============================================
+# DOCUMENTATION PATHS
+# ==============================================
+paths:
+  # Public documentation root
+  docs: 'docs/'
+  
+  # Internal documentation (not public)
+  internal: 'docs/internal/'
+  
+  # Template location
+  templates: 'docs/_templates/'
+  
+  # API documentation
+  api: 'docs/reference/api/'
+  
+  # Release documentation
+  releases: 'docs/releases/'
+  
+  # Requirements/PRDs
+  requirements: 'docs/internal/requirements/'
+
+# ==============================================
+# DOCUMENTATION STRUCTURE
+# ==============================================
+structure:
+  # Required directories
+  required_dirs:
+    - 'docs/getting-started'
+    - 'docs/guides'
+    - 'docs/reference'
+    - 'docs/troubleshooting'
+  
+  # Required files
+  required_files:
+    - 'README.md'
+    - 'docs/getting-started/introduction.md'
+    - 'CHANGELOG.md'
+  
+  # Recommended structure
+  recommended:
+    getting-started:
+      - introduction.md
+      - quick-start.md
+      - installation.md
+    guides:
+      - features/
+      - integrations/
+      - advanced/
+    reference:
+      - api/
+      - configuration.md
+      - cli.md
+      - glossary.md
+    troubleshooting:
+      - common-issues.md
+      - error-messages.md
+      - faq.md
+
+# ==============================================
+# STYLE GUIDE
+# ==============================================
+style:
+  # Writing style
+  voice: 'active'          # active | passive
+  person: 'second'         # first | second | third
+  tense: 'present'         # present | past | future
+  
+  # Readability targets
+  readability:
+    max_sentence_length: 25
+    max_paragraph_sentences: 4
+    target_reading_level: 8  # Grade level (Flesch-Kincaid)
+    max_heading_depth: 4
+  
+  # Formatting
+  formatting:
+    heading_style: 'atx'           # atx (# style) | setext (underline)
+    heading_case: 'sentence'       # sentence | title | lower
+    list_marker: '-'               # - | * | +
+    code_fence: 'backtick'         # backtick | tilde
+    emphasis: 'asterisk'           # asterisk | underscore
+  
+  # Required document elements
+  required_elements:
+    guides:
+      - title            # H1 heading
+      - overview         # What and why
+      - prerequisites    # What's needed first
+      - steps            # How to do it
+    reference:
+      - title
+      - description
+      - parameters       # For API/CLI docs
+      - examples
+    troubleshooting:
+      - title
+      - symptoms
+      - solutions
+
+# ==============================================
+# TERMINOLOGY
+# ==============================================
+terminology:
+  # Path to glossary
+  glossary_path: 'docs/reference/glossary.md'
+  
+  # Enforce consistent terminology
+  enforce: true
+  
+  # Term mappings (use → instead of)
+  terms:
+    - correct: 'sign in'
+      incorrect: ['log in', 'login', 'log on']
+    - correct: 'set up'
+      incorrect: ['setup']
+      note: '"setup" only as noun/adjective'
+    - correct: 'email'
+      incorrect: ['e-mail', 'Email']
+    - correct: 'API key'
+      incorrect: ['api key', 'API Key', 'apikey', 'Api Key']
+    - correct: 'click'
+      incorrect: ['click on']
+    - correct: 'select'
+      incorrect: ['choose', 'pick']
+      context: 'for UI elements'
+    - correct: 'enter'
+      incorrect: ['type', 'input']
+      context: 'for text fields'
+    - correct: 'ID'
+      incorrect: ['id', 'Id']
+    - correct: 'OK'
+      incorrect: ['Ok', 'ok', 'okay', 'Okay']
+    - correct: 'URL'
+      incorrect: ['url', 'Url']
+  
+  # Forbidden phrases
+  forbidden:
+    - phrase: 'simply'
+      reason: 'Implies ease, may frustrate users'
+      alternative: 'Remove or rephrase'
+    - phrase: 'obviously'
+      reason: 'Condescending'
+      alternative: 'Remove entirely'
+    - phrase: 'just'
+      reason: 'Minimizes complexity'
+      alternative: 'State directly'
+    - phrase: 'easy'
+      reason: 'Subjective'
+      alternative: 'Remove or provide time estimate'
+    - phrase: 'please'
+      reason: 'Unnecessary in instructions'
+      alternative: 'Use direct imperative'
+    - phrase: 'in order to'
+      reason: 'Verbose'
+      alternative: '"To"'
+    - phrase: 'utilize'
+      reason: 'Pretentious'
+      alternative: '"Use"'
+    - phrase: 'leverage'
+      reason: 'Jargon'
+      alternative: '"Use"'
+
+# ==============================================
+# TEMPLATES
+# ==============================================
+templates:
+  feature: 'docs/_templates/feature.md'
+  troubleshooting: 'docs/_templates/troubleshooting.md'
+  api_endpoint: 'docs/_templates/api-endpoint.md'
+  prd: 'docs/_templates/prd.md'
+  release_notes: 'docs/_templates/release-notes.md'
+  runbook: 'docs/_templates/runbook.md'
+  adr: 'docs/_templates/adr.md'
+
+# ==============================================
+# REVIEW REQUIREMENTS
+# ==============================================
+review:
+  # Require review for docs changes
+  require_review: true
+  
+  # Reviewer assignments by path
+  reviewers:
+    'docs/**':
+      - docs-team
+    'docs/reference/api/**':
+      - api-team
+      - docs-team
+    'docs/internal/**':
+      - engineering-team
+    'docs/internal/requirements/**':
+      - product-team
+      - engineering-team
+  
+  # Minimum reviewers
+  min_reviewers: 1
+  
+  # Review checklist enforcement
+  require_checklist: true
+
+# ==============================================
+# FRESHNESS & MAINTENANCE
+# ==============================================
+freshness:
+  # Days before warning
+  warn_after_days: 60
+  
+  # Days before marking stale
+  stale_after_days: 90
+  
+  # Days before critical
+  critical_after_days: 180
+  
+  # Paths exempt from freshness checks
+  exempt_paths:
+    - 'docs/releases/'
+    - 'docs/reference/glossary.md'
+    - 'CHANGELOG.md'
+  
+  # Auto-create issues for stale docs
+  create_issues: true
+  issue_labels: ['documentation', 'stale']
+
+# ==============================================
+# LINK CHECKING
+# ==============================================
+links:
+  # Check external links
+  check_external: true
+  
+  # Check internal links
+  check_internal: true
+  
+  # Timeout for external checks (seconds)
+  timeout: 10
+  
+  # Retry on rate limit
+  retry_on_429: true
+  
+  # Patterns to ignore
+  ignore_patterns:
+    - 'localhost'
+    - '127.0.0.1'
+    - 'example.com'
+    - 'your-domain.com'
+    - '${' # Environment variables
+
+# ==============================================
+# CODE EXAMPLES
+# ==============================================
+code_examples:
+  # Require code examples in guides
+  require_in_guides: true
+  
+  # Validate code syntax
+  validate_syntax: true
+  
+  # Supported languages for validation
+  languages:
+    - javascript
+    - typescript
+    - python
+    - bash
+    - json
+    - yaml
+  
+  # Require language specifier on code blocks
+  require_language: true
+
+# ==============================================
+# VERSIONING
+# ==============================================
+versioning:
+  # Version source file
+  version_file: 'package.json'
+  
+  # Version field in file
+  version_field: 'version'
+  
+  # Changelog path
+  changelog_path: 'CHANGELOG.md'
+  
+  # Changelog format
+  changelog_format: 'keepachangelog'  # keepachangelog | conventional
+
+# ==============================================
+# DOCUMENTATION SITE
+# ==============================================
+site:
+  # Documentation framework (if any)
+  framework: 'docusaurus'  # docusaurus | mkdocs | gitbook | none
+  
+  # Site config file
+  config: 'docusaurus.config.js'
+  
+  # Build command
+  build_command: 'npm run docs:build'
+  
+  # Preview command
+  preview_command: 'npm run docs:serve'
+
+# ==============================================
+# NOTIFICATIONS
+# ==============================================
+notifications:
+  # Notify on stale docs
+  on_stale: true
+  
+  # Notify on broken links
+  on_broken_links: true
+  
+  # Notify on review needed
+  on_review_needed: true
+  
+  # Slack integration
+  slack:
+    enabled: false
+    webhook_url: ${SLACK_WEBHOOK_URL}
+    channel: '#docs-team'
+  
+  # GitHub issues
+  github_issues:
+    enabled: true
+    labels: ['documentation']
+
+# ==============================================
+# METRICS
+# ==============================================
+metrics:
+  # Track documentation metrics
+  enabled: true
+  
+  # Metrics to track
+  track:
+    - coverage        # % of features documented
+    - freshness       # % of docs updated recently
+    - link_health     # % of valid links
+    - readability     # Average reading level
+    - completeness    # % of required sections filled
+  
+  # Report frequency
+  report_frequency: 'weekly'  # daily | weekly | monthly

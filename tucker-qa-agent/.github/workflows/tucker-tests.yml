@@ -1,0 +1,560 @@
+# .github/workflows/tucker-tests.yml
+# Tucker's Quality Assurance Pipeline
+
+name: Tucker QA Guardian
+
+on:
+  push:
+    branches: [main, develop, 'release/*']
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+env:
+  NODE_VERSION: '20'
+  CI: true
+
+jobs:
+  # ============================================
+  # SMOKE TESTS (Fast Validation)
+  # ============================================
+  smoke-tests:
+    name: 💨 Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npm run typecheck --if-present
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Smoke Tests
+        run: npm run test:smoke --if-present || npm test -- --testPathPattern="smoke" --passWithNoTests
+
+  # ============================================
+  # UNIT TESTS
+  # ============================================
+  unit-tests:
+    name: 🔬 Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Unit Tests with Coverage
+        run: npm run test:unit -- --coverage --coverageReporters=json-summary --coverageReporters=text || npm test -- --coverage --coverageReporters=json-summary --coverageReporters=text
+        continue-on-error: false
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/
+
+      - name: Check Coverage Thresholds
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "📊 Coverage Summary:"
+            cat coverage/coverage-summary.json | jq '.total'
+            
+            LINES=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+            BRANCHES=$(cat coverage/coverage-summary.json | jq '.total.branches.pct')
+            FUNCTIONS=$(cat coverage/coverage-summary.json | jq '.total.functions.pct')
+            
+            echo "Lines: $LINES%"
+            echo "Branches: $BRANCHES%"
+            echo "Functions: $FUNCTIONS%"
+            
+            # Check thresholds
+            if (( $(echo "$LINES < 80" | bc -l) )); then
+              echo "❌ Line coverage below 80%"
+              exit 1
+            fi
+            
+            if (( $(echo "$BRANCHES < 75" | bc -l) )); then
+              echo "❌ Branch coverage below 75%"
+              exit 1
+            fi
+            
+            if (( $(echo "$FUNCTIONS < 85" | bc -l) )); then
+              echo "❌ Function coverage below 85%"
+              exit 1
+            fi
+            
+            echo "✅ Coverage thresholds met!"
+          fi
+
+  # ============================================
+  # INTEGRATION TESTS
+  # ============================================
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Migrations
+        run: npm run db:migrate --if-present
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+
+      - name: Run Integration Tests
+        run: npm run test:integration --if-present || npm test -- --testPathPattern="integration" --passWithNoTests
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+
+  # ============================================
+  # API TESTS
+  # ============================================
+  api-tests:
+    name: 🌐 API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Start Test Server
+        run: |
+          npm run start:test &
+          sleep 10
+        env:
+          NODE_ENV: test
+
+      - name: Run API Tests
+        run: npm run test:api --if-present || npm test -- --testPathPattern="api" --passWithNoTests
+
+  # ============================================
+  # E2E TESTS
+  # ============================================
+  e2e-tests:
+    name: 🎭 E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Build Application
+        run: npm run build --if-present
+
+      - name: Run E2E Tests
+        run: npx playwright test --project=chromium
+        env:
+          CI: true
+
+      - name: Upload E2E Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload E2E Screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: test-results/
+          retention-days: 7
+
+  # ============================================
+  # CROSS-BROWSER TESTS (Release Only)
+  # ============================================
+  cross-browser-tests:
+    name: 🌍 Cross-Browser Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [unit-tests, integration-tests]
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build Application
+        run: npm run build --if-present
+
+      - name: Run E2E Tests - ${{ matrix.browser }}
+        run: npx playwright test --project=${{ matrix.browser }}
+
+  # ============================================
+  # SECURITY SCAN
+  # ============================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Dependency Audit
+        run: |
+          echo "🔍 Running npm audit..."
+          npm audit --audit-level=high || true
+          
+      - name: Check for Secrets
+        run: |
+          echo "🔐 Scanning for hardcoded secrets..."
+          
+          # Check for common secret patterns
+          ISSUES=0
+          
+          if grep -rn "password\s*=\s*['\"][^'\"]*['\"]" --include="*.js" --include="*.ts" src/ 2>/dev/null | grep -v "test" | grep -v ".test." | grep -v "example"; then
+            echo "⚠️ Possible hardcoded password found"
+            ISSUES=$((ISSUES + 1))
+          fi
+          
+          if grep -rn "api_key\s*=\s*['\"][^'\"]*['\"]" --include="*.js" --include="*.ts" src/ 2>/dev/null | grep -v "test" | grep -v ".test." | grep -v "example"; then
+            echo "⚠️ Possible hardcoded API key found"
+            ISSUES=$((ISSUES + 1))
+          fi
+          
+          if [ "$ISSUES" -gt 0 ]; then
+            echo "❌ Found $ISSUES potential secret(s) in code"
+            exit 1
+          fi
+          
+          echo "✅ No hardcoded secrets detected"
+
+      - name: SAST Scan
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true
+        with:
+          languages: javascript
+
+  # ============================================
+  # PERFORMANCE TESTS (Release Only)
+  # ============================================
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [unit-tests, integration-tests]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Start Test Server
+        run: |
+          npm run start:test &
+          sleep 10
+        env:
+          NODE_ENV: test
+
+      - name: Run Performance Tests
+        run: |
+          if [ -f tests/performance/load.js ]; then
+            k6 run tests/performance/load.js --out json=perf-results.json
+          else
+            echo "No performance tests found, skipping..."
+          fi
+
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: perf-results.json
+          retention-days: 30
+
+  # ============================================
+  # ACCESSIBILITY TESTS
+  # ============================================
+  accessibility-tests:
+    name: ♿ Accessibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build --if-present
+
+      - name: Run Accessibility Tests
+        run: |
+          npx playwright test --project=chromium --grep="@a11y" || echo "No a11y tests found"
+
+  # ============================================
+  # TUCKER'S FINAL VERDICT
+  # ============================================
+  tucker-verdict:
+    name: ✅ Tucker's Verdict
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, unit-tests, integration-tests, api-tests, e2e-tests, security-scan, accessibility-tests]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/
+        continue-on-error: true
+
+      - name: Generate Verdict
+        id: verdict
+        run: |
+          echo "🧪 Tucker's Quality Report"
+          echo "=========================="
+          echo ""
+          
+          FAILURES=0
+          
+          check_result() {
+            local name=$1
+            local result=$2
+            
+            if [ "$result" = "success" ]; then
+              echo "✅ $name"
+            elif [ "$result" = "skipped" ]; then
+              echo "⏭️ $name (skipped)"
+            else
+              echo "❌ $name"
+              FAILURES=$((FAILURES + 1))
+            fi
+          }
+          
+          check_result "Smoke Tests" "${{ needs.smoke-tests.result }}"
+          check_result "Unit Tests" "${{ needs.unit-tests.result }}"
+          check_result "Integration Tests" "${{ needs.integration-tests.result }}"
+          check_result "API Tests" "${{ needs.api-tests.result }}"
+          check_result "E2E Tests" "${{ needs.e2e-tests.result }}"
+          check_result "Security Scan" "${{ needs.security-scan.result }}"
+          check_result "Accessibility" "${{ needs.accessibility-tests.result }}"
+          
+          echo ""
+          
+          if [ "$FAILURES" -eq 0 ]; then
+            echo "🎉 ALL TESTS PASSING!"
+            echo "Tucker says: Ship it! 🚀"
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "🚨 $FAILURES CHECK(S) FAILED"
+            echo "Tucker says: Don't ship until these are green! 🛑"
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            const smokeOk = '${{ needs.smoke-tests.result }}' === 'success';
+            const unitOk = '${{ needs.unit-tests.result }}' === 'success';
+            const integrationOk = '${{ needs.integration-tests.result }}' === 'success';
+            const apiOk = '${{ needs.api-tests.result }}' === 'success';
+            const e2eOk = '${{ needs.e2e-tests.result }}' === 'success';
+            const securityOk = '${{ needs.security-scan.result }}' === 'success';
+            const a11yOk = '${{ needs.accessibility-tests.result }}' === 'success';
+            
+            const allPassed = smokeOk && unitOk && integrationOk && apiOk && e2eOk && securityOk && a11yOk;
+            
+            let body;
+            if (allPassed) {
+              body = `## 🧪 Tucker's QA Report: ✅ All Clear!
+
+            All quality checks passed:
+
+            | Test Suite | Status |
+            |------------|--------|
+            | Smoke Tests | ✅ |
+            | Unit Tests | ✅ |
+            | Integration Tests | ✅ |
+            | API Tests | ✅ |
+            | E2E Tests | ✅ |
+            | Security Scan | ✅ |
+            | Accessibility | ✅ |
+
+            No edge cases escaped Tucker today! Ship it! 🚀`;
+            } else {
+              body = `## 🧪 Tucker's QA Report: ❌ Issues Found
+
+            | Test Suite | Status |
+            |------------|--------|
+            | Smoke Tests | ${smokeOk ? '✅' : '❌'} |
+            | Unit Tests | ${unitOk ? '✅' : '❌'} |
+            | Integration Tests | ${integrationOk ? '✅' : '❌'} |
+            | API Tests | ${apiOk ? '✅' : '❌'} |
+            | E2E Tests | ${e2eOk ? '✅' : '❌'} |
+            | Security Scan | ${securityOk ? '✅' : '❌'} |
+            | Accessibility | ${a11yOk ? '✅' : '❌'} |
+
+            Check the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.
+
+            Tucker says: Don't ship until these are green! 🛑`;
+            }
+            
+            // Find existing Tucker comment
+            const comments = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber,
+            });
+            
+            const tuckerComment = comments.data.find(
+              c => c.body.includes("Tucker's QA Report")
+            );
+            
+            if (tuckerComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: tuckerComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+      - name: Fail if Tests Failed
+        if: steps.verdict.outputs.passed != 'true'
+        run: exit 1

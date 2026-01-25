@@ -1,0 +1,209 @@
+/**
+ * Maya's React Native Screen Template
+ * Mobile first isn't just a strategy. It's where your users live.
+ * 
+ * This template includes:
+ * - Proper TypeScript types
+ * - Loading, error, and empty states
+ * - Pull-to-refresh
+ * - Infinite scroll pagination
+ * - Optimized FlatList
+ * - Offline support ready
+ */
+
+import React, { useCallback } from 'react';
+import {
+  View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  ListRenderItem,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { use{{FEATURE_NAME}} } from './use{{FEATURE_NAME}}';
+import { {{ITEM_TYPE}} } from '@/types';
+import { {{ITEM_TYPE}}Card, ErrorView, EmptyState } from '@/components';
+import { colors, spacing } from '@/theme';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface {{FEATURE_NAME}}ScreenProps {
+  // Add navigation props if needed
+}
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const ITEM_HEIGHT = 80; // Adjust based on your item height
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
+
+export const {{FEATURE_NAME}}Screen: React.FC<{{FEATURE_NAME}}ScreenProps> = () => {
+  const {
+    items,
+    isLoading,
+    isRefreshing,
+    isLoadingMore,
+    error,
+    hasMore,
+    refresh,
+    loadMore,
+    onItemPress,
+  } = use{{FEATURE_NAME}}();
+
+  // ---------------------------------------------------------------------------
+  // RENDER HELPERS
+  // ---------------------------------------------------------------------------
+
+  const renderItem: ListRenderItem<{{ITEM_TYPE}}> = useCallback(
+    ({ item }) => (
+      <{{ITEM_TYPE}}Card
+        item={item}
+        onPress={() => onItemPress(item)}
+      />
+    ),
+    [onItemPress]
+  );
+
+  const keyExtractor = useCallback((item: {{ITEM_TYPE}}) => item.id, []);
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
+  const renderSeparator = useCallback(
+    () => <View style={styles.separator} />,
+    []
+  );
+
+  const renderFooter = useCallback(() => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  }, [isLoadingMore]);
+
+  const renderEmpty = useCallback(
+    () => <EmptyState message="No items found" icon="inbox" />,
+    []
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [hasMore, isLoadingMore, loadMore]);
+
+  // ---------------------------------------------------------------------------
+  // LOADING STATE
+  // ---------------------------------------------------------------------------
+
+  if (isLoading && items.length === 0) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // ERROR STATE
+  // ---------------------------------------------------------------------------
+
+  if (error && items.length === 0) {
+    return (
+      <ErrorView
+        message={error}
+        onRetry={refresh}
+      />
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // MAIN RENDER
+  // ---------------------------------------------------------------------------
+
+  return (
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemLayout={getItemLayout}
+        ItemSeparatorComponent={renderSeparator}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
+        contentContainerStyle={[
+          styles.list,
+          items.length === 0 && styles.emptyList,
+        ]}
+        // Pull to refresh
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+        // Infinite scroll
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        // Performance optimizations
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={10}
+        // Accessibility
+        accessible={true}
+        accessibilityLabel="{{FEATURE_NAME}} list"
+      />
+    </SafeAreaView>
+  );
+};
+
+// =============================================================================
+// STYLES
+// =============================================================================
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  list: {
+    padding: spacing.md,
+  },
+  emptyList: {
+    flex: 1,
+  },
+  separator: {
+    height: spacing.sm,
+  },
+  footer: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+});
+
+export default {{FEATURE_NAME}}Screen;

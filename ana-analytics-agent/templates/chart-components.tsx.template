@@ -1,0 +1,618 @@
+// =============================================================================
+// Ana's Chart Components Library
+// Data tells stories. Dashboards should make them impossible to ignore.
+// =============================================================================
+
+import React, { useMemo } from 'react';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+// Common types
+type ChartColor = string;
+type DateRange = { start: Date; end: Date };
+
+interface TrendIndicator {
+  value: number;
+  direction: 'up' | 'down' | 'flat';
+  isPositive: boolean; // Whether the direction is good or bad
+}
+
+interface Comparison {
+  label: string;
+  value: number | string;
+}
+
+// =============================================================================
+// KPI CARD COMPONENT
+// =============================================================================
+
+interface KPICardProps {
+  title: string;
+  value: number | string;
+  format?: 'number' | 'currency' | 'percent' | 'compact';
+  trend?: TrendIndicator;
+  comparison?: Comparison;
+  sparklineData?: number[];
+  status?: 'good' | 'warning' | 'bad' | 'neutral';
+  loading?: boolean;
+  onClick?: () => void;
+}
+
+/**
+ * KPI Card - Display a single important metric
+ * 
+ * Usage:
+ * ```tsx
+ * <KPICard
+ *   title="Monthly Revenue"
+ *   value={125000}
+ *   format="currency"
+ *   trend={{ value: 12, direction: 'up', isPositive: true }}
+ *   comparison={{ label: 'vs last month', value: '$111,607' }}
+ *   status="good"
+ * />
+ * ```
+ */
+export function KPICard({
+  title,
+  value,
+  format = 'number',
+  trend,
+  comparison,
+  sparklineData,
+  status = 'neutral',
+  loading = false,
+  onClick,
+}: KPICardProps) {
+  const formattedValue = useMemo(() => {
+    if (typeof value === 'string') return value;
+    
+    switch (format) {
+      case 'currency':
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(value);
+      case 'percent':
+        return `${value.toFixed(1)}%`;
+      case 'compact':
+        return new Intl.NumberFormat('en-US', {
+          notation: 'compact',
+          maximumFractionDigits: 1,
+        }).format(value);
+      default:
+        return new Intl.NumberFormat('en-US').format(value);
+    }
+  }, [value, format]);
+
+  const statusColors = {
+    good: 'bg-green-50 border-green-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+    bad: 'bg-red-50 border-red-200',
+    neutral: 'bg-white border-gray-200',
+  };
+
+  const trendColors = {
+    up: trend?.isPositive ? 'text-green-600' : 'text-red-600',
+    down: trend?.isPositive ? 'text-red-600' : 'text-green-600',
+    flat: 'text-gray-500',
+  };
+
+  const trendIcons = {
+    up: '↑',
+    down: '↓',
+    flat: '→',
+  };
+
+  if (loading) {
+    return (
+      <div className={`p-4 rounded-lg border ${statusColors.neutral} animate-pulse`}>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
+        <div className="h-8 bg-gray-200 rounded w-3/4" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`p-4 rounded-lg border ${statusColors[status]} ${
+        onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''
+      }`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
+      <div className="text-sm text-gray-600 font-medium mb-1">{title}</div>
+      
+      <div className="flex items-baseline gap-2">
+        <div className="text-2xl font-bold text-gray-900">{formattedValue}</div>
+        
+        {trend && (
+          <div className={`text-sm font-medium ${trendColors[trend.direction]}`}>
+            {trendIcons[trend.direction]} {Math.abs(trend.value)}%
+          </div>
+        )}
+      </div>
+      
+      {comparison && (
+        <div className="text-xs text-gray-500 mt-1">
+          {comparison.label}: {comparison.value}
+        </div>
+      )}
+      
+      {sparklineData && sparklineData.length > 0 && (
+        <div className="mt-2 h-8">
+          <Sparkline data={sparklineData} color={status === 'good' ? '#10B981' : '#6B7280'} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// SPARKLINE COMPONENT
+// =============================================================================
+
+interface SparklineProps {
+  data: number[];
+  color?: string;
+  height?: number;
+  showArea?: boolean;
+}
+
+/**
+ * Sparkline - Minimal trend visualization
+ */
+export function Sparkline({
+  data,
+  color = '#3B82F6',
+  height = 32,
+  showArea = true,
+}: SparklineProps) {
+  const { path, areaPath } = useMemo(() => {
+    if (data.length < 2) return { path: '', areaPath: '' };
+    
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+    
+    const width = 100;
+    const points = data.map((value, index) => ({
+      x: (index / (data.length - 1)) * width,
+      y: height - ((value - min) / range) * height,
+    }));
+    
+    const linePath = points
+      .map((point, i) => `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ');
+    
+    const area = `${linePath} L ${width} ${height} L 0 ${height} Z`;
+    
+    return { path: linePath, areaPath: area };
+  }, [data, height]);
+
+  return (
+    <svg width="100%" height={height} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none">
+      {showArea && (
+        <path d={areaPath} fill={color} fillOpacity={0.1} />
+      )}
+      <path d={path} fill="none" stroke={color} strokeWidth={2} />
+    </svg>
+  );
+}
+
+// =============================================================================
+// METRIC ROW COMPONENT
+// =============================================================================
+
+interface MetricRowProps {
+  metrics: KPICardProps[];
+  columns?: 2 | 3 | 4 | 5;
+}
+
+/**
+ * Metric Row - Display multiple KPI cards in a row
+ */
+export function MetricRow({ metrics, columns = 4 }: MetricRowProps) {
+  const gridCols = {
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4',
+    5: 'grid-cols-5',
+  };
+
+  return (
+    <div className={`grid ${gridCols[columns]} gap-4`}>
+      {metrics.map((metric, index) => (
+        <KPICard key={index} {...metric} />
+      ))}
+    </div>
+  );
+}
+
+// =============================================================================
+// CHART WRAPPER COMPONENT
+// =============================================================================
+
+interface ChartWrapperProps {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+  loading?: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
+}
+
+/**
+ * Chart Wrapper - Consistent container for charts
+ */
+export function ChartWrapper({
+  title,
+  subtitle,
+  children,
+  actions,
+  loading = false,
+  error = null,
+  onRetry,
+}: ChartWrapperProps) {
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+            {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+          <span className="text-red-500 mb-2">Failed to load chart</span>
+          <span className="text-sm">{error.message}</span>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="font-semibold text-gray-900">{title}</h3>
+          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+        </div>
+        {actions && <div className="flex gap-2">{actions}</div>}
+      </div>
+      
+      {loading ? (
+        <div className="h-64 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        </div>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// PROGRESS BAR COMPONENT
+// =============================================================================
+
+interface ProgressBarProps {
+  value: number;
+  max: number;
+  label?: string;
+  showPercentage?: boolean;
+  color?: 'blue' | 'green' | 'yellow' | 'red';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+/**
+ * Progress Bar - Show progress toward a goal
+ */
+export function ProgressBar({
+  value,
+  max,
+  label,
+  showPercentage = true,
+  color = 'blue',
+  size = 'md',
+}: ProgressBarProps) {
+  const percentage = Math.min((value / max) * 100, 100);
+  
+  const colors = {
+    blue: 'bg-blue-500',
+    green: 'bg-green-500',
+    yellow: 'bg-yellow-500',
+    red: 'bg-red-500',
+  };
+  
+  const sizes = {
+    sm: 'h-2',
+    md: 'h-3',
+    lg: 'h-4',
+  };
+
+  return (
+    <div>
+      {(label || showPercentage) && (
+        <div className="flex justify-between text-sm mb-1">
+          {label && <span className="text-gray-600">{label}</span>}
+          {showPercentage && (
+            <span className="text-gray-900 font-medium">{percentage.toFixed(0)}%</span>
+          )}
+        </div>
+      )}
+      <div className={`w-full bg-gray-200 rounded-full ${sizes[size]}`}>
+        <div
+          className={`${colors[color]} rounded-full ${sizes[size]} transition-all duration-300`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// TREND BADGE COMPONENT
+// =============================================================================
+
+interface TrendBadgeProps {
+  value: number;
+  isPositive?: boolean; // Whether up is good
+  format?: 'percent' | 'number' | 'currency';
+}
+
+/**
+ * Trend Badge - Inline trend indicator
+ */
+export function TrendBadge({
+  value,
+  isPositive = true,
+  format = 'percent',
+}: TrendBadgeProps) {
+  const isUp = value > 0;
+  const isGood = isUp === isPositive;
+  
+  const bgColor = isGood ? 'bg-green-100' : value === 0 ? 'bg-gray-100' : 'bg-red-100';
+  const textColor = isGood ? 'text-green-700' : value === 0 ? 'text-gray-700' : 'text-red-700';
+  
+  const icon = isUp ? '↑' : value === 0 ? '→' : '↓';
+  
+  let formattedValue: string;
+  switch (format) {
+    case 'percent':
+      formattedValue = `${Math.abs(value).toFixed(1)}%`;
+      break;
+    case 'currency':
+      formattedValue = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+      }).format(Math.abs(value));
+      break;
+    default:
+      formattedValue = Math.abs(value).toLocaleString();
+  }
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-sm font-medium ${bgColor} ${textColor}`}>
+      {icon} {formattedValue}
+    </span>
+  );
+}
+
+// =============================================================================
+// DATA TABLE COMPONENT
+// =============================================================================
+
+interface Column<T> {
+  key: keyof T;
+  header: string;
+  format?: (value: T[keyof T], row: T) => React.ReactNode;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+}
+
+interface DataTableProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  loading?: boolean;
+  emptyMessage?: string;
+  onRowClick?: (row: T) => void;
+}
+
+/**
+ * Data Table - Display tabular analytics data
+ */
+export function DataTable<T extends Record<string, unknown>>({
+  data,
+  columns,
+  loading = false,
+  emptyMessage = 'No data available',
+  onRowClick,
+}: DataTableProps<T>) {
+  const alignClasses = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+  };
+
+  if (loading) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-10 bg-gray-200 rounded mb-2" />
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-12 bg-gray-100 rounded mb-1" />
+        ))}
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            {columns.map((column) => (
+              <th
+                key={String(column.key)}
+                className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  alignClasses[column.align || 'left']
+                }`}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, rowIndex) => (
+            <tr
+              key={rowIndex}
+              className={`border-b border-gray-100 ${
+                onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
+              }`}
+              onClick={() => onRowClick?.(row)}
+            >
+              {columns.map((column) => (
+                <td
+                  key={String(column.key)}
+                  className={`px-4 py-3 text-sm text-gray-900 ${
+                    alignClasses[column.align || 'left']
+                  }`}
+                >
+                  {column.format
+                    ? column.format(row[column.key], row)
+                    : String(row[column.key] ?? '-')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// =============================================================================
+// DATE RANGE PICKER COMPONENT
+// =============================================================================
+
+interface DateRangePickerProps {
+  value: DateRange;
+  onChange: (range: DateRange) => void;
+  presets?: Array<{ label: string; getValue: () => DateRange }>;
+}
+
+/**
+ * Date Range Picker - Select date ranges for analytics
+ */
+export function DateRangePicker({
+  value,
+  onChange,
+  presets = defaultDatePresets,
+}: DateRangePickerProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+        onChange={(e) => {
+          const preset = presets.find((p) => p.label === e.target.value);
+          if (preset) {
+            onChange(preset.getValue());
+          }
+        }}
+      >
+        {presets.map((preset) => (
+          <option key={preset.label} value={preset.label}>
+            {preset.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+const defaultDatePresets = [
+  {
+    label: 'Last 7 days',
+    getValue: () => ({
+      start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      end: new Date(),
+    }),
+  },
+  {
+    label: 'Last 30 days',
+    getValue: () => ({
+      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date(),
+    }),
+  },
+  {
+    label: 'Last 90 days',
+    getValue: () => ({
+      start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+      end: new Date(),
+    }),
+  },
+  {
+    label: 'This month',
+    getValue: () => {
+      const now = new Date();
+      return {
+        start: new Date(now.getFullYear(), now.getMonth(), 1),
+        end: now,
+      };
+    },
+  },
+  {
+    label: 'Last month',
+    getValue: () => {
+      const now = new Date();
+      return {
+        start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+        end: new Date(now.getFullYear(), now.getMonth(), 0),
+      };
+    },
+  },
+];
+
+// =============================================================================
+// EXPORT
+// =============================================================================
+
+export type {
+  KPICardProps,
+  SparklineProps,
+  MetricRowProps,
+  ChartWrapperProps,
+  ProgressBarProps,
+  TrendBadgeProps,
+  DataTableProps,
+  DateRangePickerProps,
+  TrendIndicator,
+  Comparison,
+  DateRange,
+  Column,
+};

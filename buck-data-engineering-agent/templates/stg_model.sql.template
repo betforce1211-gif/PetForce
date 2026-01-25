@@ -1,0 +1,110 @@
+-- =============================================================================
+-- Buck's dbt Staging Model Template
+-- Bad data is worse than no data. Good pipelines make good data.
+-- =============================================================================
+--
+-- Staging models are the SILVER layer:
+-- • Clean and standardize raw data
+-- • No business logic yet
+-- • One-to-one with source tables
+-- • Materialized as views (lightweight)
+--
+-- Naming: stg_<source>__<table>
+-- Example: stg_stripe__charges
+-- =============================================================================
+
+{{
+  config(
+    materialized='view',
+    schema='staging'
+  )
+}}
+
+with source as (
+    -- Reference the raw source table
+    select * from {{ source('{{SOURCE_NAME}}', '{{TABLE_NAME}}') }}
+),
+
+renamed as (
+    select
+        -- =================================================================
+        -- PRIMARY KEY
+        -- =================================================================
+        id as {{TABLE_NAME}}_id,
+        
+        -- =================================================================
+        -- FOREIGN KEYS
+        -- =================================================================
+        -- customer_id,
+        -- product_id,
+        
+        -- =================================================================
+        -- STRINGS
+        -- =================================================================
+        -- Trim whitespace, lowercase where appropriate
+        -- trim(name) as name,
+        -- lower(email) as email,
+        -- status,
+        
+        -- =================================================================
+        -- NUMERICS
+        -- =================================================================
+        -- Convert cents to dollars, handle nulls
+        -- coalesce(amount_cents, 0) / 100.0 as amount,
+        -- {{ cents_to_dollars('amount_cents') }} as amount,  -- using macro
+        
+        -- =================================================================
+        -- BOOLEANS
+        -- =================================================================
+        -- Convert to proper boolean
+        -- case when is_active = 'true' then true else false end as is_active,
+        
+        -- =================================================================
+        -- DATES & TIMESTAMPS
+        -- =================================================================
+        -- Ensure proper timestamp types
+        -- cast(created_at as timestamp) as created_at,
+        -- cast(updated_at as timestamp) as updated_at,
+        
+        -- =================================================================
+        -- JSON PARSING (Snowflake)
+        -- =================================================================
+        -- metadata:key::string as metadata_key,
+        -- parse_json(properties):value::number as property_value,
+        
+        -- =================================================================
+        -- METADATA
+        -- =================================================================
+        _airbyte_extracted_at as _extracted_at,
+        _airbyte_loaded_at as _loaded_at
+        
+    from source
+    
+    -- =================================================================
+    -- BASIC FILTERING
+    -- =================================================================
+    -- Remove obviously bad records
+    where id is not null
+    -- and _airbyte_loaded_at > '2020-01-01'  -- only recent data
+)
+
+select * from renamed
+
+-- =============================================================================
+-- SCHEMA FILE (_staging.yml)
+-- =============================================================================
+-- 
+-- version: 2
+-- 
+-- models:
+--   - name: stg_{{SOURCE_NAME}}__{{TABLE_NAME}}
+--     description: "Staged {{TABLE_NAME}} from {{SOURCE_NAME}}"
+--     columns:
+--       - name: {{TABLE_NAME}}_id
+--         description: "Primary key"
+--         tests:
+--           - unique
+--           - not_null
+--       # Add more columns...
+-- 
+-- =============================================================================

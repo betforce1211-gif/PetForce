@@ -1,0 +1,555 @@
+// =============================================================================
+// Dexter's Design Tokens
+// Design is not just what it looks like. Design is how it works.
+// =============================================================================
+
+// =============================================================================
+// PRIMITIVE TOKENS
+// Raw values - the foundation of the design system
+// =============================================================================
+
+export const primitives = {
+  // ---------------------------------------------------------------------------
+  // COLORS
+  // ---------------------------------------------------------------------------
+  colors: {
+    // Brand / Primary
+    blue: {
+      50: '#EFF6FF',
+      100: '#DBEAFE',
+      200: '#BFDBFE',
+      300: '#93C5FD',
+      400: '#60A5FA',
+      500: '#3B82F6',
+      600: '#2563EB',
+      700: '#1D4ED8',
+      800: '#1E40AF',
+      900: '#1E3A8A',
+    },
+    
+    // Neutrals
+    gray: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      300: '#D1D5DB',
+      400: '#9CA3AF',
+      500: '#6B7280',
+      600: '#4B5563',
+      700: '#374151',
+      800: '#1F2937',
+      900: '#111827',
+      950: '#030712',
+    },
+    
+    // Success
+    green: {
+      50: '#F0FDF4',
+      100: '#DCFCE7',
+      200: '#BBF7D0',
+      300: '#86EFAC',
+      400: '#4ADE80',
+      500: '#22C55E',
+      600: '#16A34A',
+      700: '#15803D',
+      800: '#166534',
+      900: '#14532D',
+    },
+    
+    // Warning
+    amber: {
+      50: '#FFFBEB',
+      100: '#FEF3C7',
+      200: '#FDE68A',
+      300: '#FCD34D',
+      400: '#FBBF24',
+      500: '#F59E0B',
+      600: '#D97706',
+      700: '#B45309',
+      800: '#92400E',
+      900: '#78350F',
+    },
+    
+    // Error
+    red: {
+      50: '#FEF2F2',
+      100: '#FEE2E2',
+      200: '#FECACA',
+      300: '#FCA5A5',
+      400: '#F87171',
+      500: '#EF4444',
+      600: '#DC2626',
+      700: '#B91C1C',
+      800: '#991B1B',
+      900: '#7F1D1D',
+    },
+    
+    // Pure colors
+    white: '#FFFFFF',
+    black: '#000000',
+    transparent: 'transparent',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // SPACING
+  // Base unit: 4px
+  // ---------------------------------------------------------------------------
+  spacing: {
+    0: '0px',
+    px: '1px',
+    0.5: '2px',
+    1: '4px',
+    1.5: '6px',
+    2: '8px',
+    2.5: '10px',
+    3: '12px',
+    3.5: '14px',
+    4: '16px',
+    5: '20px',
+    6: '24px',
+    7: '28px',
+    8: '32px',
+    9: '36px',
+    10: '40px',
+    11: '44px',
+    12: '48px',
+    14: '56px',
+    16: '64px',
+    20: '80px',
+    24: '96px',
+    28: '112px',
+    32: '128px',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // TYPOGRAPHY
+  // ---------------------------------------------------------------------------
+  fontFamily: {
+    sans: [
+      'Inter',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Roboto',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+    ].join(', '),
+    mono: [
+      '"JetBrains Mono"',
+      '"Fira Code"',
+      'Consolas',
+      '"Courier New"',
+      'monospace',
+    ].join(', '),
+  },
+  
+  fontSize: {
+    xs: '12px',
+    sm: '14px',
+    base: '16px',
+    lg: '18px',
+    xl: '20px',
+    '2xl': '24px',
+    '3xl': '30px',
+    '4xl': '36px',
+    '5xl': '48px',
+    '6xl': '60px',
+  },
+  
+  lineHeight: {
+    none: '1',
+    tight: '1.25',
+    snug: '1.375',
+    normal: '1.5',
+    relaxed: '1.625',
+    loose: '2',
+  },
+  
+  fontWeight: {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  },
+  
+  letterSpacing: {
+    tighter: '-0.05em',
+    tight: '-0.025em',
+    normal: '0em',
+    wide: '0.025em',
+    wider: '0.05em',
+    widest: '0.1em',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // BORDERS
+  // ---------------------------------------------------------------------------
+  borderRadius: {
+    none: '0px',
+    sm: '4px',
+    DEFAULT: '6px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+    '2xl': '24px',
+    full: '9999px',
+  },
+  
+  borderWidth: {
+    0: '0px',
+    DEFAULT: '1px',
+    2: '2px',
+    4: '4px',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // SHADOWS
+  // ---------------------------------------------------------------------------
+  boxShadow: {
+    none: 'none',
+    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+    DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+    md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+    xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+    '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+    inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // ANIMATION
+  // ---------------------------------------------------------------------------
+  duration: {
+    0: '0ms',
+    75: '75ms',
+    100: '100ms',
+    150: '150ms',
+    200: '200ms',
+    300: '300ms',
+    500: '500ms',
+    700: '700ms',
+    1000: '1000ms',
+  },
+  
+  easing: {
+    linear: 'linear',
+    in: 'cubic-bezier(0.4, 0, 1, 1)',
+    out: 'cubic-bezier(0, 0, 0.2, 1)',
+    inOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  
+  // ---------------------------------------------------------------------------
+  // Z-INDEX
+  // ---------------------------------------------------------------------------
+  zIndex: {
+    auto: 'auto',
+    0: '0',
+    10: '10',
+    20: '20',
+    30: '30',
+    40: '40',
+    50: '50',
+    dropdown: '1000',
+    sticky: '1100',
+    modal: '1200',
+    popover: '1300',
+    tooltip: '1400',
+    toast: '1500',
+  },
+};
+
+// =============================================================================
+// SEMANTIC TOKENS
+// Purpose-based aliases that reference primitives
+// =============================================================================
+
+export const semantic = {
+  // ---------------------------------------------------------------------------
+  // BACKGROUNDS
+  // ---------------------------------------------------------------------------
+  background: {
+    // Surfaces
+    primary: primitives.colors.white,
+    secondary: primitives.colors.gray[50],
+    tertiary: primitives.colors.gray[100],
+    inverse: primitives.colors.gray[900],
+    
+    // Brand
+    brand: primitives.colors.blue[500],
+    brandSubtle: primitives.colors.blue[50],
+    
+    // Status
+    success: primitives.colors.green[50],
+    successStrong: primitives.colors.green[500],
+    warning: primitives.colors.amber[50],
+    warningStrong: primitives.colors.amber[500],
+    error: primitives.colors.red[50],
+    errorStrong: primitives.colors.red[500],
+    info: primitives.colors.blue[50],
+    infoStrong: primitives.colors.blue[500],
+    
+    // Interactive
+    hover: primitives.colors.gray[50],
+    active: primitives.colors.gray[100],
+    selected: primitives.colors.blue[50],
+    disabled: primitives.colors.gray[100],
+  },
+  
+  // ---------------------------------------------------------------------------
+  // TEXT
+  // ---------------------------------------------------------------------------
+  text: {
+    // Primary text colors
+    primary: primitives.colors.gray[900],
+    secondary: primitives.colors.gray[600],
+    tertiary: primitives.colors.gray[500],
+    placeholder: primitives.colors.gray[400],
+    disabled: primitives.colors.gray[400],
+    inverse: primitives.colors.white,
+    
+    // Brand
+    brand: primitives.colors.blue[600],
+    brandHover: primitives.colors.blue[700],
+    
+    // Status
+    success: primitives.colors.green[700],
+    warning: primitives.colors.amber[700],
+    error: primitives.colors.red[600],
+    info: primitives.colors.blue[700],
+    
+    // Links
+    link: primitives.colors.blue[600],
+    linkHover: primitives.colors.blue[700],
+    linkVisited: primitives.colors.blue[800],
+  },
+  
+  // ---------------------------------------------------------------------------
+  // BORDERS
+  // ---------------------------------------------------------------------------
+  border: {
+    // Standard borders
+    primary: primitives.colors.gray[200],
+    secondary: primitives.colors.gray[300],
+    tertiary: primitives.colors.gray[100],
+    
+    // Interactive
+    focus: primitives.colors.blue[500],
+    hover: primitives.colors.gray[400],
+    
+    // Status
+    success: primitives.colors.green[500],
+    warning: primitives.colors.amber[500],
+    error: primitives.colors.red[500],
+    info: primitives.colors.blue[500],
+    
+    // Disabled
+    disabled: primitives.colors.gray[200],
+  },
+  
+  // ---------------------------------------------------------------------------
+  // ICONS
+  // ---------------------------------------------------------------------------
+  icon: {
+    primary: primitives.colors.gray[700],
+    secondary: primitives.colors.gray[500],
+    tertiary: primitives.colors.gray[400],
+    inverse: primitives.colors.white,
+    brand: primitives.colors.blue[600],
+    success: primitives.colors.green[600],
+    warning: primitives.colors.amber[600],
+    error: primitives.colors.red[600],
+    disabled: primitives.colors.gray[400],
+  },
+};
+
+// =============================================================================
+// COMPONENT TOKENS
+// Specific component-level tokens
+// =============================================================================
+
+export const components = {
+  // ---------------------------------------------------------------------------
+  // BUTTON
+  // ---------------------------------------------------------------------------
+  button: {
+    // Primary
+    primary: {
+      background: semantic.background.brand,
+      backgroundHover: primitives.colors.blue[600],
+      backgroundActive: primitives.colors.blue[700],
+      text: semantic.text.inverse,
+      border: 'transparent',
+    },
+    // Secondary
+    secondary: {
+      background: semantic.background.primary,
+      backgroundHover: semantic.background.hover,
+      backgroundActive: semantic.background.active,
+      text: semantic.text.primary,
+      border: semantic.border.primary,
+    },
+    // Tertiary (ghost)
+    tertiary: {
+      background: 'transparent',
+      backgroundHover: semantic.background.hover,
+      backgroundActive: semantic.background.active,
+      text: semantic.text.brand,
+      border: 'transparent',
+    },
+    // Destructive
+    destructive: {
+      background: semantic.background.errorStrong,
+      backgroundHover: primitives.colors.red[600],
+      backgroundActive: primitives.colors.red[700],
+      text: semantic.text.inverse,
+      border: 'transparent',
+    },
+    // Sizes
+    size: {
+      sm: {
+        height: '32px',
+        paddingX: primitives.spacing[3],
+        fontSize: primitives.fontSize.sm,
+        iconSize: '16px',
+      },
+      md: {
+        height: '40px',
+        paddingX: primitives.spacing[4],
+        fontSize: primitives.fontSize.sm,
+        iconSize: '20px',
+      },
+      lg: {
+        height: '48px',
+        paddingX: primitives.spacing[5],
+        fontSize: primitives.fontSize.base,
+        iconSize: '20px',
+      },
+    },
+    borderRadius: primitives.borderRadius.DEFAULT,
+    fontWeight: primitives.fontWeight.semibold,
+  },
+  
+  // ---------------------------------------------------------------------------
+  // INPUT
+  // ---------------------------------------------------------------------------
+  input: {
+    background: semantic.background.primary,
+    backgroundDisabled: semantic.background.tertiary,
+    text: semantic.text.primary,
+    textPlaceholder: semantic.text.placeholder,
+    border: semantic.border.primary,
+    borderHover: semantic.border.hover,
+    borderFocus: semantic.border.focus,
+    borderError: semantic.border.error,
+    borderRadius: primitives.borderRadius.DEFAULT,
+    // Sizes
+    size: {
+      sm: {
+        height: '36px',
+        paddingX: primitives.spacing[3],
+        fontSize: primitives.fontSize.sm,
+      },
+      md: {
+        height: '44px',
+        paddingX: primitives.spacing[4],
+        fontSize: primitives.fontSize.base,
+      },
+      lg: {
+        height: '52px',
+        paddingX: primitives.spacing[4],
+        fontSize: primitives.fontSize.lg,
+      },
+    },
+  },
+  
+  // ---------------------------------------------------------------------------
+  // CARD
+  // ---------------------------------------------------------------------------
+  card: {
+    background: semantic.background.primary,
+    border: semantic.border.tertiary,
+    borderRadius: primitives.borderRadius.md,
+    shadow: primitives.boxShadow.sm,
+    shadowHover: primitives.boxShadow.md,
+    padding: {
+      compact: primitives.spacing[4],
+      default: primitives.spacing[6],
+      spacious: primitives.spacing[8],
+    },
+  },
+  
+  // ---------------------------------------------------------------------------
+  // MODAL
+  // ---------------------------------------------------------------------------
+  modal: {
+    background: semantic.background.primary,
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: primitives.borderRadius.lg,
+    shadow: primitives.boxShadow.xl,
+    padding: primitives.spacing[6],
+    maxWidth: {
+      sm: '400px',
+      md: '500px',
+      lg: '600px',
+      xl: '800px',
+    },
+  },
+  
+  // ---------------------------------------------------------------------------
+  // TOOLTIP
+  // ---------------------------------------------------------------------------
+  tooltip: {
+    background: primitives.colors.gray[900],
+    text: primitives.colors.white,
+    borderRadius: primitives.borderRadius.DEFAULT,
+    padding: `${primitives.spacing[1.5]} ${primitives.spacing[3]}`,
+    fontSize: primitives.fontSize.sm,
+    shadow: primitives.boxShadow.md,
+  },
+  
+  // ---------------------------------------------------------------------------
+  // BADGE
+  // ---------------------------------------------------------------------------
+  badge: {
+    borderRadius: primitives.borderRadius.full,
+    paddingX: primitives.spacing[2],
+    paddingY: primitives.spacing[0.5],
+    fontSize: primitives.fontSize.xs,
+    fontWeight: primitives.fontWeight.medium,
+    variants: {
+      default: {
+        background: semantic.background.tertiary,
+        text: semantic.text.secondary,
+      },
+      primary: {
+        background: semantic.background.brandSubtle,
+        text: semantic.text.brand,
+      },
+      success: {
+        background: semantic.background.success,
+        text: semantic.text.success,
+      },
+      warning: {
+        background: semantic.background.warning,
+        text: semantic.text.warning,
+      },
+      error: {
+        background: semantic.background.error,
+        text: semantic.text.error,
+      },
+    },
+  },
+};
+
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+export const tokens = {
+  primitives,
+  semantic,
+  components,
+};
+
+export default tokens;

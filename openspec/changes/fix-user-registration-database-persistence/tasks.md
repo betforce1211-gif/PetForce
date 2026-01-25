@@ -1,0 +1,89 @@
+# Implementation Tasks
+
+## 1. Investigation & Documentation
+- [x] 1.1 Identify root cause (Supabase email confirmation setting)
+- [x] 1.2 Document which agents failed their checklists
+- [x] 1.3 Create comprehensive proposal with team accountability
+- [ ] 1.4 Review Supabase dashboard to confirm user state
+
+## 2. Add Centralized Logging Infrastructure (Larry's Responsibility)
+- [ ] 2.1 Create `packages/auth/src/utils/logger.ts` with structured logging
+- [ ] 2.2 Add log levels (DEBUG, INFO, WARN, ERROR)
+- [ ] 2.3 Add request ID tracking for correlation
+- [ ] 2.4 Add user context to all auth logs
+- [ ] 2.5 Configure log output (console for dev, service for prod)
+
+## 3. Update Registration API with Logging
+- [ ] 3.1 Add logging at start of registration attempt
+- [ ] 3.2 Log Supabase signUp call with request ID
+- [ ] 3.3 Log email confirmation status in response
+- [ ] 3.4 Log user creation with confirmation state
+- [ ] 3.5 Add structured error logging with context
+- [ ] 3.6 Return confirmation state in API response
+
+## 4. Add Email Confirmation Tracking
+- [ ] 4.1 Create helper to check if user is confirmed
+- [ ] 4.2 Add confirmation state to User type
+- [ ] 4.3 Log when confirmation email is sent
+- [ ] 4.4 Add endpoint to resend confirmation email
+- [ ] 4.5 Add endpoint to check confirmation status
+
+## 5. Update Login Flow to Handle Unconfirmed Users
+- [ ] 5.1 Check confirmation status on login attempt
+- [ ] 5.2 Return clear error if user not confirmed
+- [ ] 5.3 Log unconfirmed login attempts
+- [ ] 5.4 Provide "resend email" option in error response
+
+## 6. Add Comprehensive Tests (Tucker's Checklist)
+- [ ] 6.1 Test: Registration creates user in database
+- [ ] 6.2 Test: User is marked as unconfirmed after registration
+- [ ] 6.3 Test: Login fails for unconfirmed user with clear error
+- [ ] 6.4 Test: Resend confirmation email works
+- [ ] 6.5 Test: Login succeeds after email confirmation
+- [ ] 6.6 Test: Integration test for full flow (register → confirm → login)
+- [ ] 6.7 Test: Logging captures all registration events
+- [ ] 6.8 Test: Request IDs are consistent across log entries
+
+## 7. Improve UX (Dexter's Requirements)
+- [ ] 7.1 Update registration success message to mention email
+- [ ] 7.2 Add "Check your email" page after registration
+- [ ] 7.3 Add "Resend verification email" button
+- [ ] 7.4 Show clear error when login attempted before confirmation
+- [ ] 7.5 Add link to resend email in login error
+- [ ] 7.6 Add confirmation status indicator
+
+## 8. Add Monitoring & Alerts (Larry's Checklist)
+- [ ] 8.1 Create metrics for registration events
+- [ ] 8.2 Track confirmation rate (confirmed / registered)
+- [ ] 8.3 Track time-to-confirm distribution
+- [ ] 8.4 Set up alert: Registration success rate < 95%
+- [ ] 8.5 Set up alert: Confirmation rate < 70% (24hr window)
+- [ ] 8.6 Set up alert: Time-to-confirm p95 > 1 hour
+- [ ] 8.7 Create dashboard for registration funnel
+
+## 9. Documentation Updates (Thomas's Responsibility)
+- [ ] 9.1 Document email confirmation flow in API.md
+- [ ] 9.2 Document logging structure and request IDs
+- [ ] 9.3 Document resend confirmation email endpoint
+- [ ] 9.4 Update ARCHITECTURE.md with confirmation state handling
+- [ ] 9.5 Add troubleshooting guide for "user not in database" issues
+
+## 10. Create Agent Checklists for Future (Peter's Responsibility)
+- [ ] 10.1 Create Peter's checklist: Email confirmation flow requirements
+- [ ] 10.2 Create Tucker's checklist: Database persistence tests required
+- [ ] 10.3 Create Larry's checklist: Auth event logging requirements
+- [ ] 10.4 Create Engrid's checklist: State validation after API calls
+- [ ] 10.5 Add checklists to openspec/specs/*/spec.md files
+
+## Validation Criteria
+
+All tasks are complete when:
+- ✅ All registration events are logged with request IDs
+- ✅ User confirmation state is tracked and visible
+- ✅ Login provides clear error for unconfirmed users
+- ✅ Resend confirmation email works
+- ✅ All tests pass (including new integration tests)
+- ✅ Monitoring dashboard shows registration funnel
+- ✅ Alerts are configured and tested
+- ✅ Documentation is updated
+- ✅ Agent checklists are created for future prevention

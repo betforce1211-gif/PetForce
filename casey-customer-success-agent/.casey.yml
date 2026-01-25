@@ -1,0 +1,155 @@
+version: 1
+
+# Customer Health Scoring Configuration
+customer_health:
+  score_thresholds:
+    green: 80      # Healthy customers
+    yellow: 50     # At-risk customers
+    red: 0         # Critical churn risk
+
+  weights:
+    engagement: 0.4   # 40% weight
+    sentiment: 0.3    # 30% weight
+    growth: 0.3       # 30% weight
+
+  escalation_rules:
+    immediate:        # Alert within 24 hours
+      - red_score
+      - yellow_drop_20_points_30_days
+      - cancellation_request
+      - executive_escalation
+
+    weekly_review:    # Include in weekly report
+      - all_yellow_scores
+      - green_declining_trend
+      - five_plus_tickets_30_days
+
+    routine:          # Monitor only
+      - green_stable
+      - green_improving
+
+# Support Ticket Configuration
+support_tickets:
+  source: manual      # Options: manual, zendesk, intercom, freshdesk
+
+  analysis_frequency: weekly
+
+  categories:
+    - bug_reports
+    - feature_requests
+    - documentation_gaps
+    - usability_issues
+    - performance_issues
+    - integration_questions
+    - how_to_questions
+
+  top_themes_count: 10  # Track top N themes
+
+  escalation_threshold:
+    ticket_count: 3       # Escalate if >= 3 tickets on same theme
+    arr_impact: 50000     # Or if ARR impact >= $50K
+
+  routing:
+    bug_reports: tucker
+    feature_requests: peter
+    documentation_gaps: thomas
+    usability_issues: [peter, dexter]
+    performance_issues: [engrid, isabel]
+    integration_questions: axel
+    how_to_questions: thomas
+
+# Reporting Configuration
+reporting:
+  weekly_report:
+    enabled: true
+    day: friday
+    time: "16:00"
+    recipients:
+      - peter
+
+  monthly_summary:
+    enabled: true
+    day: last_friday
+    recipients:
+      - peter
+      - team
+
+  quarterly_review:
+    enabled: true
+    month: [3, 6, 9, 12]  # End of each quarter
+    day: 15
+    recipients:
+      - peter
+      - leadership
+
+# NPS/CSAT Configuration
+satisfaction:
+  nps:
+    enabled: true
+    collection_frequency: quarterly
+    survey_cadence: 90  # days
+
+  csat:
+    enabled: true
+    trigger: post_support_interaction
+    survey_cadence: immediate
+
+# Feature Adoption Tracking
+feature_adoption:
+  measurement_period: 60  # days after launch
+  target_adoption_rate: 0.3  # 30% of customers
+
+  monitoring_frequency: weekly
+
+  low_adoption_threshold: 0.2  # <20% triggers investigation
+
+# Integration Settings
+integrations:
+  peter:
+    intake_command: "peter intake customer-success"
+    sync_frequency: weekly
+    sync_day: friday
+
+  ana:
+    dashboard_refresh: daily
+    metrics_sync: weekly
+
+  larry:
+    telemetry_access: read_only
+    metrics_needed:
+      - login_frequency
+      - feature_usage_by_customer
+      - session_duration
+      - error_rates_by_customer
+
+  thomas:
+    doc_gap_escalation: immediate
+    validation_required: true
+
+  tucker:
+    bug_escalation: immediate
+    priority_levels: [critical, high, medium, low]
+
+# Privacy & Compliance
+privacy:
+  pii_handling: strict
+  anonymize_in_reports: true
+  data_retention_days: 365
+
+  redact_fields:
+    - password
+    - credit_card
+    - ssn
+    - api_key
+    - personal_email
+
+  compliance_frameworks:
+    - gdpr
+    - soc2
+
+# Automation Settings (for future phases)
+automation:
+  health_score_calculation: manual  # manual | semi_automated | automated
+  ticket_ingestion: manual          # manual | automated
+  report_generation: semi_automated # manual | semi_automated | automated
+  churn_prediction: manual          # manual | ml_based

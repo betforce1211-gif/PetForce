@@ -1,0 +1,342 @@
+// =============================================================================
+// Dexter's Button Component
+// Design is not just what it looks like. Design is how it works.
+// =============================================================================
+
+import React, { forwardRef } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+
+// =============================================================================
+// BUTTON VARIANTS (using CVA for type-safe variants)
+// =============================================================================
+
+const buttonVariants = cva(
+  // Base styles - applied to ALL buttons
+  [
+    'inline-flex items-center justify-center',
+    'font-semibold',
+    'transition-colors duration-150',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'disabled:pointer-events-none disabled:opacity-50',
+    'select-none',
+  ],
+  {
+    variants: {
+      // Visual variants
+      variant: {
+        primary: [
+          'bg-blue-600 text-white',
+          'hover:bg-blue-700',
+          'active:bg-blue-800',
+          'focus-visible:ring-blue-500',
+        ],
+        secondary: [
+          'bg-white text-gray-900 border border-gray-300',
+          'hover:bg-gray-50',
+          'active:bg-gray-100',
+          'focus-visible:ring-gray-500',
+        ],
+        tertiary: [
+          'bg-transparent text-blue-600',
+          'hover:bg-blue-50',
+          'active:bg-blue-100',
+          'focus-visible:ring-blue-500',
+        ],
+        destructive: [
+          'bg-red-600 text-white',
+          'hover:bg-red-700',
+          'active:bg-red-800',
+          'focus-visible:ring-red-500',
+        ],
+        ghost: [
+          'bg-transparent text-gray-700',
+          'hover:bg-gray-100',
+          'active:bg-gray-200',
+          'focus-visible:ring-gray-500',
+        ],
+        link: [
+          'bg-transparent text-blue-600 underline-offset-4',
+          'hover:underline',
+          'focus-visible:ring-blue-500',
+          'p-0 h-auto', // Override padding/height for link style
+        ],
+      },
+      // Size variants
+      size: {
+        sm: 'h-8 px-3 text-sm rounded-md gap-1.5',
+        md: 'h-10 px-4 text-sm rounded-md gap-2',
+        lg: 'h-12 px-5 text-base rounded-lg gap-2',
+        icon: {
+          sm: 'h-8 w-8 rounded-md',
+          md: 'h-10 w-10 rounded-md',
+          lg: 'h-12 w-12 rounded-lg',
+        },
+      },
+      // Full width
+      fullWidth: {
+        true: 'w-full',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  /**
+   * Button visual variant
+   * @default 'primary'
+   */
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'destructive' | 'ghost' | 'link';
+  
+  /**
+   * Button size
+   * @default 'md'
+   */
+  size?: 'sm' | 'md' | 'lg';
+  
+  /**
+   * Makes button full width of its container
+   * @default false
+   */
+  fullWidth?: boolean;
+  
+  /**
+   * Shows loading spinner and disables button
+   * @default false
+   */
+  loading?: boolean;
+  
+  /**
+   * Icon to display before button text
+   */
+  leftIcon?: React.ReactNode;
+  
+  /**
+   * Icon to display after button text
+   */
+  rightIcon?: React.ReactNode;
+  
+  /**
+   * Makes this an icon-only button (no text)
+   */
+  iconOnly?: boolean;
+  
+  /**
+   * Accessible label for icon-only buttons
+   */
+  'aria-label'?: string;
+}
+
+// =============================================================================
+// LOADING SPINNER COMPONENT
+// =============================================================================
+
+function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'h-3.5 w-3.5',
+    md: 'h-4 w-4',
+    lg: 'h-5 w-5',
+  };
+  
+  return (
+    <svg
+      className={cn('animate-spin', sizeClasses[size])}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+}
+
+// =============================================================================
+// BUTTON COMPONENT
+// =============================================================================
+
+/**
+ * Button component with multiple variants, sizes, and states.
+ * 
+ * @example
+ * ```tsx
+ * // Primary button
+ * <Button>Click me</Button>
+ * 
+ * // Secondary with icon
+ * <Button variant="secondary" leftIcon={<PlusIcon />}>
+ *   Add Item
+ * </Button>
+ * 
+ * // Loading state
+ * <Button loading>Saving...</Button>
+ * 
+ * // Icon only
+ * <Button iconOnly aria-label="Close">
+ *   <XIcon />
+ * </Button>
+ * 
+ * // Destructive action
+ * <Button variant="destructive">Delete</Button>
+ * ```
+ */
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'primary',
+      size = 'md',
+      fullWidth = false,
+      loading = false,
+      disabled,
+      leftIcon,
+      rightIcon,
+      iconOnly = false,
+      children,
+      type = 'button',
+      ...props
+    },
+    ref
+  ) => {
+    // Icon-only buttons need aria-label
+    if (iconOnly && !props['aria-label']) {
+      console.warn(
+        'Dexter: Icon-only buttons require an aria-label for accessibility'
+      );
+    }
+    
+    // Determine if button should be disabled
+    const isDisabled = disabled || loading;
+    
+    // Get icon size based on button size
+    const iconSize = {
+      sm: 'h-4 w-4',
+      md: 'h-5 w-5',
+      lg: 'h-5 w-5',
+    }[size];
+    
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={isDisabled}
+        className={cn(
+          buttonVariants({ variant, size, fullWidth }),
+          iconOnly && {
+            sm: 'h-8 w-8 p-0',
+            md: 'h-10 w-10 p-0',
+            lg: 'h-12 w-12 p-0',
+          }[size],
+          className
+        )}
+        {...props}
+      >
+        {/* Loading spinner or left icon */}
+        {loading ? (
+          <LoadingSpinner size={size} />
+        ) : leftIcon ? (
+          <span className={cn(iconSize, 'shrink-0')} aria-hidden="true">
+            {leftIcon}
+          </span>
+        ) : null}
+        
+        {/* Button text (hidden if icon-only) */}
+        {!iconOnly && children && (
+          <span className={loading ? 'opacity-70' : undefined}>{children}</span>
+        )}
+        
+        {/* Icon-only children */}
+        {iconOnly && (
+          <span className={cn(iconSize, 'shrink-0')} aria-hidden="true">
+            {children}
+          </span>
+        )}
+        
+        {/* Right icon */}
+        {rightIcon && !loading && (
+          <span className={cn(iconSize, 'shrink-0')} aria-hidden="true">
+            {rightIcon}
+          </span>
+        )}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+
+// =============================================================================
+// BUTTON GROUP COMPONENT
+// =============================================================================
+
+interface ButtonGroupProps {
+  children: React.ReactNode;
+  /** Stack buttons vertically on mobile */
+  responsive?: boolean;
+  /** Attach buttons together */
+  attached?: boolean;
+  className?: string;
+}
+
+/**
+ * ButtonGroup for grouping related buttons.
+ * 
+ * @example
+ * ```tsx
+ * <ButtonGroup>
+ *   <Button variant="secondary">Cancel</Button>
+ *   <Button>Save</Button>
+ * </ButtonGroup>
+ * ```
+ */
+function ButtonGroup({
+  children,
+  responsive = false,
+  attached = false,
+  className,
+}: ButtonGroupProps) {
+  return (
+    <div
+      className={cn(
+        'inline-flex',
+        responsive ? 'flex-col sm:flex-row' : 'flex-row',
+        attached
+          ? '[&>button:not(:first-child)]:rounded-l-none [&>button:not(:last-child)]:rounded-r-none [&>button:not(:first-child)]:-ml-px'
+          : 'gap-3',
+        className
+      )}
+      role="group"
+    >
+      {children}
+    </div>
+  );
+}
+
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+export { Button, ButtonGroup, buttonVariants };
+export type { ButtonGroupProps };

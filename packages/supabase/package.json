@@ -1,0 +1,34 @@
+{
+  "name": "@petforce/supabase",
+  "version": "0.1.0",
+  "description": "Database management tools and utilities for PetForce",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm",
+    "dev": "tsup src/index.ts --format cjs,esm --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^12.0.0",
+    "dotenv": "^17.2.3",
+    "pg": "^8.11.5",
+    "prettier": "^3.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/pg": "^8.11.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  }
+}

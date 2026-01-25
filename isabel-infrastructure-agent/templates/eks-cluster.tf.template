@@ -1,0 +1,485 @@
+# =============================================================================
+# Isabel's EKS Cluster Terraform Module
+# Infrastructure as code. Reliability as culture. Scale as needed.
+# =============================================================================
+
+terraform {
+  required_version = ">= 1.5.0"
+  
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.11"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# DATA SOURCES
+# -----------------------------------------------------------------------------
+
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+data "aws_partition" "current" {}
+
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+# -----------------------------------------------------------------------------
+# LOCALS
+# -----------------------------------------------------------------------------
+
+locals {
+  cluster_name = "${var.project}-${var.environment}-eks"
+  
+  tags = merge(var.tags, {
+    Environment = var.environment
+    Project     = var.project
+    ManagedBy   = "terraform"
+    Cluster     = local.cluster_name
+  })
+}
+
+# -----------------------------------------------------------------------------
+# EKS CLUSTER
+# -----------------------------------------------------------------------------
+
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.0"
+
+  cluster_name    = local.cluster_name
+  cluster_version = var.cluster_version
+
+  # Network configuration
+  vpc_id     = var.vpc_id
+  subnet_ids = var.private_subnet_ids
+
+  # Cluster endpoint access
+  cluster_endpoint_public_access       = var.cluster_endpoint_public_access
+  cluster_endpoint_private_access      = true
+  cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
+
+  # Logging
+  cluster_enabled_log_types = [
+    "api",
+    "audit",
+    "authenticator",
+    "controllerManager",
+    "scheduler"
+  ]
+
+  # Encryption
+  cluster_encryption_config = {
+    provider_key_arn = aws_kms_key.eks.arn
+    resources        = ["secrets"]
+  }
+
+  # Add-ons
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+      configuration_values = jsonencode({
+        computeType = "Fargate"
+        replicaCount = var.environment == "production" ? 3 : 2
+      })
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent              = true
+      before_compute           = true
+      service_account_role_arn = module.vpc_cni_irsa_role.iam_role_arn
+      configuration_values = jsonencode({
+        env = {
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
+    }
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+    }
+  }
+
+  # Node groups
+  eks_managed_node_groups = {
+    # System node group
+    system = {
+      name            = "system"
+      use_name_prefix = true
+
+      instance_types = var.system_node_instance_types
+      capacity_type  = "ON_DEMAND"
+
+      min_size     = var.system_node_min_size
+      max_size     = var.system_node_max_size
+      desired_size = var.system_node_desired_size
+
+      labels = {
+        role = "system"
+      }
+
+      taints = []
+
+      tags = local.tags
+    }
+
+    # General workloads node group
+    general = {
+      name            = "general"
+      use_name_prefix = true
+
+      instance_types = var.general_node_instance_types
+      capacity_type  = var.general_node_capacity_type
+
+      min_size     = var.general_node_min_size
+      max_size     = var.general_node_max_size
+      desired_size = var.general_node_desired_size
+
+      labels = {
+        role = "general"
+      }
+
+      taints = []
+
+      tags = local.tags
+    }
+
+    # Compute-intensive node group
+    compute = {
+      name            = "compute"
+      use_name_prefix = true
+
+      instance_types = var.compute_node_instance_types
+      capacity_type  = "SPOT"
+
+      min_size     = 0
+      max_size     = var.compute_node_max_size
+      desired_size = 0
+
+      labels = {
+        role = "compute"
+      }
+
+      taints = [
+        {
+          key    = "workload"
+          value  = "compute"
+          effect = "NO_SCHEDULE"
+        }
+      ]
+
+      tags = local.tags
+    }
+  }
+
+  # IRSA
+  enable_irsa = true
+
+  # Node security group rules
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+    egress_all = {
+      description      = "Node all egress"
+      protocol         = "-1"
+      from_port        = 0
+      to_port          = 0
+      type             = "egress"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# -----------------------------------------------------------------------------
+# KMS KEY FOR SECRETS ENCRYPTION
+# -----------------------------------------------------------------------------
+
+resource "aws_kms_key" "eks" {
+  description             = "KMS key for EKS secrets encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+
+  tags = local.tags
+}
+
+resource "aws_kms_alias" "eks" {
+  name          = "alias/${local.cluster_name}"
+  target_key_id = aws_kms_key.eks.key_id
+}
+
+# -----------------------------------------------------------------------------
+# IRSA ROLES
+# -----------------------------------------------------------------------------
+
+# VPC CNI
+module "vpc_cni_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name             = "${local.cluster_name}-vpc-cni"
+  attach_vpc_cni_policy = true
+  vpc_cni_enable_ipv4   = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-node"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# EBS CSI Driver
+module "ebs_csi_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name             = "${local.cluster_name}-ebs-csi"
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# AWS Load Balancer Controller
+module "aws_lb_controller_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name                              = "${local.cluster_name}-aws-lb-controller"
+  attach_load_balancer_controller_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# Cluster Autoscaler
+module "cluster_autoscaler_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name                        = "${local.cluster_name}-cluster-autoscaler"
+  attach_cluster_autoscaler_policy = true
+  cluster_autoscaler_cluster_names = [module.eks.cluster_name]
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:cluster-autoscaler"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# External DNS
+module "external_dns_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name                     = "${local.cluster_name}-external-dns"
+  attach_external_dns_policy    = true
+  external_dns_hosted_zone_arns = var.route53_zone_arns
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:external-dns"]
+    }
+  }
+
+  tags = local.tags
+}
+
+# -----------------------------------------------------------------------------
+# HELM RELEASES
+# -----------------------------------------------------------------------------
+
+# AWS Load Balancer Controller
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = var.aws_lb_controller_version
+  namespace  = "kube-system"
+
+  set {
+    name  = "clusterName"
+    value = module.eks.cluster_name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "true"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = module.aws_lb_controller_irsa_role.iam_role_arn
+  }
+
+  depends_on = [module.eks]
+}
+
+# Cluster Autoscaler
+resource "helm_release" "cluster_autoscaler" {
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+  version    = var.cluster_autoscaler_version
+  namespace  = "kube-system"
+
+  set {
+    name  = "autoDiscovery.clusterName"
+    value = module.eks.cluster_name
+  }
+
+  set {
+    name  = "awsRegion"
+    value = data.aws_region.current.name
+  }
+
+  set {
+    name  = "rbac.serviceAccount.create"
+    value = "true"
+  }
+
+  set {
+    name  = "rbac.serviceAccount.name"
+    value = "cluster-autoscaler"
+  }
+
+  set {
+    name  = "rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = module.cluster_autoscaler_irsa_role.iam_role_arn
+  }
+
+  depends_on = [module.eks]
+}
+
+# Metrics Server
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  version    = var.metrics_server_version
+  namespace  = "kube-system"
+
+  depends_on = [module.eks]
+}
+
+# External DNS
+resource "helm_release" "external_dns" {
+  count = length(var.route53_zone_arns) > 0 ? 1 : 0
+
+  name       = "external-dns"
+  repository = "https://kubernetes-sigs.github.io/external-dns/"
+  chart      = "external-dns"
+  version    = var.external_dns_version
+  namespace  = "kube-system"
+
+  set {
+    name  = "serviceAccount.create"
+    value = "true"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "external-dns"
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = module.external_dns_irsa_role.iam_role_arn
+  }
+
+  set {
+    name  = "provider"
+    value = "aws"
+  }
+
+  set {
+    name  = "policy"
+    value = "sync"
+  }
+
+  depends_on = [module.eks]
+}
+
+# -----------------------------------------------------------------------------
+# OUTPUTS
+# -----------------------------------------------------------------------------
+
+output "cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
+}
+
+output "cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
+}
+
+output "cluster_certificate_authority_data" {
+  description = "Base64 encoded certificate data"
+  value       = module.eks.cluster_certificate_authority_data
+}
+
+output "cluster_oidc_provider_arn" {
+  description = "OIDC provider ARN"
+  value       = module.eks.oidc_provider_arn
+}
+
+output "cluster_security_group_id" {
+  description = "Cluster security group ID"
+  value       = module.eks.cluster_security_group_id
+}
+
+output "node_security_group_id" {
+  description = "Node security group ID"
+  value       = module.eks.node_security_group_id
+}

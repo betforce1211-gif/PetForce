@@ -1,0 +1,353 @@
+# .larry.yml - Larry Logging & Observability Configuration
+
+version: 1
+
+# ==============================================
+# LOGGING CONFIGURATION
+# ==============================================
+logging:
+  # Default log level (trace|debug|info|warn|error|fatal)
+  level: 'info'
+  
+  # Log format (json|pretty)
+  format: 'json'
+  
+  # Standard fields to include in every log
+  standardFields:
+    timestamp: true
+    level: true
+    message: true
+    service: true
+    environment: true
+    version: true
+    
+  # Correlation fields
+  correlation:
+    requestId: true
+    traceId: true
+    spanId: true
+    userId: true
+    sessionId: false
+    
+  # Message limits
+  limits:
+    maxMessageLength: 10000
+    maxStackTraceLines: 50
+    maxObjectDepth: 5
+    maxArrayLength: 100
+
+# ==============================================
+# SENSITIVE DATA REDACTION
+# ==============================================
+redaction:
+  enabled: true
+  
+  # Fields to always redact
+  fields:
+    - password
+    - passwd
+    - pwd
+    - token
+    - accessToken
+    - refreshToken
+    - apiKey
+    - api_key
+    - secretKey
+    - secret_key
+    - authorization
+    - auth
+    - bearer
+    - creditCard
+    - credit_card
+    - cardNumber
+    - card_number
+    - cvv
+    - cvc
+    - ssn
+    - socialSecurity
+    - social_security
+    - privateKey
+    - private_key
+    
+  # Patterns to redact (regex)
+  patterns:
+    - name: 'credit_card'
+      pattern: '\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'
+      replacement: '[CARD REDACTED]'
+    - name: 'ssn'
+      pattern: '\b\d{3}-\d{2}-\d{4}\b'
+      replacement: '[SSN REDACTED]'
+    - name: 'jwt'
+      pattern: 'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'
+      replacement: '[JWT REDACTED]'
+      
+  # Replacement text for redacted fields
+  replacement: '[REDACTED]'
+  
+  # Log when redaction occurs (for audit)
+  logRedaction: false
+
+# ==============================================
+# DISTRIBUTED TRACING
+# ==============================================
+tracing:
+  enabled: true
+  
+  # Sampling rate (0.0 to 1.0)
+  sampleRate: 0.1
+  
+  # Always sample these
+  alwaysSample:
+    - errors: true
+    - slowRequests: true
+    - slowThresholdMs: 1000
+    
+  # Trace context propagation format
+  propagation: 'w3c'  # w3c | b3 | jaeger
+  
+  # Trace context headers
+  headers:
+    traceParent: 'traceparent'
+    traceState: 'tracestate'
+    requestId: 'x-request-id'
+    
+  # Exporter configuration
+  exporter:
+    type: 'otlp'  # otlp | jaeger | zipkin | console
+    endpoint: '${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}'
+    headers: {}
+
+# ==============================================
+# METRICS
+# ==============================================
+metrics:
+  enabled: true
+  
+  # Metrics endpoint
+  endpoint:
+    path: '/metrics'
+    port: 9090
+    
+  # Default labels for all metrics
+  defaultLabels:
+    service: '${SERVICE_NAME}'
+    environment: '${NODE_ENV:development}'
+    version: '${SERVICE_VERSION}'
+    
+  # HTTP metrics
+  http:
+    requestsTotal: true
+    requestDuration: true
+    requestSize: true
+    responseSize: true
+    
+    # Duration histogram buckets (seconds)
+    durationBuckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+    
+  # Database metrics
+  database:
+    queryDuration: true
+    connectionPool: true
+    
+    # Query duration buckets (seconds)
+    queryBuckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1]
+    
+  # Cache metrics
+  cache:
+    hits: true
+    misses: true
+    hitRate: true
+    
+  # Business metrics (define your own)
+  business:
+    enabled: true
+    prefix: 'business_'
+
+# ==============================================
+# ALERTING
+# ==============================================
+alerting:
+  enabled: true
+  
+  # Alert destinations
+  destinations:
+    - type: 'slack'
+      webhook: '${SLACK_ALERT_WEBHOOK}'
+      channel: '#alerts'
+      severities: ['critical', 'error']
+    - type: 'pagerduty'
+      routingKey: '${PAGERDUTY_ROUTING_KEY}'
+      severities: ['critical']
+    - type: 'email'
+      recipients: ['oncall@company.com']
+      severities: ['critical', 'error']
+      
+  # Built-in alert rules
+  rules:
+    # Error rate alert
+    errorRate:
+      enabled: true
+      threshold: 0.05  # 5%
+      window: '5m'
+      severity: 'critical'
+      
+    # Slow response alert
+    slowResponse:
+      enabled: true
+      percentile: 95
+      thresholdMs: 500
+      window: '10m'
+      severity: 'warning'
+      
+    # High memory alert
+    highMemory:
+      enabled: true
+      thresholdMB: 512
+      severity: 'warning'
+      
+    # No logs alert (service might be down)
+    noLogs:
+      enabled: true
+      window: '5m'
+      severity: 'critical'
+
+# ==============================================
+# LOG SHIPPING
+# ==============================================
+shipping:
+  # Output destinations
+  destinations:
+    # Standard output (for containers)
+    - type: 'stdout'
+      enabled: true
+      
+    # File output
+    - type: 'file'
+      enabled: false
+      path: '/var/log/app/app.log'
+      rotation:
+        maxSize: '100MB'
+        maxFiles: 5
+        compress: true
+        
+    # Elasticsearch
+    - type: 'elasticsearch'
+      enabled: false
+      url: '${ELASTICSEARCH_URL}'
+      index: 'app-logs-${NODE_ENV}'
+      bulkSize: 100
+      flushInterval: 5000
+      
+    # CloudWatch Logs
+    - type: 'cloudwatch'
+      enabled: false
+      logGroup: '/app/${SERVICE_NAME}'
+      region: '${AWS_REGION}'
+
+# ==============================================
+# AUDIT LOGGING
+# ==============================================
+audit:
+  enabled: true
+  
+  # Separate audit log
+  separateLog: true
+  destination: 'audit.log'
+  
+  # Events to audit
+  events:
+    authentication:
+      - 'user.login.success'
+      - 'user.login.failure'
+      - 'user.logout'
+      - 'user.password.changed'
+      - 'user.password.reset'
+      - 'user.mfa.enabled'
+      - 'user.mfa.disabled'
+    authorization:
+      - 'permission.granted'
+      - 'permission.denied'
+      - 'role.assigned'
+      - 'role.removed'
+    data:
+      - 'data.created'
+      - 'data.updated'
+      - 'data.deleted'
+      - 'data.exported'
+      - 'data.accessed'
+    system:
+      - 'config.changed'
+      - 'feature.toggled'
+      - 'admin.action'
+      
+  # Retention
+  retention:
+    days: 365
+    immutable: true
+
+# ==============================================
+# COMPLIANCE
+# ==============================================
+compliance:
+  # GDPR compliance
+  gdpr:
+    enabled: false
+    piiFields:
+      - 'email'
+      - 'name'
+      - 'phone'
+      - 'address'
+    retentionDays: 30
+    
+  # HIPAA compliance
+  hipaa:
+    enabled: false
+    phiFields:
+      - 'medicalRecord'
+      - 'diagnosis'
+      - 'prescription'
+    encryption: true
+    
+  # SOC2 compliance
+  soc2:
+    enabled: false
+    auditAll: true
+    retentionDays: 365
+
+# ==============================================
+# DEVELOPMENT SETTINGS
+# ==============================================
+development:
+  # Pretty print in development
+  prettyPrint: true
+  
+  # Include stack traces
+  includeStackTrace: true
+  
+  # Color output
+  colorize: true
+  
+  # Console output only
+  consoleOnly: true
+
+# ==============================================
+# PERFORMANCE
+# ==============================================
+performance:
+  # Async logging
+  async:
+    enabled: true
+    bufferSize: 1000
+    flushInterval: 1000
+    
+  # Sampling for high-volume logs
+  sampling:
+    enabled: false
+    rate: 0.1  # Log 10% of debug/trace
+    excludeLevels: ['fatal', 'error', 'warn', 'info']
+    
+  # Batching for log shipping
+  batching:
+    enabled: true
+    maxSize: 100
+    maxWait: 5000

@@ -1,0 +1,9 @@
+{
+  "name": "petforce-dev",
+  "version": "1.0.0",
+  "description": "Autonomous development workflow for PetForce using OpenSpec + Ralph-loop + Agent quality gates",
+  "author": {
+    "name": "PetForce Team",
+    "email": "dev@petforce.com"
+  }
+}

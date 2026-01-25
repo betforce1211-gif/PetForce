@@ -1,0 +1,183 @@
+# Deploy to Production Environment
+# Triggered on push to main branch or release tags
+# Chuck's Production Deployment Best Practices
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*.*.*' # Semantic versioning tags
+  workflow_dispatch: # Allow manual trigger with approval
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false # Never cancel production deployments
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run full test suite
+        run: cd packages/auth && npm test -- --run
+
+      - name: Check for breaking changes
+        run: npm run check:breaking --if-present
+        continue-on-error: true
+
+      - name: Verify OpenSpec compliance
+        run: npx openspec validate --all --strict --no-interactive
+        continue-on-error: true
+
+  deploy-web-production:
+    name: Deploy Web App to Production
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+    environment:
+      name: production
+      url: https://petforce.app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: cd apps/web && npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
+          NODE_ENV: production
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./apps/web
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Run Supabase migrations (Production)
+        run: |
+          npx supabase link --project-ref ${{ secrets.PROD_SUPABASE_PROJECT_REF }}
+          npx supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: petforce-web
+        with:
+          environment: production
+          version: ${{ github.sha }}
+        continue-on-error: true
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: '🎉 Production deployment successful!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: success()
+        continue-on-error: true
+
+      - name: Notify deployment failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: '🚨 Production deployment failed! @channel'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: failure()
+        continue-on-error: true
+
+  post-deployment-verification:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: deploy-web-production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Run production smoke tests
+        run: npm run test:e2e:production --if-present
+        env:
+          BASE_URL: https://petforce.app
+          TEST_USER_EMAIL: ${{ secrets.PROD_TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.PROD_TEST_USER_PASSWORD }}
+
+      - name: Check production health endpoints
+        run: |
+          curl -f https://petforce.app/api/health || exit 1
+          echo "✅ Health check passed"
+
+      - name: Monitor error rates
+        run: npm run check:error-rates --if-present
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        continue-on-error: true
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Production health checks failed - consider rollback"
+          echo "Manual rollback required via Vercel dashboard"
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: post-deployment-verification
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > CHANGELOG.md
+          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"* %s (%h)" >> CHANGELOG.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
