@@ -380,6 +380,303 @@ Invoking openspec:apply skill...
 
 Use the Skill tool to invoke "openspec:apply" with {CHANGE_ID}.
 
+## Step 4.5: Create Permanent Feature Documentation Folder
+
+After specs are applied, create a permanent feature folder that serves as a reference for this feature:
+
+```
+/ralph-loop "CREATE FEATURE DOCUMENTATION FOLDER
+
+CONTEXT:
+Feature: {CHANGE_ID}
+Create a permanent reference folder for this feature with all documentation and passing checklists.
+
+PROCESS:
+
+1. DETERMINE FEATURE NAME:
+   - Convert {CHANGE_ID} to a clean feature name
+   - Example: 'add-email-verification' → 'email-verification'
+   - Example: 'implement-user-dashboard' → 'user-dashboard'
+
+2. CREATE FOLDER STRUCTURE:
+
+   docs/features/{feature-name}/
+   ├── README.md
+   ├── documentation/
+   │   └── (Thomas's documentation)
+   ├── checklists/
+   │   └── (Agent checklists showing ✅ PASSED)
+   ├── quality-validation.md
+   └── implementation-summary.md
+
+3. CREATE README.md:
+
+   ```markdown
+   # Feature: {Feature Title}
+
+   **Status**: ✅ Production Ready
+   **Completed**: {Date}
+   **Change ID**: {CHANGE_ID}
+
+   ## Overview
+
+   {Brief description of what this feature does}
+
+   ## Implementation Summary
+
+   - **Total Tasks**: {count}
+   - **Quality Iterations**: {count}
+   - **Agent Approvals**: {count}/8
+   - **Tests Added**: {count}
+   - **Files Modified**: {count}
+
+   ## Key Features
+
+   {List key capabilities added}
+
+   ## Agent Approvals
+
+   All agents reviewed and approved this feature:
+
+   - ✅ Peter (Product Management) - Requirements met
+   - ✅ Tucker (QA/Testing) - Tests passing
+   - ✅ Samantha (Security) - Security verified
+   - ✅ Dexter (UX Design) - UX standards met
+   - ✅ Engrid (Software Engineering) - Code quality excellent
+   - ✅ Larry (Logging/Observability) - Monitoring in place
+   - ✅ Thomas (Documentation) - Docs complete
+   - ✅ Axel (API Design) - API contracts solid
+
+   ## Documentation
+
+   - [Architecture](./documentation/ARCHITECTURE.md)
+   - [API Reference](./documentation/API.md)
+   - [User Guide](./documentation/USER_GUIDE.md)
+   - [Security](./documentation/SECURITY.md)
+
+   ## Quality Checklists
+
+   All agent checklists passed during development:
+
+   - [Peter's Product Checklist](./checklists/peter-product-checklist.md)
+   - [Tucker's QA Checklist](./checklists/tucker-qa-checklist.md)
+   - [Samantha's Security Checklist](./checklists/samantha-security-checklist.md)
+   - [Dexter's UX Checklist](./checklists/dexter-ux-checklist.md)
+   - [Engrid's Engineering Checklist](./checklists/engrid-engineering-checklist.md)
+   - [Larry's Logging Checklist](./checklists/larry-logging-checklist.md)
+   - [Thomas's Documentation Checklist](./checklists/thomas-docs-checklist.md)
+   - [Axel's API Design Checklist](./checklists/axel-api-checklist.md)
+
+   ## Related Changes
+
+   - OpenSpec Change: `openspec/changes/{CHANGE_ID}/`
+   - Updated Specs: [List specs that were modified]
+
+   ## Testing
+
+   {Summary of tests added}
+
+   ## Future Improvements
+
+   {List any non-blocking improvements for future iterations}
+   ```
+
+4. CREATE DOCUMENTATION FOLDER:
+
+   Extract documentation from Thomas's work or create documentation:
+
+   docs/features/{feature-name}/documentation/
+   ├── ARCHITECTURE.md (system design, flow diagrams)
+   ├── API.md (API reference if applicable)
+   ├── USER_GUIDE.md (user-facing documentation)
+   ├── SECURITY.md (security model and best practices)
+   ├── SETUP.md (developer setup if applicable)
+   └── TESTING.md (testing strategy and coverage)
+
+   Each document should be comprehensive and reference the actual implementation.
+
+5. CREATE CHECKLIST FOLDER:
+
+   For each agent that reviewed the feature, extract their checklist from
+   openspec/changes/{CHANGE_ID}/agent-research.md and create individual files
+   showing all items passed:
+
+   docs/features/{feature-name}/checklists/{agent}-checklist.md
+
+   Format:
+   ```markdown
+   # {Agent Name} Quality Checklist
+
+   **Feature**: {Feature Title}
+   **Agent**: {Agent Name} ({Agent Role})
+   **Status**: ✅ ALL ITEMS PASSED
+   **Date**: {Date}
+
+   ## Checklist Items
+
+   ✅ 1. [Checklist item 1]
+      - **Status**: PASSED
+      - **Validation**: [How this was validated]
+      - **Files**: [Relevant files]
+
+   ✅ 2. [Checklist item 2]
+      - **Status**: PASSED
+      - **Validation**: [How this was validated]
+      - **Files**: [Relevant files]
+
+   [... all items ...]
+
+   ## Summary
+
+   **Total Items**: {count}
+   **Passed**: {count}
+   **Failed**: 0
+
+   **Agent Approval**: ✅ APPROVED
+
+   ## Notes
+
+   {Any notes or observations from this agent's review}
+   ```
+
+6. COPY QUALITY VALIDATION:
+
+   Copy openspec/changes/{CHANGE_ID}/quality-validation.md to:
+   docs/features/{feature-name}/quality-validation.md
+
+   This shows the full validation history and iterations.
+
+7. CREATE IMPLEMENTATION SUMMARY:
+
+   docs/features/{feature-name}/implementation-summary.md
+
+   ```markdown
+   # Implementation Summary: {Feature Title}
+
+   ## Timeline
+
+   - **Started**: {Date}
+   - **Completed**: {Date}
+   - **Duration**: {Duration}
+
+   ## Implementation Phases
+
+   ### Phase 1: Research & Planning
+   - Initial proposal created
+   - Peter researched competitors: [Key findings]
+   - Requirements refined based on research
+   - All agents created quality checklists
+   - User approved final proposal
+
+   ### Phase 2: Implementation
+   - Total tasks: {count}
+   - Tasks completed: {count}
+   - Tests written: {count}
+   - Files modified: {count}
+
+   ### Phase 3: Quality Validation (Ralph Method)
+   - Total iterations: {count}
+   - Checklist items validated: {count}
+   - Fixes applied: {count}
+   - All agent checklists passed: ✅
+
+   ## Key Files Modified
+
+   {List key files that were changed}
+
+   ## Tests Added
+
+   {List tests that were added}
+
+   ## Quality Metrics
+
+   - **Test Coverage**: {percentage}
+   - **Build Status**: ✅ Passing
+   - **Lint Status**: ✅ Passing
+   - **Type Check**: ✅ Passing
+   - **Agent Approvals**: 8/8 ✅
+
+   ## Commits
+
+   {List key commits from this feature}
+
+   ## Competitive Analysis (Peter's Research)
+
+   {Summary of Peter's competitive research findings}
+
+   ## Learnings
+
+   {What we learned during implementation}
+
+   ## Future Enhancements
+
+   {Non-blocking improvements identified for future work}
+   ```
+
+8. UPDATE MAIN FEATURES INDEX:
+
+   Create or update docs/features/README.md:
+
+   ```markdown
+   # PetForce Features
+
+   This directory contains documentation for all production features that have
+   passed through the PetForce autonomous development workflow.
+
+   Each feature folder includes:
+   - Complete documentation (Architecture, API, User Guide, Security)
+   - Agent quality checklists showing all items passed
+   - Quality validation history
+   - Implementation summary
+
+   ## Features
+
+   - [{Feature Name}](./{feature-name}/) - {Brief description} ✅ Production Ready
+   [... other features ...]
+
+   ## Feature Status Legend
+
+   - ✅ Production Ready - All agent checklists passed
+   - 🚧 In Development - Implementation in progress
+   - 📋 Planned - Proposal created, not yet implemented
+   ```
+
+COMPLETION CRITERIA:
+✅ Feature folder created at docs/features/{feature-name}/
+✅ README.md created with complete overview
+✅ documentation/ folder created with all Thomas's docs
+✅ checklists/ folder created with all agent checklists
+✅ quality-validation.md copied from OpenSpec change
+✅ implementation-summary.md created
+✅ docs/features/README.md updated with new feature entry
+✅ All files are comprehensive and reference actual implementation
+
+Output <promise>FEATURE FOLDER CREATED</promise> when done.
+
+IMPORTANT:
+- Make documentation comprehensive and useful for future reference
+- Show all checklist items as ✅ PASSED (since validation passed)
+- Include actual code references and file paths
+- This is the permanent record of this feature - make it thorough
+- Future developers should be able to understand the feature from this folder alone
+" --completion-promise "FEATURE FOLDER CREATED" --max-iterations 30
+```
+
+After feature folder is created, tell the user:
+```
+✅ Feature documentation folder created!
+
+📁 Permanent reference: docs/features/{feature-name}/
+
+This folder contains:
+- Complete documentation by Thomas
+- All agent checklists showing ✅ PASSED
+- Quality validation history
+- Implementation summary
+
+Future improvements and testing can reference this folder.
+```
+
 ## Step 5: Summary & Archive Readiness
 
 Present a final summary to the user:
@@ -408,6 +705,13 @@ Present a final summary to the user:
 **Agent Approvals:**
 {List each agent with ✅ APPROVED}
 
+**Feature Documentation:**
+✅ Permanent folder created at docs/features/{feature-name}/
+✅ All documentation generated by Thomas
+✅ All agent checklists saved with ✅ PASSED status
+✅ Quality validation history preserved
+✅ Implementation summary created
+
 **Ready to Archive:** YES (all checklists passed)
 
 ### Files Created/Modified:
@@ -417,6 +721,14 @@ Present a final summary to the user:
 - {Highlight Peter's competitive research findings}
 - {Highlight quality improvements from agent checklists}
 - {Note any innovative features added during research}
+
+### Permanent Documentation:
+📁 **docs/features/{feature-name}/** - Complete feature reference
+   - README.md - Feature overview and approvals
+   - documentation/ - All technical documentation
+   - checklists/ - All agent checklists (✅ PASSED)
+   - quality-validation.md - Full validation history
+   - implementation-summary.md - Timeline and metrics
 
 ### Next Steps:
 
@@ -438,6 +750,11 @@ To archive this change, invoke the openspec:archive skill with {CHANGE_ID}
 - Agent Research: openspec/changes/{CHANGE_ID}/agent-research.md (checklists & competitive research)
 - Quality Validation: openspec/changes/{CHANGE_ID}/quality-validation.md (all checklists passed)
 - Updated Specs: openspec/specs/*/spec.md (changes applied)
+
+📁 **Permanent Feature Documentation:**
+- Feature Folder: docs/features/{feature-name}/ (complete reference for future improvements)
+- All Documentation: docs/features/{feature-name}/documentation/ (Thomas's complete work)
+- Agent Checklists: docs/features/{feature-name}/checklists/ (all ✅ PASSED)
 ```
 
 ## Error Handling
@@ -460,6 +777,12 @@ If any step fails:
 - You can always /cancel-ralph if needed
 - Peter's competitive research is CRITICAL - don't skip it
 - Quality validation keeps iterating until EVERY checklist passes - no shortcuts
+- A permanent feature folder is created at docs/features/{feature-name}/ with:
+  - Complete documentation (Thomas's work)
+  - All agent checklists showing ✅ PASSED
+  - Quality validation history
+  - Implementation summary
+  - This serves as the permanent reference for future improvements and testing
 
 ## Philosophy
 
@@ -471,6 +794,7 @@ This implements the PetForce autonomous development philosophy:
 4. **Ralph Method** - Relentless iteration until EVERY agent checklist item passes, ensuring quality
 5. **No Shortcuts** - Every checklist item must pass - we don't ship until quality gates are met
 6. **Human Oversight** - You approve the final refined proposal before implementation starts
+7. **Permanent Documentation** - Every feature gets a permanent folder with complete documentation and passing checklists, serving as a reference for future improvements and testing
 
 ### The Ralph Method
 
@@ -483,5 +807,6 @@ This ensures:
 - Features meet quality standards (Agent checklists)
 - No shortcuts or skipped items
 - Production-ready code
+- Permanent documentation and quality records for future reference
 
-You are the orchestrator - Claude is the autonomous implementer - Agents ensure quality.
+You are the orchestrator - Claude is the autonomous implementer - Agents ensure quality - Documentation preserves knowledge.
