@@ -62,3 +62,4 @@ apps/mobile/android/app/build/
 *.apk
 *.ap_
 *.aab
+.archive/
