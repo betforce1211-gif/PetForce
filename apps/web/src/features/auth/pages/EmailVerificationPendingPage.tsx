@@ -24,7 +24,7 @@ export function EmailVerificationPendingPage() {
           // Wait 2 seconds to show success animation, then redirect
           setTimeout(() => navigate('/auth/verify-email'), 2000);
         }
-      } catch (error) {
+      } catch (_error) {
         // User not logged in yet, which is expected before verification
       }
     };

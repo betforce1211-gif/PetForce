@@ -11,7 +11,7 @@ let LocalAuthentication: any = null;
 if (isReactNative) {
   try {
     LocalAuthentication = require('expo-local-authentication');
-  } catch (e) {
+  } catch {
     // expo-local-authentication not available
   }
 }
