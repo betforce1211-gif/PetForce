@@ -67,6 +67,41 @@ const result = await registerWithPassword({
   - `lastName?`: string - Optional last name
 
 **Returns:** `Promise<AuthResult>`
+- `success`: boolean
+- `message`: string - Status message
+- `confirmationRequired?`: boolean - true if email confirmation is needed
+- `error?`: AuthError if failed
+
+**Email Confirmation Flow:**
+
+When email confirmation is enabled (default), new users must verify their email before logging in:
+
+1. User registers → receives verification email
+2. User clicks link in email → email confirmed
+3. User can now log in
+
+**Note:** Login attempts before email confirmation will fail with error code `EMAIL_NOT_CONFIRMED`.
+
+#### `resendConfirmationEmail`
+
+Resend email confirmation link to user.
+
+```typescript
+import { resendConfirmationEmail } from '@petforce/auth';
+
+const result = await resendConfirmationEmail('user@example.com');
+
+if (result.success) {
+  console.log('Verification email resent');
+}
+```
+
+**Parameters:**
+- `email`: string - User's email address
+
+**Returns:** `Promise<{ success: boolean; message: string; error?: AuthError }>`
+
+**Rate Limiting:** Maximum 1 resend per 5 minutes per email address (enforced client-side)
 
 #### `logout`
 
@@ -594,9 +629,186 @@ Common error codes returned by the API:
 | `TOKEN_INVALID` | Auth token is invalid |
 | `NETWORK_ERROR` | Network connection failed |
 | `SERVER_ERROR` | Server encountered an error |
+| `EMAIL_NOT_CONFIRMED` | Email verification required before login |
 | `BIOMETRIC_NOT_AVAILABLE` | Biometrics not available on device |
 | `BIOMETRIC_AUTH_FAILED` | Biometric authentication failed |
 | `OAUTH_ERROR` | OAuth flow encountered an error |
+
+## Logging & Observability
+
+### Authentication Event Logging
+
+All authentication operations are automatically logged with structured data for observability and debugging.
+
+**Logged Events:**
+- `registration_attempt_started` - User begins registration
+- `registration_completed` - User account created (may be unconfirmed)
+- `registration_failed` - Registration error occurred
+- `email_confirmed` - User clicked verification link
+- `login_attempt_started` - User attempts login
+- `login_completed` - Successful login
+- `login_failed` - Login error occurred
+- `login_rejected_unconfirmed` - Login blocked due to unverified email
+- `logout_attempt_started` - User begins logout
+- `logout_completed` - Successful logout
+- `confirmation_email_resend_requested` - Resend email requested
+- `confirmation_email_resent` - Verification email resent
+- `password_reset_requested` - Password reset requested
+- `password_reset_email_sent` - Reset email sent
+
+**Log Structure:**
+
+```typescript
+{
+  timestamp: "2026-01-25T10:30:00.000Z",
+  level: "INFO",
+  message: "Auth event: registration_completed",
+  context: {
+    requestId: "550e8400-e29b-41d4-a716-446655440000",
+    eventType: "registration_completed",
+    userId: "user-123",
+    email: "use***@example.com", // Hashed for privacy
+    emailConfirmed: false,
+    confirmationRequired: true
+  }
+}
+```
+
+**Request ID Tracking:**
+
+Every auth operation generates a unique `requestId` (UUID v4) that is:
+- Included in all log entries for that operation
+- Consistent across multiple log events in the same flow
+- Used to correlate events for debugging
+
+**Example: Tracing a Registration Flow**
+
+```
+[INFO] Auth event: registration_attempt_started
+  requestId: "abc-123"
+  email: "use***@example.com"
+
+[INFO] Auth event: registration_completed
+  requestId: "abc-123"
+  userId: "user-456"
+  confirmationRequired: true
+
+[INFO] User created but email not confirmed yet
+  requestId: "abc-123"
+  userId: "user-456"
+  message: "User must click verification link..."
+```
+
+**Privacy & Security:**
+- Email addresses are hashed in logs (first 3 chars + `***@domain.com`)
+- Passwords are never logged
+- Tokens are never logged
+- PII is excluded from production logs
+
+**Metrics Collection:**
+
+The auth system tracks key metrics:
+- Registration funnel (started → completed → confirmed)
+- Confirmation rate (% of users who verify email)
+- Time to confirm (minutes from registration to verification)
+- Login success rate
+- Unconfirmed login attempts
+
+Access metrics via `metrics.getSummary()`:
+
+```typescript
+import { metrics } from '@petforce/auth';
+
+const summary = metrics.getSummary(24 * 60 * 60 * 1000); // Last 24 hours
+console.log(summary);
+/*
+{
+  registrationStarted: 150,
+  registrationCompleted: 145,
+  emailConfirmed: 120,
+  loginAttempts: 500,
+  loginSuccesses: 475,
+  loginRejectedUnconfirmed: 15,
+  confirmationRatePercent: 82.76,
+  loginSuccessRatePercent: 95.00,
+  avgTimeToConfirmMinutes: 8.5
+}
+*/
+```
+
+**Alert Monitoring:**
+
+Built-in health checks for auth system:
+
+```typescript
+import { metrics } from '@petforce/auth';
+
+const alerts = metrics.checkAlerts();
+alerts.forEach(alert => {
+  console.log(`[${alert.level}] ${alert.message}`);
+});
+/*
+Example alerts:
+- [warning] Low email confirmation rate: 65% (last hour)
+- [critical] Low login success rate: 45%
+- [warning] Slow email confirmation: Average 75 minutes
+*/
+```
+
+## Troubleshooting
+
+### User Not Appearing in Database
+
+**Symptom:** User registers successfully and receives email, but cannot log in.
+
+**Cause:** Email confirmation is enabled. User account exists but is in unconfirmed state.
+
+**Solution:**
+1. Check user's email for verification link
+2. Click the verification link to confirm email
+3. Try logging in again
+
+**Alternative:** Use resend confirmation email:
+```typescript
+await resendConfirmationEmail('user@example.com');
+```
+
+**For Developers:**
+- Check `email_confirmed_at` field in `auth.users` table
+- Look for `login_rejected_unconfirmed` events in logs
+- Verify `enable_confirmations = true` in `supabase/config.toml`
+
+### Email Verification Not Working
+
+**Symptom:** User clicks verification link but still cannot log in.
+
+**Common Causes:**
+1. Redirect URL misconfigured
+2. Email link expired (links expire after 24 hours)
+3. User clicked old link after new one was sent
+
+**Solutions:**
+1. Resend verification email
+2. Check `emailRedirectTo` configuration
+3. Verify email template in Supabase dashboard
+
+### High Unconfirmed User Rate
+
+**Symptom:** Many users register but don't confirm email.
+
+**Solutions:**
+1. Check email deliverability (spam folders)
+2. Improve verification page UX
+3. Send reminder emails after 1 hour
+4. Consider disabling email confirmation for development
+
+**Monitoring:**
+```typescript
+const summary = metrics.getSummary();
+if (summary.confirmationRatePercent < 70) {
+  console.warn('Low confirmation rate!', summary);
+}
+```
 
 ## Examples
 

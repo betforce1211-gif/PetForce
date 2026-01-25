@@ -203,8 +203,81 @@ packages/auth/src/
 │   └── auth.ts
 └── utils/             # Utilities
     ├── storage.ts     # Token storage
-    └── validation.ts  # Input validation
+    ├── validation.ts  # Input validation
+    ├── logger.ts      # Structured logging
+    └── metrics.ts     # Metrics collection
 ```
+
+**Email Confirmation State Management:**
+
+Users created via email/password registration go through these states:
+
+```
+┌─────────────┐
+│ Registration│
+│  Initiated  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────┐
+│ User Created        │
+│ email_confirmed: ❌ │  ← User exists in database but unconfirmed
+│ confirmationRequired│
+└──────┬──────────────┘
+       │
+       │  Verification email sent
+       │
+       ▼
+┌─────────────────────┐
+│ Pending Confirmation│
+│ User checks email   │
+└──────┬──────────────┘
+       │
+       │  User clicks link
+       │
+       ▼
+┌─────────────────────┐
+│ Email Confirmed     │
+│ email_confirmed: ✅ │  ← User can now log in
+└──────┬──────────────┘
+       │
+       ▼
+┌─────────────────────┐
+│ Login Allowed       │
+└─────────────────────┘
+```
+
+**Key Implementation Details:**
+
+1. **Registration returns confirmation state**:
+   ```typescript
+   {
+     success: true,
+     confirmationRequired: true, // ← Frontend knows to show email page
+     message: "Please check your email to verify..."
+   }
+   ```
+
+2. **Login checks email_confirmed_at**:
+   ```typescript
+   if (user.email_confirmed_at === null) {
+     return {
+       success: false,
+       error: {
+         code: 'EMAIL_NOT_CONFIRMED',
+         message: 'Please verify your email...'
+       }
+     };
+   }
+   ```
+
+3. **All state transitions are logged** with unique request IDs for tracing
+
+4. **Metrics track confirmation funnel**:
+   - Registration rate
+   - Confirmation rate (% who click link)
+   - Time to confirm (minutes)
+   - Unconfirmed login attempts
 
 **Platform Detection:**
 ```typescript
