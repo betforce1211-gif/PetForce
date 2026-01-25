@@ -1,7 +1,7 @@
 import { writeFile } from 'fs/promises';
 import { format } from 'prettier';
 import { DatabaseManager } from './database-manager';
-import type { TableInfo, ColumnInfo } from './types';
+import type { ColumnInfo } from './types';
 
 export class TypeGenerator {
   private db: DatabaseManager;

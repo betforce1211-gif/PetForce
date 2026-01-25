@@ -79,6 +79,79 @@ Streamlined workflow optimized for fixing specific issues quickly.
 
 ---
 
+### `/push [commit-message]`
+
+**Chuck's safe push process to GitHub**
+
+Enforces CI/CD best practices when pushing code to GitHub.
+
+**When to use:**
+- Every time you want to push code changes
+- After completing a task or feature
+- At end of day to backup your work
+- Before switching branches
+
+**Example:**
+```bash
+/push "feat(auth): add email verification flow"
+```
+
+**Process:**
+1. Runs all tests (must pass)
+2. Runs linting (must pass)
+3. Type checks TypeScript (must pass)
+4. Creates properly formatted commit
+5. Pulls latest changes
+6. Pushes to GitHub
+7. Reminds you to create PR if needed
+
+**Time estimate:** 2-5 minutes
+
+**Safety features:**
+- Won't push if tests fail
+- Prevents direct pushes to main/develop
+- Enforces conventional commits
+- Auto-adds co-author attribution
+
+---
+
+### `/pull [branch-name]`
+
+**Chuck's safe pull process from GitHub**
+
+Safely pulls changes from GitHub without losing local work.
+
+**When to use:**
+- Start of each day
+- Before starting new work
+- Before creating feature branch
+- When teammate notifies you of changes
+
+**Example:**
+```bash
+/pull develop
+```
+
+**Process:**
+1. Checks for uncommitted changes
+2. Stashes local work if needed
+3. Fetches remote updates
+4. Pulls with rebase (clean history)
+5. Applies stashed changes
+6. Updates dependencies if needed
+7. Runs migrations if needed
+
+**Time estimate:** 1-3 minutes
+
+**Safety features:**
+- Never loses uncommitted work
+- Detects merge conflicts early
+- Auto-updates dependencies
+- Runs new migrations
+- Creates backup before risky operations
+
+---
+
 ### `/change <description>`
 
 **General change workflow**
@@ -148,6 +221,8 @@ All commands follow this pattern:
 
 ## Command Comparison
 
+### Development Workflows
+
 | Feature | /feature | /bugfix | /change |
 |---------|----------|---------|---------|
 | **Use case** | New features | Bug fixes | Refactor/updates |
@@ -156,6 +231,17 @@ All commands follow this pattern:
 | **Quality gates** | All agents | Security + QA | Type-specific |
 | **Speed** | Slower | Fastest | Medium |
 | **Thoroughness** | Most thorough | Focused | Flexible |
+
+### Git Operations (Chuck's CI/CD)
+
+| Feature | /push | /pull |
+|---------|-------|-------|
+| **Use case** | Save & share work | Get latest changes |
+| **Tests** | Must pass | Optional |
+| **Linting** | Must pass | N/A |
+| **Safety** | High | High |
+| **Speed** | 2-5 min | 1-3 min |
+| **Automation** | Full checks | Smart updates |
 
 ## Agent Quality Gates
 
