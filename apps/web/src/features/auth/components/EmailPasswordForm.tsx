@@ -28,16 +28,18 @@ export function EmailPasswordForm({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
+  const [passwordMismatchError, setPasswordMismatchError] = useState<string | null>(null);
 
   const { loginWithPassword, registerWithPassword, isLoading, error } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setShowResendButton(false);
+    setPasswordMismatchError(null);
 
     if (mode === 'register') {
       if (password !== confirmPassword) {
-        // TODO: Show error
+        setPasswordMismatchError("Passwords don't match. Please make sure both passwords are identical.");
         return;
       }
       const result = await registerWithPassword({ email, password });
@@ -51,10 +53,10 @@ export function EmailPasswordForm({
         }
       }
     } else {
-      await loginWithPassword({ email, password });
-      if (!error) {
+      const result = await loginWithPassword({ email, password });
+      if (result.success) {
         onSuccess?.();
-      } else if (error.code === 'EMAIL_NOT_CONFIRMED') {
+      } else if (result.error?.code === 'EMAIL_NOT_CONFIRMED') {
         // Show resend button for unconfirmed users
         setShowResendButton(true);
       }
@@ -141,7 +143,21 @@ export function EmailPasswordForm({
         </div>
       )}
 
-      {/* Error message */}
+      {/* Password mismatch error (registration only) */}
+      <AnimatePresence>
+        {passwordMismatchError && (
+          <motion.div
+            className="p-3 border rounded-lg text-sm bg-red-50 border-red-200 text-red-700"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <p>{passwordMismatchError}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* API error message */}
       <AnimatePresence>
         {error && (
           <motion.div
