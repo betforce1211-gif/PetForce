@@ -153,6 +153,9 @@ PROCESS:
    - Explicit acknowledgment vs. "wasn't reviewed"
    - Every agent signs off on every feature
    - Cross-domain insights are captured
+   - Mobile-first thinking (Maya reviews everything - mobile users are majority!)
+   - Analytics from day 1 (Ana reviews everything)
+   - Security by default (Samantha reviews everything)
 
    **Required Agents (ALL 14):**
    1. Peter (Product Management) - requirements, competitive research
@@ -163,19 +166,27 @@ PROCESS:
    6. Larry (Logging/Observability) - monitoring, metrics, logging
    7. Thomas (Documentation) - documentation completeness
    8. Axel (API Design) - API contracts, consistency
-   9. Maya (Mobile Development) - mobile app impact
+   9. Maya (Mobile Development) - mobile app impact, roadmap
    10. Isabel (Infrastructure) - infrastructure, deployment, scaling
    11. Buck (Data Engineering) - data pipelines, analytics data
    12. Ana (Analytics) - event tracking, funnel metrics
    13. Chuck (CI/CD) - CI/CD pipeline, deployment automation
    14. Casey (Customer Success) - customer impact, support docs
 
+   **IMPORTANT - Agents That Are ALMOST ALWAYS Applicable:**
+   - Maya (Mobile Development) - Mobile users are 60-80% of traffic. Maya should
+     review EVERY user-facing feature for mobile compatibility, roadmap, and UX.
+     Even web-first features need mobile planning.
+   - Ana (Analytics) - Every feature should have tracking and metrics
+   - Samantha (Security) - Security affects everything
+   - Tucker (QA/Testing) - Everything needs tests
+
    If an agent determines the feature truly doesn't affect their domain,
    their checklist should be:
    1. [N/A] Verified feature does not affect {domain}
    2. [N/A] No {domain} concerns or requirements
 
-   This is VALID and expected for some agents on some features.
+   This is VALID but should be rare for the agents listed above.
 
 8. CREATE SUMMARY in agent-research.md:
 
