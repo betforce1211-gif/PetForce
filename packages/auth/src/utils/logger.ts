@@ -53,7 +53,7 @@ class Logger {
       }
       const hashStr = Math.abs(hash).toString(16).padStart(8, '0');
       return 'hash:' + hashStr;
-    } catch (error) {
+    } catch {
       // Fallback if hashing fails - still protect PII
       return 'email:redacted';
     }

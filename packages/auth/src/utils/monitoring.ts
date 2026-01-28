@@ -1,5 +1,6 @@
 // Monitoring Service Integration
 // Supports multiple monitoring backends (Datadog, Sentry, CloudWatch, Console)
+/* global fetch */
 
 import { LogEntry, LogLevel } from './logger';
 import { AuthMetric } from './metrics';
@@ -146,7 +147,7 @@ class SentryAdapter implements MonitoringAdapter {
     }
   }
 
-  sendMetric(metric: AuthMetric): void {
+  sendMetric(_metric: AuthMetric): void {
     // Sentry doesn't have native metrics API
     // Store as breadcrumb for context
     // In production, use Sentry Performance Monitoring

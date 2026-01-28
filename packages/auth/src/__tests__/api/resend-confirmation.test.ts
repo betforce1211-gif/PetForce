@@ -1,10 +1,11 @@
 /**
  * ResendConfirmationEmail Integration Tests
  * Tucker's comprehensive API testing for email recovery flow
- * 
+ *
  * Critical for pet families who lose their verification emails.
  * Every edge case must be covered to prevent lockout scenarios.
  */
+/* global setTimeout */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resendConfirmationEmail } from '../../api/auth-api';

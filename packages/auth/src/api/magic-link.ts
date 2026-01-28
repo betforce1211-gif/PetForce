@@ -1,6 +1,6 @@
 // Magic Link (Passwordless) Authentication using Supabase
 
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+// Removed unused imports: SupabaseUser, Session
 import { getSupabaseClient } from './supabase-client';
 import type { AuthError, User } from '../types/auth';
 import { TOKEN_EXPIRY_SECONDS, AUTH_ERROR_CODES, REDIRECT_PATHS } from '../config/constants';

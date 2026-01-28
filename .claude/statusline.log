@@ -100688,3 +100688,4134 @@
 [2026-01-27 19:34:12] Using jq for JSON parsing
 ---
 [2026-01-27 19:34:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=49%, cost=50.56043429999997, cost_ph=1.01, tokens=1825690, tpm=606
+[2026-01-27 19:34:22] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:34:22] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 50.56677829999997,
+    "total_duration_ms": 180790030,
+    "total_api_duration_ms": 19383609,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 795975,
+    "total_output_tokens": 1035803,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 11157,
+      "cache_read_input_tokens": 102453
+    },
+    "used_percentage": 57,
+    "remaining_percentage": 43
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:34:22] Using jq for JSON parsing
+---
+[2026-01-27 19:34:22] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=44%, cost=50.56677829999997, cost_ph=1.01, tokens=1831778, tpm=608
+[2026-01-27 19:34:46] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:34:46] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 50.65788994999997,
+    "total_duration_ms": 180814429,
+    "total_api_duration_ms": 19412165,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 795989,
+    "total_output_tokens": 1037036,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 11157,
+      "cache_read_input_tokens": 102453
+    },
+    "used_percentage": 57,
+    "remaining_percentage": 43
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:34:46] Using jq for JSON parsing
+---
+[2026-01-27 19:34:46] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=44%, cost=50.65788994999997, cost_ph=1.01, tokens=1833025, tpm=608
+[2026-01-27 19:35:32] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:32] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.39378494999997,
+    "total_duration_ms": 180860888,
+    "total_api_duration_ms": 19433198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796127,
+    "total_output_tokens": 1037630,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 96581,
+      "cache_read_input_tokens": 17975
+    },
+    "used_percentage": 57,
+    "remaining_percentage": 43
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:32] Using jq for JSON parsing
+---
+[2026-01-27 19:35:32] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=43%, cost=51.39378494999997, cost_ph=1.02, tokens=1833757, tpm=608
+[2026-01-27 19:35:33] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:33] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.39378494999997,
+    "total_duration_ms": 180861098,
+    "total_api_duration_ms": 19433198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796127,
+    "total_output_tokens": 1037630,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 96581,
+      "cache_read_input_tokens": 17975
+    },
+    "used_percentage": 57,
+    "remaining_percentage": 43
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:33] Using jq for JSON parsing
+---
+[2026-01-27 19:35:33] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:33] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.39378494999997,
+    "total_duration_ms": 180861199,
+    "total_api_duration_ms": 19433198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796127,
+    "total_output_tokens": 1037630,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 96581,
+      "cache_read_input_tokens": 17975
+    },
+    "used_percentage": 57,
+    "remaining_percentage": 43
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:33] Using jq for JSON parsing
+---
+[2026-01-27 19:35:33] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=43%, cost=51.39378494999997, cost_ph=1.02, tokens=1833757, tpm=608
+[2026-01-27 19:35:33] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=43%, cost=51.39378494999997, cost_ph=1.02, tokens=1833757, tpm=608
+[2026-01-27 19:35:40] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:40] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.39378494999997,
+    "total_duration_ms": 180868916,
+    "total_api_duration_ms": 19433198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796127,
+    "total_output_tokens": 1037630,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 97563,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 59,
+    "remaining_percentage": 41
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:40] Using jq for JSON parsing
+---
+[2026-01-27 19:35:40] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.39378494999997, cost_ph=1.02, tokens=1833757, tpm=608
+[2026-01-27 19:35:42] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:42] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.39378494999997,
+    "total_duration_ms": 180870201,
+    "total_api_duration_ms": 19433198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796127,
+    "total_output_tokens": 1037630,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 97563,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 59,
+    "remaining_percentage": 41
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:42] Using jq for JSON parsing
+---
+[2026-01-27 19:35:42] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.39378494999997, cost_ph=1.02, tokens=1833757, tpm=608
+[2026-01-27 19:35:42] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:42] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.76889549999997,
+    "total_duration_ms": 180870732,
+    "total_api_duration_ms": 19441433,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 796129,
+    "total_output_tokens": 1037837,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 97563,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 59,
+    "remaining_percentage": 41
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:42] Using jq for JSON parsing
+---
+[2026-01-27 19:35:42] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.76889549999997, cost_ph=1.03, tokens=1833966, tpm=608
+[2026-01-27 19:35:54] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:35:54] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.813172199999975,
+    "total_duration_ms": 180882018,
+    "total_api_duration_ms": 19452232,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797229,
+    "total_output_tokens": 1038230,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 31,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 654,
+      "cache_read_input_tokens": 118024
+    },
+    "used_percentage": 59,
+    "remaining_percentage": 41
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:35:54] Using jq for JSON parsing
+---
+[2026-01-27 19:35:54] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.813172199999975, cost_ph=1.03, tokens=1835459, tpm=609
+[2026-01-27 19:36:09] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:09] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.851533099999976,
+    "total_duration_ms": 180897189,
+    "total_api_duration_ms": 19455292,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797350,
+    "total_output_tokens": 1038257,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 4656,
+      "cache_read_input_tokens": 114556
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:09] Using jq for JSON parsing
+---
+[2026-01-27 19:36:09] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.851533099999976, cost_ph=1.03, tokens=1835607, tpm=609
+[2026-01-27 19:36:09] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:09] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.851533099999976,
+    "total_duration_ms": 180897863,
+    "total_api_duration_ms": 19455292,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797350,
+    "total_output_tokens": 1038257,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 4656,
+      "cache_read_input_tokens": 114556
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:09] Using jq for JSON parsing
+---
+[2026-01-27 19:36:09] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.851533099999976, cost_ph=1.03, tokens=1835607, tpm=609
+[2026-01-27 19:36:10] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:10] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.851533099999976,
+    "total_duration_ms": 180898554,
+    "total_api_duration_ms": 19455292,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797350,
+    "total_output_tokens": 1038257,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 4656,
+      "cache_read_input_tokens": 114556
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:10] Using jq for JSON parsing
+---
+[2026-01-27 19:36:10] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.851533099999976, cost_ph=1.03, tokens=1835607, tpm=609
+[2026-01-27 19:36:11] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:11] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.851533099999976,
+    "total_duration_ms": 180899384,
+    "total_api_duration_ms": 19455292,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797350,
+    "total_output_tokens": 1038257,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 4656,
+      "cache_read_input_tokens": 114556
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:11] Using jq for JSON parsing
+---
+[2026-01-27 19:36:11] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.851533099999976, cost_ph=1.03, tokens=1835607, tpm=609
+[2026-01-27 19:36:12] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:12] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.90815989999997,
+    "total_duration_ms": 180900182,
+    "total_api_duration_ms": 19462279,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 797360,
+    "total_output_tokens": 1038575,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 4656,
+      "cache_read_input_tokens": 114556
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:12] Using jq for JSON parsing
+---
+[2026-01-27 19:36:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=main, context=41%, cost=51.90815989999997, cost_ph=1.03, tokens=1835935, tpm=609
+[2026-01-27 19:36:24] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:24] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.91005389999997,
+    "total_duration_ms": 180912131,
+    "total_api_duration_ms": 19465061,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 798774,
+    "total_output_tokens": 1038671,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 863,
+      "cache_read_input_tokens": 119212
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:24] Using jq for JSON parsing
+---
+[2026-01-27 19:36:24] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=40%, cost=51.91005389999997, cost_ph=1.03, tokens=1837445, tpm=609
+[2026-01-27 19:36:55] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:36:55] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.969660749999974,
+    "total_duration_ms": 180943269,
+    "total_api_duration_ms": 19505028,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 798788,
+    "total_output_tokens": 1040042,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 863,
+      "cache_read_input_tokens": 119212
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:36:55] Using jq for JSON parsing
+---
+[2026-01-27 19:36:55] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=40%, cost=51.969660749999974, cost_ph=1.03, tokens=1838830, tpm=610
+[2026-01-27 19:37:01] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:01] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.969660749999974,
+    "total_duration_ms": 180949141,
+    "total_api_duration_ms": 19505028,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 798788,
+    "total_output_tokens": 1040042,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:01] Using jq for JSON parsing
+---
+[2026-01-27 19:37:01] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=51.969660749999974, cost_ph=1.03, tokens=1838830, tpm=610
+[2026-01-27 19:37:01] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:01] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.969660749999974,
+    "total_duration_ms": 180949514,
+    "total_api_duration_ms": 19505028,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 798788,
+    "total_output_tokens": 1040042,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 863,
+      "cache_read_input_tokens": 119212
+    },
+    "used_percentage": 60,
+    "remaining_percentage": 40
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:01] Using jq for JSON parsing
+---
+[2026-01-27 19:37:01] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=40%, cost=51.969660749999974, cost_ph=1.03, tokens=1838830, tpm=610
+[2026-01-27 19:37:07] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:07] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 51.972331749999974,
+    "total_duration_ms": 180955725,
+    "total_api_duration_ms": 19506198,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801299,
+    "total_output_tokens": 1040074,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 12,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 2598,
+      "cache_read_input_tokens": 120075
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:07] Using jq for JSON parsing
+---
+[2026-01-27 19:37:07] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=51.972331749999974, cost_ph=1.03, tokens=1841373, tpm=611
+[2026-01-27 19:37:08] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:08] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.020562749999975,
+    "total_duration_ms": 180956763,
+    "total_api_duration_ms": 19512776,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801311,
+    "total_output_tokens": 1040236,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 12,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 2598,
+      "cache_read_input_tokens": 120075
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:08] Using jq for JSON parsing
+---
+[2026-01-27 19:37:08] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=52.020562749999975, cost_ph=1.03, tokens=1841547, tpm=611
+[2026-01-27 19:37:55] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:55] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.07262084999998,
+    "total_duration_ms": 181003762,
+    "total_api_duration_ms": 19520301,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801438,
+    "total_output_tokens": 1040447,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 4,
+      "cache_read_input_tokens": 122438
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:55] Using jq for JSON parsing
+---
+[2026-01-27 19:37:55] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=52.07262084999998, cost_ph=1.04, tokens=1841885, tpm=611
+[2026-01-27 19:37:56] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:37:56] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.07262084999998,
+    "total_duration_ms": 181004310,
+    "total_api_duration_ms": 19520301,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801438,
+    "total_output_tokens": 1040447,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 4,
+      "cache_read_input_tokens": 122438
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:37:56] Using jq for JSON parsing
+---
+[2026-01-27 19:37:56] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=52.07262084999998, cost_ph=1.04, tokens=1841885, tpm=611
+[2026-01-27 19:38:11] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:38:11] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.07262084999998,
+    "total_duration_ms": 181019766,
+    "total_api_duration_ms": 19520301,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801438,
+    "total_output_tokens": 1040447,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 4,
+      "cache_read_input_tokens": 122438
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:38:11] Using jq for JSON parsing
+---
+[2026-01-27 19:38:11] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=52.07262084999998, cost_ph=1.04, tokens=1841885, tpm=611
+[2026-01-27 19:38:12] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:38:12] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.12949724999998,
+    "total_duration_ms": 181020670,
+    "total_api_duration_ms": 19541678,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 801448,
+    "total_output_tokens": 1041787,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 4,
+      "cache_read_input_tokens": 122438
+    },
+    "used_percentage": 61,
+    "remaining_percentage": 39
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:38:12] Using jq for JSON parsing
+---
+[2026-01-27 19:38:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=39%, cost=52.12949724999998, cost_ph=1.04, tokens=1843235, tpm=611
+[2026-01-27 19:38:21] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:38:21] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.13682224999998,
+    "total_duration_ms": 181029825,
+    "total_api_duration_ms": 19543204,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 808453,
+    "total_output_tokens": 1041851,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6689,
+      "cache_read_input_tokens": 122442
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:38:21] Using jq for JSON parsing
+---
+[2026-01-27 19:38:21] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.13682224999998, cost_ph=1.04, tokens=1850304, tpm=613
+[2026-01-27 19:38:22] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:38:22] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.13682224999998,
+    "total_duration_ms": 181030726,
+    "total_api_duration_ms": 19543204,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 808453,
+    "total_output_tokens": 1041851,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6689,
+      "cache_read_input_tokens": 122442
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:38:22] Using jq for JSON parsing
+---
+[2026-01-27 19:38:22] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.13682224999998, cost_ph=1.04, tokens=1850304, tpm=613
+[2026-01-27 19:38:24] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:38:24] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.20238559999998,
+    "total_duration_ms": 181032307,
+    "total_api_duration_ms": 19549906,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 808467,
+    "total_output_tokens": 1042098,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6689,
+      "cache_read_input_tokens": 122442
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:38:24] Using jq for JSON parsing
+---
+[2026-01-27 19:38:24] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.20238559999998, cost_ph=1.04, tokens=1850565, tpm=613
+[2026-01-27 19:40:10] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:10] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.20389459999998,
+    "total_duration_ms": 181138558,
+    "total_api_duration_ms": 19551457,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 809726,
+    "total_output_tokens": 1042148,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:10] Using jq for JSON parsing
+---
+[2026-01-27 19:40:10] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=52.20389459999998, cost_ph=1.04, tokens=1851874, tpm=613
+[2026-01-27 19:40:10] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:10] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.20389459999998,
+    "total_duration_ms": 181138876,
+    "total_api_duration_ms": 19551457,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 809726,
+    "total_output_tokens": 1042148,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6689,
+      "cache_read_input_tokens": 122442
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:10] Using jq for JSON parsing
+---
+[2026-01-27 19:40:10] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.20389459999998, cost_ph=1.04, tokens=1851874, tpm=613
+[2026-01-27 19:40:17] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:17] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.204503599999974,
+    "total_duration_ms": 181145239,
+    "total_api_duration_ms": 19552204,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 810175,
+    "total_output_tokens": 1042180,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 434,
+      "cache_read_input_tokens": 129131
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:17] Using jq for JSON parsing
+---
+[2026-01-27 19:40:17] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.204503599999974, cost_ph=1.04, tokens=1852355, tpm=614
+[2026-01-27 19:40:17] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:17] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.24690739999998,
+    "total_duration_ms": 181145926,
+    "total_api_duration_ms": 19557511,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 810189,
+    "total_output_tokens": 1042313,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 434,
+      "cache_read_input_tokens": 129131
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:17] Using jq for JSON parsing
+---
+[2026-01-27 19:40:17] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.24690739999998, cost_ph=1.04, tokens=1852502, tpm=614
+[2026-01-27 19:40:32] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:32] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.24781639999998,
+    "total_duration_ms": 181160889,
+    "total_api_duration_ms": 19558190,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811068,
+    "total_output_tokens": 1042319,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:32] Using jq for JSON parsing
+---
+[2026-01-27 19:40:32] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=52.24781639999998, cost_ph=1.04, tokens=1853387, tpm=614
+[2026-01-27 19:40:33] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:33] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.24781639999998,
+    "total_duration_ms": 181161209,
+    "total_api_duration_ms": 19558190,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811068,
+    "total_output_tokens": 1042319,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 434,
+      "cache_read_input_tokens": 129131
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:33] Using jq for JSON parsing
+---
+[2026-01-27 19:40:33] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.24781639999998, cost_ph=1.04, tokens=1853387, tpm=614
+[2026-01-27 19:40:38] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:38] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.24838739999998,
+    "total_duration_ms": 181166912,
+    "total_api_duration_ms": 19558923,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811479,
+    "total_output_tokens": 1042351,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 251,
+      "cache_read_input_tokens": 129565
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:38] Using jq for JSON parsing
+---
+[2026-01-27 19:40:38] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.24838739999998, cost_ph=1.04, tokens=1853830, tpm=614
+[2026-01-27 19:40:52] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:40:52] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.29795714999998,
+    "total_duration_ms": 181180237,
+    "total_api_duration_ms": 19576720,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811492,
+    "total_output_tokens": 1042999,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 251,
+      "cache_read_input_tokens": 129565
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:40:52] Using jq for JSON parsing
+---
+[2026-01-27 19:40:52] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=36%, cost=52.29795714999998, cost_ph=1.04, tokens=1854491, tpm=614
+[2026-01-27 19:43:58] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:43:58] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.370202499999984,
+    "total_duration_ms": 181366208,
+    "total_api_duration_ms": 19589925,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811621,
+    "total_output_tokens": 1043368,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 7,
+      "cache_creation_input_tokens": 6,
+      "cache_read_input_tokens": 130171
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:43:58] Using jq for JSON parsing
+---
+[2026-01-27 19:43:58] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.370202499999984, cost_ph=1.04, tokens=1854989, tpm=614
+[2026-01-27 19:44:18] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:44:18] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.42412629999998,
+    "total_duration_ms": 181386224,
+    "total_api_duration_ms": 19613108,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 811631,
+    "total_output_tokens": 1044356,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 7,
+      "cache_creation_input_tokens": 6,
+      "cache_read_input_tokens": 130171
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:44:18] Using jq for JSON parsing
+---
+[2026-01-27 19:44:18] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.42412629999998, cost_ph=1.04, tokens=1855987, tpm=614
+[2026-01-27 19:44:46] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:44:46] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.42767629999999,
+    "total_duration_ms": 181414617,
+    "total_api_duration_ms": 19614956,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 815121,
+    "total_output_tokens": 1044368,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:44:46] Using jq for JSON parsing
+---
+[2026-01-27 19:44:46] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=52.42767629999999, cost_ph=1.04, tokens=1859489, tpm=615
+[2026-01-27 19:44:47] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:44:47] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.42767629999999,
+    "total_duration_ms": 181415021,
+    "total_api_duration_ms": 19614956,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 815121,
+    "total_output_tokens": 1044368,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 7,
+      "cache_creation_input_tokens": 6,
+      "cache_read_input_tokens": 130171
+    },
+    "used_percentage": 65,
+    "remaining_percentage": 35
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:44:47] Using jq for JSON parsing
+---
+[2026-01-27 19:44:47] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.42767629999999, cost_ph=1.04, tokens=1859489, tpm=615
+[2026-01-27 19:44:53] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:44:53] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.429047299999986,
+    "total_duration_ms": 181421082,
+    "total_api_duration_ms": 19616158,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816332,
+    "total_output_tokens": 1044400,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1034,
+      "cache_read_input_tokens": 130177
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:44:53] Using jq for JSON parsing
+---
+[2026-01-27 19:44:53] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.429047299999986, cost_ph=1.04, tokens=1860732, tpm=615
+[2026-01-27 19:45:04] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:45:04] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.48041689999999,
+    "total_duration_ms": 181432429,
+    "total_api_duration_ms": 19631072,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816345,
+    "total_output_tokens": 1044960,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1034,
+      "cache_read_input_tokens": 130177
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:45:04] Using jq for JSON parsing
+---
+[2026-01-27 19:45:04] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.48041689999999, cost_ph=1.04, tokens=1861305, tpm=616
+[2026-01-27 19:52:06] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:06] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.58108324999999,
+    "total_duration_ms": 181854363,
+    "total_api_duration_ms": 19658411,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816485,
+    "total_output_tokens": 1045968,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:06] Using jq for JSON parsing
+---
+[2026-01-27 19:52:06] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.58108324999999, cost_ph=1.04, tokens=1862453, tpm=614
+[2026-01-27 19:52:07] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:07] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.58108324999999,
+    "total_duration_ms": 181855035,
+    "total_api_duration_ms": 19658411,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816485,
+    "total_output_tokens": 1045968,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:07] Using jq for JSON parsing
+---
+[2026-01-27 19:52:07] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.58108324999999, cost_ph=1.04, tokens=1862453, tpm=614
+[2026-01-27 19:52:07] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:07] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 52.58108324999999,
+    "total_duration_ms": 181855507,
+    "total_api_duration_ms": 19658411,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816485,
+    "total_output_tokens": 1045968,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:07] Using jq for JSON parsing
+---
+[2026-01-27 19:52:07] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=52.58108324999999, cost_ph=1.04, tokens=1862453, tpm=614
+[2026-01-27 19:52:08] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:08] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.07882449999999,
+    "total_duration_ms": 181856204,
+    "total_api_duration_ms": 19666022,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 816495,
+    "total_output_tokens": 1046195,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:08] Using jq for JSON parsing
+---
+[2026-01-27 19:52:08] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=53.07882449999999, cost_ph=1.05, tokens=1862690, tpm=615
+[2026-01-27 19:52:12] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:12] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.07972449999999,
+    "total_duration_ms": 181860568,
+    "total_api_duration_ms": 19666653,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 817370,
+    "total_output_tokens": 1046200,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:12] Using jq for JSON parsing
+---
+[2026-01-27 19:52:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=53.07972449999999, cost_ph=1.05, tokens=1863570, tpm=615
+[2026-01-27 19:52:12] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:12] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.07972449999999,
+    "total_duration_ms": 181860886,
+    "total_api_duration_ms": 19666653,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 817370,
+    "total_output_tokens": 1046200,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:12] Using jq for JSON parsing
+---
+[2026-01-27 19:52:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=53.07972449999999, cost_ph=1.05, tokens=1863570, tpm=615
+[2026-01-27 19:52:30] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:30] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.08264349999999,
+    "total_duration_ms": 181878423,
+    "total_api_duration_ms": 19671304,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 819939,
+    "total_output_tokens": 1046270,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:30] Using jq for JSON parsing
+---
+[2026-01-27 19:52:30] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=53.08264349999999, cost_ph=1.05, tokens=1866209, tpm=616
+[2026-01-27 19:52:30] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:30] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.08264349999999,
+    "total_duration_ms": 181878763,
+    "total_api_duration_ms": 19671304,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 819939,
+    "total_output_tokens": 1046270,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 131815,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 66,
+    "remaining_percentage": 34
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:30] Using jq for JSON parsing
+---
+[2026-01-27 19:52:30] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=35%, cost=53.08264349999999, cost_ph=1.05, tokens=1866209, tpm=616
+[2026-01-27 19:52:39] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:39] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.08337449999999,
+    "total_duration_ms": 181886974,
+    "total_api_duration_ms": 19671994,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 820510,
+    "total_output_tokens": 1046302,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1643,
+      "cache_read_input_tokens": 131815
+    },
+    "used_percentage": 67,
+    "remaining_percentage": 33
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:39] Using jq for JSON parsing
+---
+[2026-01-27 19:52:39] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=34%, cost=53.08337449999999, cost_ph=1.05, tokens=1866812, tpm=616
+[2026-01-27 19:52:40] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:40] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.08337449999999,
+    "total_duration_ms": 181888090,
+    "total_api_duration_ms": 19671994,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 820510,
+    "total_output_tokens": 1046302,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1643,
+      "cache_read_input_tokens": 131815
+    },
+    "used_percentage": 67,
+    "remaining_percentage": 33
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:40] Using jq for JSON parsing
+---
+[2026-01-27 19:52:40] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=34%, cost=53.08337449999999, cost_ph=1.05, tokens=1866812, tpm=616
+[2026-01-27 19:52:40] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:40] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.13323224999999,
+    "total_duration_ms": 181888827,
+    "total_api_duration_ms": 19680463,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 820524,
+    "total_output_tokens": 1046576,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1643,
+      "cache_read_input_tokens": 131815
+    },
+    "used_percentage": 67,
+    "remaining_percentage": 33
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:40] Using jq for JSON parsing
+---
+[2026-01-27 19:52:40] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=34%, cost=53.13323224999999, cost_ph=1.05, tokens=1867100, tpm=616
+[2026-01-27 19:52:46] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:46] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.13414724999999,
+    "total_duration_ms": 181894067,
+    "total_api_duration_ms": 19680951,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 821409,
+    "total_output_tokens": 1046582,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:46] Using jq for JSON parsing
+---
+[2026-01-27 19:52:46] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=53.13414724999999, cost_ph=1.05, tokens=1867991, tpm=616
+[2026-01-27 19:52:46] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:46] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.13414724999999,
+    "total_duration_ms": 181894392,
+    "total_api_duration_ms": 19680951,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 821409,
+    "total_output_tokens": 1046582,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 1643,
+      "cache_read_input_tokens": 131815
+    },
+    "used_percentage": 67,
+    "remaining_percentage": 33
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:46] Using jq for JSON parsing
+---
+[2026-01-27 19:52:46] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=34%, cost=53.13414724999999, cost_ph=1.05, tokens=1867991, tpm=616
+[2026-01-27 19:52:59] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:52:59] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.14291624999999,
+    "total_duration_ms": 181907424,
+    "total_api_duration_ms": 19682952,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 829568,
+    "total_output_tokens": 1046704,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 7857,
+      "cache_read_input_tokens": 133458
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:52:59] Using jq for JSON parsing
+---
+[2026-01-27 19:52:59] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=30%, cost=53.14291624999999, cost_ph=1.05, tokens=1876272, tpm=619
+[2026-01-27 19:53:15] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:53:15] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.22501439999999,
+    "total_duration_ms": 181923309,
+    "total_api_duration_ms": 19706454,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 829582,
+    "total_output_tokens": 1047541,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 7857,
+      "cache_read_input_tokens": 133458
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:53:15] Using jq for JSON parsing
+---
+[2026-01-27 19:53:15] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=30%, cost=53.22501439999999, cost_ph=1.05, tokens=1877123, tpm=619
+[2026-01-27 19:58:37] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:37] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.308780899999995,
+    "total_duration_ms": 182245197,
+    "total_api_duration_ms": 19720535,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 829714,
+    "total_output_tokens": 1047919,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 141828,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:37] Using jq for JSON parsing
+---
+[2026-01-27 19:58:37] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=30%, cost=53.308780899999995, cost_ph=1.05, tokens=1877633, tpm=618
+[2026-01-27 19:58:38] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:38] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.308780899999995,
+    "total_duration_ms": 182245999,
+    "total_api_duration_ms": 19720535,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 829714,
+    "total_output_tokens": 1047919,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 141828,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:38] Using jq for JSON parsing
+---
+[2026-01-27 19:58:38] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=30%, cost=53.308780899999995, cost_ph=1.05, tokens=1877633, tpm=618
+[2026-01-27 19:58:39] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:39] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.84365089999999,
+    "total_duration_ms": 182246992,
+    "total_api_duration_ms": 19728868,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 829724,
+    "total_output_tokens": 1048118,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 141828,
+      "cache_read_input_tokens": 0
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:39] Using jq for JSON parsing
+---
+[2026-01-27 19:58:39] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=30%, cost=53.84365089999999, cost_ph=1.06, tokens=1877842, tpm=618
+[2026-01-27 19:58:53] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:53] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.844153899999995,
+    "total_duration_ms": 182261208,
+    "total_api_duration_ms": 19729904,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 830067,
+    "total_output_tokens": 1048150,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 827,
+      "cache_read_input_tokens": 141828
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:53] Using jq for JSON parsing
+---
+[2026-01-27 19:58:53] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=29%, cost=53.844153899999995, cost_ph=1.06, tokens=1878217, tpm=618
+[2026-01-27 19:58:54] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:54] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.844153899999995,
+    "total_duration_ms": 182262137,
+    "total_api_duration_ms": 19729904,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 830067,
+    "total_output_tokens": 1048150,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 827,
+      "cache_read_input_tokens": 141828
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:54] Using jq for JSON parsing
+---
+[2026-01-27 19:58:54] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=29%, cost=53.844153899999995, cost_ph=1.06, tokens=1878217, tpm=618
+[2026-01-27 19:58:55] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:55] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.844153899999995,
+    "total_duration_ms": 182263228,
+    "total_api_duration_ms": 19729904,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 830067,
+    "total_output_tokens": 1048150,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 827,
+      "cache_read_input_tokens": 141828
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:55] Using jq for JSON parsing
+---
+[2026-01-27 19:58:55] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=29%, cost=53.844153899999995, cost_ph=1.06, tokens=1878217, tpm=618
+[2026-01-27 19:58:56] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:58:56] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.895680549999994,
+    "total_duration_ms": 182264263,
+    "total_api_duration_ms": 19738965,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 830081,
+    "total_output_tokens": 1048539,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 827,
+      "cache_read_input_tokens": 141828
+    },
+    "used_percentage": 71,
+    "remaining_percentage": 29
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:58:56] Using jq for JSON parsing
+---
+[2026-01-27 19:58:56] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=29%, cost=53.895680549999994, cost_ph=1.06, tokens=1878620, tpm=618
+[2026-01-27 19:59:12] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:12] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.904764549999996,
+    "total_duration_ms": 182280295,
+    "total_api_duration_ms": 19742972,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837290,
+    "total_output_tokens": 1048914,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6814,
+      "cache_read_input_tokens": 142655
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:12] Using jq for JSON parsing
+---
+[2026-01-27 19:59:12] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=53.904764549999996, cost_ph=1.06, tokens=1886204, tpm=621
+[2026-01-27 19:59:25] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:25] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 53.984780549999996,
+    "total_duration_ms": 182293443,
+    "total_api_duration_ms": 19765280,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837304,
+    "total_output_tokens": 1049689,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 6814,
+      "cache_read_input_tokens": 142655
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:25] Using jq for JSON parsing
+---
+[2026-01-27 19:59:25] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=53.984780549999996, cost_ph=1.07, tokens=1886993, tpm=621
+[2026-01-27 19:59:48] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:48] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.065123199999995,
+    "total_duration_ms": 182316600,
+    "total_api_duration_ms": 19778893,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837432,
+    "total_output_tokens": 1050138,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 5,
+      "cache_read_input_tokens": 149835
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:48] Using jq for JSON parsing
+---
+[2026-01-27 19:59:48] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=54.065123199999995, cost_ph=1.07, tokens=1887570, tpm=621
+[2026-01-27 19:59:48] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:48] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.065123199999995,
+    "total_duration_ms": 182316926,
+    "total_api_duration_ms": 19778893,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837432,
+    "total_output_tokens": 1050138,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 5,
+      "cache_read_input_tokens": 149835
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:48] Using jq for JSON parsing
+---
+[2026-01-27 19:59:48] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=54.065123199999995, cost_ph=1.07, tokens=1887570, tpm=621
+[2026-01-27 19:59:49] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:49] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.065123199999995,
+    "total_duration_ms": 182317543,
+    "total_api_duration_ms": 19778893,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837432,
+    "total_output_tokens": 1050138,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 5,
+      "cache_read_input_tokens": 149835
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:49] Using jq for JSON parsing
+---
+[2026-01-27 19:59:49] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=54.065123199999995, cost_ph=1.07, tokens=1887570, tpm=621
+[2026-01-27 19:59:50] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:50] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.065123199999995,
+    "total_duration_ms": 182318258,
+    "total_api_duration_ms": 19778893,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837432,
+    "total_output_tokens": 1050138,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 5,
+      "cache_read_input_tokens": 149835
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:50] Using jq for JSON parsing
+---
+[2026-01-27 19:59:50] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=54.065123199999995, cost_ph=1.07, tokens=1887570, tpm=621
+[2026-01-27 19:59:50] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:50] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.117472449999994,
+    "total_duration_ms": 182318941,
+    "total_api_duration_ms": 19786719,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837442,
+    "total_output_tokens": 1050628,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 5,
+      "cache_read_input_tokens": 149835
+    },
+    "used_percentage": 75,
+    "remaining_percentage": 25
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:50] Using jq for JSON parsing
+---
+[2026-01-27 19:59:50] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=26%, cost=54.117472449999994, cost_ph=1.07, tokens=1888070, tpm=621
+[2026-01-27 19:59:58] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 19:59:58] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.117472449999994,
+    "total_duration_ms": 182326475,
+    "total_api_duration_ms": 19786719,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837442,
+    "total_output_tokens": 1050628,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 3646,
+      "cache_read_input_tokens": 149840
+    },
+    "used_percentage": 77,
+    "remaining_percentage": 23
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 19:59:58] Using jq for JSON parsing
+---
+[2026-01-27 19:59:58] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=24%, cost=54.117472449999994, cost_ph=1.07, tokens=1888070, tpm=621
+[2026-01-27 20:00:01] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:01] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.117472449999994,
+    "total_duration_ms": 182329605,
+    "total_api_duration_ms": 19786719,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837442,
+    "total_output_tokens": 1050628,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 3646,
+      "cache_read_input_tokens": 149840
+    },
+    "used_percentage": 77,
+    "remaining_percentage": 23
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:01] Using jq for JSON parsing
+---
+[2026-01-27 20:00:01] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=24%, cost=54.117472449999994, cost_ph=1.07, tokens=1888070, tpm=621
+[2026-01-27 20:00:03] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:03] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.117472449999994,
+    "total_duration_ms": 182331122,
+    "total_api_duration_ms": 19786719,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837442,
+    "total_output_tokens": 1050628,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 3646,
+      "cache_read_input_tokens": 149840
+    },
+    "used_percentage": 77,
+    "remaining_percentage": 23
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:03] Using jq for JSON parsing
+---
+[2026-01-27 20:00:03] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=24%, cost=54.117472449999994, cost_ph=1.07, tokens=1888070, tpm=621
+[2026-01-27 20:00:05] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:05] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.117472449999994,
+    "total_duration_ms": 182333102,
+    "total_api_duration_ms": 19786719,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837442,
+    "total_output_tokens": 1050628,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 3646,
+      "cache_read_input_tokens": 149840
+    },
+    "used_percentage": 77,
+    "remaining_percentage": 23
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:05] Using jq for JSON parsing
+---
+[2026-01-27 20:00:05] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=24%, cost=54.117472449999994, cost_ph=1.07, tokens=1888070, tpm=621
+[2026-01-27 20:00:05] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:05] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.187868949999995,
+    "total_duration_ms": 182333689,
+    "total_api_duration_ms": 19799948,
+    "total_lines_added": 32942,
+    "total_lines_removed": 585
+  },
+  "context_window": {
+    "total_input_tokens": 837456,
+    "total_output_tokens": 1051410,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 3646,
+      "cache_read_input_tokens": 149840
+    },
+    "used_percentage": 77,
+    "remaining_percentage": 23
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:05] Using jq for JSON parsing
+---
+[2026-01-27 20:00:05] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=24%, cost=54.187868949999995, cost_ph=1.07, tokens=1888866, tpm=622
+[2026-01-27 20:00:14] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:14] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.187868949999995,
+    "total_duration_ms": 182342249,
+    "total_api_duration_ms": 19799948,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837456,
+    "total_output_tokens": 1051410,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 2332,
+      "cache_read_input_tokens": 153486
+    },
+    "used_percentage": 78,
+    "remaining_percentage": 22
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:14] Using jq for JSON parsing
+---
+[2026-01-27 20:00:14] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=23%, cost=54.187868949999995, cost_ph=1.07, tokens=1888866, tpm=622
+[2026-01-27 20:00:15] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:15] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.187868949999995,
+    "total_duration_ms": 182343366,
+    "total_api_duration_ms": 19799948,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837456,
+    "total_output_tokens": 1051410,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 2332,
+      "cache_read_input_tokens": 153486
+    },
+    "used_percentage": 78,
+    "remaining_percentage": 22
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:15] Using jq for JSON parsing
+---
+[2026-01-27 20:00:15] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=23%, cost=54.187868949999995, cost_ph=1.07, tokens=1888866, tpm=622
+[2026-01-27 20:00:16] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:00:16] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.246346749999994,
+    "total_duration_ms": 182344517,
+    "total_api_duration_ms": 19806043,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837470,
+    "total_output_tokens": 1051653,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 14,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 2332,
+      "cache_read_input_tokens": 153486
+    },
+    "used_percentage": 78,
+    "remaining_percentage": 22
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:00:16] Using jq for JSON parsing
+---
+[2026-01-27 20:00:16] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=23%, cost=54.246346749999994, cost_ph=1.07, tokens=1889123, tpm=622
+[2026-01-27 20:01:49] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:01:49] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.83107524999999,
+    "total_duration_ms": 182437400,
+    "total_api_duration_ms": 19897117,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837472,
+    "total_output_tokens": 1056204,
+    "context_window_size": 200000,
+    "current_usage": null,
+    "used_percentage": null,
+    "remaining_percentage": null
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:01:49] Using jq for JSON parsing
+---
+[2026-01-27 20:01:49] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=, cost=54.83107524999999, cost_ph=1.08, tokens=1893676, tpm=623
+[2026-01-27 20:01:54] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:01:54] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.83107524999999,
+    "total_duration_ms": 182442458,
+    "total_api_duration_ms": 19897117,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837472,
+    "total_output_tokens": 1056204,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 21463,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 21,
+    "remaining_percentage": 79
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:01:54] Using jq for JSON parsing
+---
+[2026-01-27 20:01:54] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=80%, cost=54.83107524999999, cost_ph=1.08, tokens=1893676, tpm=623
+[2026-01-27 20:01:55] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:01:55] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.83107524999999,
+    "total_duration_ms": 182442988,
+    "total_api_duration_ms": 19897117,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837472,
+    "total_output_tokens": 1056204,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 21463,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 21,
+    "remaining_percentage": 79
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:01:55] Using jq for JSON parsing
+---
+[2026-01-27 20:01:55] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=80%, cost=54.83107524999999, cost_ph=1.08, tokens=1893676, tpm=623
+[2026-01-27 20:01:55] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:01:55] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.92321979999999,
+    "total_duration_ms": 182443524,
+    "total_api_duration_ms": 19903232,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837482,
+    "total_output_tokens": 1056570,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 21463,
+      "cache_read_input_tokens": 20461
+    },
+    "used_percentage": 21,
+    "remaining_percentage": 79
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:01:55] Using jq for JSON parsing
+---
+[2026-01-27 20:01:55] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=80%, cost=54.92321979999999, cost_ph=1.08, tokens=1894052, tpm=623
+[2026-01-27 20:02:01] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:01] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.92321979999999,
+    "total_duration_ms": 182449121,
+    "total_api_duration_ms": 19903232,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837482,
+    "total_output_tokens": 1056570,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 3804,
+      "cache_read_input_tokens": 41924
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:01] Using jq for JSON parsing
+---
+[2026-01-27 20:02:01] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=78%, cost=54.92321979999999, cost_ph=1.08, tokens=1894052, tpm=623
+[2026-01-27 20:02:02] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:02] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.92321979999999,
+    "total_duration_ms": 182450240,
+    "total_api_duration_ms": 19903232,
+    "total_lines_added": 32947,
+    "total_lines_removed": 587
+  },
+  "context_window": {
+    "total_input_tokens": 837482,
+    "total_output_tokens": 1056570,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 3804,
+      "cache_read_input_tokens": 41924
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:02] Using jq for JSON parsing
+---
+[2026-01-27 20:02:02] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=78%, cost=54.92321979999999, cost_ph=1.08, tokens=1894052, tpm=623
+[2026-01-27 20:02:03] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:03] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.957120999999994,
+    "total_duration_ms": 182451829,
+    "total_api_duration_ms": 19911407,
+    "total_lines_added": 32948,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837495,
+    "total_output_tokens": 1057038,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 13,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 3804,
+      "cache_read_input_tokens": 41924
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:03] Using jq for JSON parsing
+---
+[2026-01-27 20:02:03] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=78%, cost=54.957120999999994, cost_ph=1.08, tokens=1894533, tpm=623
+[2026-01-27 20:02:06] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:06] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.957120999999994,
+    "total_duration_ms": 182454719,
+    "total_api_duration_ms": 19911407,
+    "total_lines_added": 32948,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837495,
+    "total_output_tokens": 1057038,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 12,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 534,
+      "cache_read_input_tokens": 45728
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:06] Using jq for JSON parsing
+---
+[2026-01-27 20:02:06] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.957120999999994, cost_ph=1.08, tokens=1894533, tpm=623
+[2026-01-27 20:02:08] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:08] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.977767899999996,
+    "total_duration_ms": 182456825,
+    "total_api_duration_ms": 19916206,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837507,
+    "total_output_tokens": 1057364,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 12,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 534,
+      "cache_read_input_tokens": 45728
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:08] Using jq for JSON parsing
+---
+[2026-01-27 20:02:08] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.977767899999996, cost_ph=1.08, tokens=1894871, tpm=623
+[2026-01-27 20:02:11] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:11] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.977767899999996,
+    "total_duration_ms": 182459519,
+    "total_api_duration_ms": 19916206,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837507,
+    "total_output_tokens": 1057364,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 440,
+      "cache_read_input_tokens": 46262
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:11] Using jq for JSON parsing
+---
+[2026-01-27 20:02:11] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.977767899999996, cost_ph=1.08, tokens=1894871, tpm=623
+[2026-01-27 20:02:11] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:11] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.977767899999996,
+    "total_duration_ms": 182459869,
+    "total_api_duration_ms": 19916206,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837507,
+    "total_output_tokens": 1057364,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 440,
+      "cache_read_input_tokens": 46262
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:11] Using jq for JSON parsing
+---
+[2026-01-27 20:02:11] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.977767899999996, cost_ph=1.08, tokens=1894871, tpm=623
+[2026-01-27 20:02:13] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:13] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.995819499999996,
+    "total_duration_ms": 182461041,
+    "total_api_duration_ms": 19920214,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837518,
+    "total_output_tokens": 1057530,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 3,
+      "cache_creation_input_tokens": 440,
+      "cache_read_input_tokens": 46262
+    },
+    "used_percentage": 23,
+    "remaining_percentage": 77
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:13] Using jq for JSON parsing
+---
+[2026-01-27 20:02:13] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.995819499999996, cost_ph=1.09, tokens=1895048, tpm=623
+[2026-01-27 20:02:16] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:16] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 54.995819499999996,
+    "total_duration_ms": 182464919,
+    "total_api_duration_ms": 19920214,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837518,
+    "total_output_tokens": 1057530,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 489,
+      "cache_read_input_tokens": 46702
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:16] Using jq for JSON parsing
+---
+[2026-01-27 20:02:16] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=54.995819499999996, cost_ph=1.09, tokens=1895048, tpm=623
+[2026-01-27 20:02:17] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:17] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.01502685,
+    "total_duration_ms": 182465829,
+    "total_api_duration_ms": 19924764,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837529,
+    "total_output_tokens": 1057752,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "cache_creation_input_tokens": 489,
+      "cache_read_input_tokens": 46702
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:17] Using jq for JSON parsing
+---
+[2026-01-27 20:02:17] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=55.01502685, cost_ph=1.09, tokens=1895281, tpm=623
+[2026-01-27 20:02:20] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:20] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.01502685,
+    "total_duration_ms": 182468474,
+    "total_api_duration_ms": 19924764,
+    "total_lines_added": 32949,
+    "total_lines_removed": 588
+  },
+  "context_window": {
+    "total_input_tokens": 837529,
+    "total_output_tokens": 1057752,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 720,
+      "cache_read_input_tokens": 47191
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:20] Using jq for JSON parsing
+---
+[2026-01-27 20:02:20] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=55.01502685, cost_ph=1.09, tokens=1895281, tpm=623
+[2026-01-27 20:02:23] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:23] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.037212149999995,
+    "total_duration_ms": 182471265,
+    "total_api_duration_ms": 19930003,
+    "total_lines_added": 32951,
+    "total_lines_removed": 589
+  },
+  "context_window": {
+    "total_input_tokens": 837540,
+    "total_output_tokens": 1058105,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 11,
+      "output_tokens": 2,
+      "cache_creation_input_tokens": 720,
+      "cache_read_input_tokens": 47191
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:23] Using jq for JSON parsing
+---
+[2026-01-27 20:02:23] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=77%, cost=55.037212149999995, cost_ph=1.09, tokens=1895645, tpm=623
+[2026-01-27 20:02:28] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:28] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.037212149999995,
+    "total_duration_ms": 182476237,
+    "total_api_duration_ms": 19930003,
+    "total_lines_added": 32951,
+    "total_lines_removed": 589
+  },
+  "context_window": {
+    "total_input_tokens": 837540,
+    "total_output_tokens": 1058105,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 5,
+      "cache_creation_input_tokens": 410,
+      "cache_read_input_tokens": 47911
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:28] Using jq for JSON parsing
+---
+[2026-01-27 20:02:28] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=76%, cost=55.037212149999995, cost_ph=1.09, tokens=1895645, tpm=623
+[2026-01-27 20:02:28] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:28] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.037212149999995,
+    "total_duration_ms": 182476650,
+    "total_api_duration_ms": 19930003,
+    "total_lines_added": 32951,
+    "total_lines_removed": 589
+  },
+  "context_window": {
+    "total_input_tokens": 837540,
+    "total_output_tokens": 1058105,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 5,
+      "cache_creation_input_tokens": 410,
+      "cache_read_input_tokens": 47911
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:28] Using jq for JSON parsing
+---
+[2026-01-27 20:02:28] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=76%, cost=55.037212149999995, cost_ph=1.09, tokens=1895645, tpm=623
+[2026-01-27 20:02:29] Status line triggered (cc-statusline v1.4.0)
+[2026-01-27 20:02:29] Input:
+{
+  "session_id": "25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a",
+  "transcript_path": "/Users/danielzeddr/.claude/projects/-Users-danielzeddr-PetForce/25a57fb3-f42c-4bfe-bb4e-8ed67abb6b9a.jsonl",
+  "cwd": "/Users/danielzeddr/PetForce",
+  "model": {
+    "id": "claude-sonnet-4-5-20250929",
+    "display_name": "Sonnet 4.5"
+  },
+  "workspace": {
+    "current_dir": "/Users/danielzeddr/PetForce",
+    "project_dir": "/Users/danielzeddr/PetForce"
+  },
+  "version": "2.1.19",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 55.05750294999999,
+    "total_duration_ms": 182477231,
+    "total_api_duration_ms": 19935712,
+    "total_lines_added": 32951,
+    "total_lines_removed": 589
+  },
+  "context_window": {
+    "total_input_tokens": 837550,
+    "total_output_tokens": 1058395,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 10,
+      "output_tokens": 5,
+      "cache_creation_input_tokens": 410,
+      "cache_read_input_tokens": 47911
+    },
+    "used_percentage": 24,
+    "remaining_percentage": 76
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-01-27 20:02:29] Using jq for JSON parsing
+---
+[2026-01-27 20:02:29] Extracted: dir=~/PetForce, model=Sonnet 4.5, version=, git=feature/github-automation-and-team-improvements, context=76%, cost=55.05750294999999, cost_ph=1.09, tokens=1895945, tpm=623

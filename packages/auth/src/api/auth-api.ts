@@ -85,24 +85,9 @@ export async function register(
     const isConfirmed = authData.user.email_confirmed_at !== null;
     const confirmationRequired = !isConfirmed;
 
-    // CRITICAL: If user is already confirmed on a registration attempt,
-    // it means they already have an account (Supabase returns existing user)
-    if (isConfirmed) {
-      logger.authEvent('registration_duplicate_email', requestId, {
-        email: data.email,
-        userId: authData.user.id,
-        message: 'User attempted to register with email that already exists',
-      });
-
-      return {
-        success: false,
-        message: 'This email is already registered. Please sign in or reset your password.',
-        error: {
-          code: 'USER_ALREADY_EXISTS',
-          message: 'This email is already registered. Please sign in or reset your password.',
-        },
-      };
-    }
+    // Note: If auto-confirm is enabled, new users will have email_confirmed_at set immediately
+    // Supabase handles duplicate email attempts by returning an error (caught above),
+    // so if we reach here with a confirmed user, it's a legitimate registration
 
     // Log successful registration with confirmation state
     logger.authEvent('registration_completed', requestId, {

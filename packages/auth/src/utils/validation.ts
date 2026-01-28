@@ -18,14 +18,15 @@ export const emailSchema = z
   .max(EMAIL_MAX_LENGTH, 'Email is too long');
 
 // Password validation
-// Minimum 8 characters, at least one uppercase, one lowercase, one number
+// Minimum 8 characters, at least one uppercase, one lowercase, one number, one special character
 export const passwordSchema = z
   .string()
   .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
   .max(PASSWORD_MAX_LENGTH, 'Password is too long')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number');
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
 
 // Registration schema
 export const registerSchema = z.object({
@@ -73,6 +74,9 @@ export function isValidEmail(email: string): boolean {
   }
 }
 
+// Alias for backwards compatibility with tests
+export const validateEmail = isValidEmail;
+
 // Helper to get password strength
 export function getPasswordStrength(password: string): 'weak' | 'medium' | 'strong' {
   if (password.length < PASSWORD_MIN_LENGTH) return 'weak';
@@ -101,11 +105,16 @@ export function calculatePasswordStrength(password: string): {
 } {
   let score = 0;
 
-  if (password.length >= PASSWORD_MIN_LENGTH) score++;
-  if (password.length >= PASSWORD_STRONG_MIN_LENGTH) score++;
+  // Length scoring: meeting minimum is required, not a bonus
+  // Only give points for exceeding minimum
+  if (password.length >= PASSWORD_STRONG_MIN_LENGTH) score++; // 12+ chars
+
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  // Clamp score to max (important: arrays only have indices 0-4)
+  score = Math.min(score, PASSWORD_STRENGTH_MAX_SCORE);
 
   const labels: ('Weak' | 'Fair' | 'Good' | 'Strong')[] = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
   const colors = [
@@ -117,7 +126,7 @@ export function calculatePasswordStrength(password: string): {
   ];
 
   return {
-    score: Math.min(score, PASSWORD_STRENGTH_MAX_SCORE),
+    score,
     label: labels[score],
     color: colors[score],
   };
@@ -152,6 +161,10 @@ export function validatePassword(password: string): { valid: boolean; errors: st
 
   if (!/[0-9]/.test(password)) {
     errors.push('Password must contain at least one number');
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    errors.push('Password must contain at least one special character');
   }
 
   return {
