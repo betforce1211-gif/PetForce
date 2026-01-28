@@ -24,10 +24,11 @@ const testSupabaseUrl = 'https://test.supabase.co';
 const testAnonKey = 'test-anon-key-for-e2e-tests-only';
 
 const finalUrl = supabaseUrl || (isTestEnvironment ? testSupabaseUrl : '');
-const finalKey = publishableKey || legacyAnonKey || (isTestEnvironment ? testAnonKey : '');
+const finalPublishableKey = publishableKey;
+const finalAnonKey = legacyAnonKey || (isTestEnvironment ? testAnonKey : '');
 
-if (finalUrl && finalKey) {
-  createSupabaseClient(finalUrl, finalKey);
+if (finalUrl && (finalPublishableKey || finalAnonKey)) {
+  createSupabaseClient(finalUrl, finalPublishableKey, finalAnonKey);
 }
 
 function App() {
