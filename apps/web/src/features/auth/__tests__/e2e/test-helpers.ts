@@ -13,6 +13,23 @@ export const ApiMocking = {
    * Setup API mocks for all Supabase endpoints
    */
   async setupMocks(page: Page) {
+    // Mock GET /auth/v1/user - Check current user session
+    await page.route('**/auth/v1/user', async (route: Route) => {
+      if (route.request().method() === 'GET') {
+        // No user logged in initially
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            user: null,
+            session: null,
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
     // Mock Supabase Auth API - Sign Up (New User)
     await page.route('**/auth/v1/signup', async (route: Route) => {
       const request = route.request();
@@ -71,14 +88,34 @@ export const ApiMocking = {
       });
     });
 
-    // Mock other Supabase endpoints if needed
-    await page.route('**/auth/v1/**', async (route: Route) => {
-      // Default mock for other auth endpoints
+    // Mock resend confirmation endpoint
+    await page.route('**/auth/v1/resend', async (route: Route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
+        body: JSON.stringify({}),
       });
+    });
+
+    // Mock other Supabase endpoints - return empty/null responses
+    await page.route('**/auth/v1/**', async (route: Route) => {
+      const method = route.request().method();
+
+      // For GET requests, return null/empty data
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: null }),
+        });
+      } else {
+        // For POST/PUT/DELETE, return success
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({}),
+        });
+      }
     });
   },
 
