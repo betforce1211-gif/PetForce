@@ -7,6 +7,7 @@ export interface InputProps extends TextInputProps {
   error?: string;
   helperText?: string;
   containerStyle?: ViewStyle;
+  required?: boolean;
 }
 
 export function Input({

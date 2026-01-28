@@ -1,0 +1,100 @@
+[
+  {
+    "title": "[CHUCK] Add deployment health checks",
+    "body": "## Description\n\nImplement health check endpoints for all services to enable better monitoring and automated deployment verification.\n\n## Requirements\n- Add /health endpoint to web app\n- Add /health endpoint to mobile API\n- Check database connectivity\n- Check Redis connectivity\n- Check external service connectivity\n\n## Acceptance Criteria\n- [ ] Health endpoint returns 200 OK when all systems operational\n- [ ] Health endpoint returns 503 Service Unavailable when systems down\n- [ ] Response includes status of each dependency\n- [ ] Endpoint is monitored by uptime service\n- [ ] Documentation updated",
+    "labels": ["agent:chuck", "ci-cd", "priority:high", "type:feature", "component:ci-cd"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[TUCKER] Write E2E tests for pet profile creation",
+    "body": "## Description\n\nCreate comprehensive E2E tests for the pet profile creation flow to ensure reliability.\n\n## Test Cases\n1. Happy path - create profile with all fields\n2. Required fields validation\n3. Image upload\n4. Multiple pets per user\n5. Edit existing profile\n6. Delete profile\n\n## Acceptance Criteria\n- [ ] All test cases implemented\n- [ ] Tests pass consistently\n- [ ] Tests run in CI pipeline\n- [ ] Test coverage > 80%",
+    "labels": ["agent:tucker", "testing", "priority:high", "type:test", "component:frontend"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[SAMANTHA] Audit authentication security",
+    "body": "## Description\n\nPerform comprehensive security audit of authentication flow including email confirmation.\n\n## Scope\n- Review JWT implementation\n- Check session management\n- Verify password hashing\n- Test email confirmation flow\n- Check for common vulnerabilities (CSRF, XSS, SQL injection)\n- Review rate limiting\n\n## Deliverables\n- Security audit report\n- List of vulnerabilities (if any)\n- Recommended fixes\n- Implementation of critical fixes",
+    "labels": ["agent:samantha", "security", "priority:critical", "type:chore", "component:auth"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[LARRY] Improve error logging for API endpoints",
+    "body": "## Description\n\nEnhance error logging to include more context for debugging production issues.\n\n## Requirements\n- Add request ID to all logs\n- Include user ID (when authenticated)\n- Log full error stack traces\n- Add structured logging\n- Integrate with error tracking service (e.g., Sentry)\n\n## Acceptance Criteria\n- [ ] Request ID in all log entries\n- [ ] Error tracking integrated\n- [ ] Log levels properly set\n- [ ] Documentation updated",
+    "labels": ["agent:larry", "observability", "priority:medium", "type:feature", "component:backend"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[MAYA] Implement offline mode for mobile app",
+    "body": "## Description\n\nAdd offline support so users can view pet data without internet connection.\n\n## Requirements\n- Cache pet profiles locally\n- Cache recent activity\n- Queue actions when offline\n- Sync when connection restored\n- Show offline indicator\n\n## Technical Approach\n- Use React Native AsyncStorage\n- Implement sync queue\n- Add network status monitoring\n\n## Acceptance Criteria\n- [ ] Users can view cached data offline\n- [ ] Changes sync when online\n- [ ] Clear offline indicator shown\n- [ ] Tests cover offline scenarios",
+    "labels": ["agent:maya", "mobile", "priority:medium", "type:feature", "component:mobile"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[ANA] Create dashboard for user engagement metrics",
+    "body": "## Description\n\nBuild analytics dashboard to track user engagement and app usage.\n\n## Metrics to Track\n- Daily active users (DAU)\n- Weekly active users (WAU)\n- Monthly active users (MAU)\n- Feature usage\n- User retention\n- Churn rate\n\n## Deliverables\n- Dashboard with visualizations\n- Automated daily reports\n- Alert system for anomalies\n\n## Tools\n- Use existing analytics setup\n- Integrate with monitoring system",
+    "labels": ["agent:ana", "analytics", "priority:medium", "type:feature", "component:analytics"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[BUCK] Optimize database queries for pet listings",
+    "body": "## Description\n\nOptimize slow database queries identified in production monitoring.\n\n## Issues\n- Pet listing query takes 2-3 seconds\n- N+1 query problem on user profiles\n- Missing indexes on frequently queried columns\n\n## Tasks\n- [ ] Add indexes to pet table\n- [ ] Optimize JOIN queries\n- [ ] Add query result caching\n- [ ] Test with production-scale data\n\n## Target\n- Reduce query time to < 200ms\n- Improve page load time by 50%",
+    "labels": ["agent:buck", "database", "priority:high", "type:refactor", "component:database"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[THOMAS] Update API documentation for v2 endpoints",
+    "body": "## Description\n\nAPI documentation is outdated and missing new v2 endpoints.\n\n## Tasks\n- [ ] Document all v2 endpoints\n- [ ] Add request/response examples\n- [ ] Document authentication\n- [ ] Add error codes reference\n- [ ] Update OpenAPI spec\n- [ ] Generate interactive docs\n\n## Audience\n- External developers\n- Frontend team\n- Mobile team",
+    "labels": ["agent:thomas", "documentation", "priority:high", "type:docs", "component:docs"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[DEXTER] Redesign onboarding flow",
+    "body": "## Description\n\nCurrent onboarding has 60% drop-off rate. Redesign for better UX.\n\n## Goals\n- Reduce steps from 5 to 3\n- Add progress indicator\n- Improve mobile experience\n- Add skip option for optional fields\n\n## Deliverables\n- [ ] User flow diagrams\n- [ ] Wireframes\n- [ ] High-fidelity mockups\n- [ ] Prototype for testing\n- [ ] Accessibility review",
+    "labels": ["agent:dexter", "design", "priority:high", "type:feature", "component:frontend"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[PETER] Define MVP requirements for medication reminders",
+    "body": "## Description\n\nDefine requirements for medication reminder feature (top user request).\n\n## Research\n- [ ] User interviews (5-10 pet owners)\n- [ ] Competitive analysis\n- [ ] Technical feasibility\n- [ ] Legal/compliance review\n\n## Deliverables\n- [ ] PRD (Product Requirements Document)\n- [ ] User stories with acceptance criteria\n- [ ] Priority ranking\n- [ ] Success metrics\n- [ ] Launch timeline\n\n## Stakeholders\n- Engrid (implementation)\n- Maya (mobile)\n- Samantha (compliance)\n- Tucker (testing)",
+    "labels": ["agent:peter", "product", "priority:high", "type:feature", "roadmap"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[ISABEL] Set up production monitoring and alerting",
+    "body": "## Description\n\nProduction environment lacks proper monitoring. Set up comprehensive observability.\n\n## Components\n- Application performance monitoring (APM)\n- Infrastructure monitoring\n- Log aggregation\n- Error tracking\n- Uptime monitoring\n- Alert routing\n\n## Tools\n- Datadog or New Relic for APM\n- CloudWatch for infrastructure\n- Sentry for errors\n- PagerDuty for alerts\n\n## Deliverables\n- [ ] Monitoring dashboards\n- [ ] Alert rules configured\n- [ ] On-call rotation setup\n- [ ] Runbook documentation",
+    "labels": ["agent:isabel", "infrastructure", "priority:critical", "type:feature", "component:infrastructure"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[AXEL] Design REST API v3 with GraphQL migration path",
+    "body": "## Description\n\nPlan next generation API with better performance and flexibility.\n\n## Goals\n- Reduce API calls for mobile app\n- Add real-time capabilities\n- Improve error handling\n- Better versioning strategy\n\n## Considerations\n- GraphQL vs REST\n- Backwards compatibility\n- Migration strategy\n- Performance requirements\n\n## Deliverables\n- [ ] API design document\n- [ ] OpenAPI/GraphQL schema\n- [ ] Migration plan\n- [ ] Performance benchmarks",
+    "labels": ["agent:axel", "api", "priority:medium", "type:feature", "roadmap", "component:backend"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[ENGRID] Refactor authentication module for better testability",
+    "body": "## Description\n\nAuthentication code is tightly coupled and hard to test. Refactor for better architecture.\n\n## Issues\n- No dependency injection\n- Hard to mock external services\n- Low test coverage (45%)\n- Complex logic in controllers\n\n## Approach\n- Extract business logic to services\n- Add dependency injection\n- Create interfaces for external deps\n- Write comprehensive unit tests\n\n## Target\n- Test coverage > 85%\n- All logic testable in isolation\n- No breaking changes to API",
+    "labels": ["agent:engrid", "engineering", "priority:medium", "type:refactor", "component:auth"],
+    "assignees": [],
+    "milestone": null
+  },
+  {
+    "title": "[CASEY] Create customer onboarding checklist",
+    "body": "## Description\n\nNew customers struggle to get started. Create guided onboarding experience.\n\n## Components\n- Welcome email sequence\n- In-app checklist\n- Tutorial videos\n- Help center articles\n- Live chat support\n\n## Success Metrics\n- Reduce time to first pet profile created\n- Increase feature adoption\n- Reduce support tickets\n- Improve user satisfaction (NPS)\n\n## Deliverables\n- [ ] Onboarding checklist design\n- [ ] Email templates\n- [ ] Help articles\n- [ ] Tutorial videos\n- [ ] In-app guidance",
+    "labels": ["agent:casey", "customer-success", "priority:medium", "type:feature"],
+    "assignees": [],
+    "milestone": null
+  }
+]

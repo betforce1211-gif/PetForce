@@ -120,13 +120,47 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ✗ Cancel
 ```
 
-### Phase 4: Push to GitHub
+### Phase 4: Create GitHub Issues (NEW!)
+
+Before pushing, Chuck will analyze your changes and create GitHub Issues for:
+
+1. **Bugs Fixed** - If commit message includes "fix" or "fixes"
+   - Creates issue: `[BUG] <description>`
+   - Labels: `bug`, priority based on scope, relevant agent
+   - Links to commit in description
+
+2. **Features Added** - If commit message includes "feat"
+   - Creates issue: `[FEATURE] <description>`
+   - Labels: `enhancement`, `roadmap`, relevant agent
+   - Adds to Product Roadmap project
+
+3. **Technical Debt** - If commit message includes "refactor"
+   - Creates issue: `[TECH DEBT] <description>`
+   - Labels: `type:refactor`, relevant agent
+   - Adds to Sprint backlog
+
+4. **Documentation** - If commit message includes "docs"
+   - Creates issue: `[DOCS] <description>`
+   - Labels: `documentation`, `agent:thomas`
+
+**Example**:
+```
+Your commit: "fix(auth): reject login for unconfirmed users"
+
+Chuck creates:
+✅ Issue #145: [BUG] Login allowed for unconfirmed users
+   Labels: bug, priority:high, agent:engrid, component:auth
+   Linked: Closes with commit abc1234
+```
+
+### Phase 5: Push to GitHub
 
 If approved:
 1. **Pull Latest** - Fetches and rebases on current branch
 2. **Create Commit** - Using the generated message
-3. **Push** - With upstream tracking
-4. **Show Status** - What was pushed and next steps
+3. **Create GitHub Issues** - For bugs/features/tech debt
+4. **Push** - With upstream tracking
+5. **Show Status** - What was pushed, issues created, next steps
 
 ## What If You're on Main/Develop?
 
@@ -266,9 +300,18 @@ Chuck shows:
   Commit: abc1234
   Files changed: 12
 
+🎫 GitHub Issues Created:
+  ✅ Issue #156: [FEATURE] User analytics dashboard
+     URL: https://github.com/org/petforce/issues/156
+     Labels: enhancement, roadmap, agent:ana, component:analytics
+
+  ✅ Issue #157: [BUG] Dashboard not loading on mobile
+     URL: https://github.com/org/petforce/issues/157
+     Labels: bug, priority:high, agent:maya, component:mobile
+
 🚀 Next Steps:
   Create pull request:
-    gh pr create --base develop --title "Add user dashboard"
+    gh pr create --base develop --title "Add user dashboard" --body "Closes #156"
 
   Or view in browser:
     gh pr create --web
@@ -347,6 +390,12 @@ Options:
 
 # Skip pre-push hooks
 /petforce-dev:push --no-verify
+
+# Skip GitHub issue creation (NEW!)
+/petforce-dev:push --skip-issues
+
+# Create roadmap issue even for small changes
+/petforce-dev:push --roadmap
 ```
 
 ## Chuck's Analysis Process

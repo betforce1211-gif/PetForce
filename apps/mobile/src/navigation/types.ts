@@ -3,9 +3,10 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 export type AuthStackParamList = {
-  Welcome: undefined;
-  Login: undefined;
-  Register: undefined;
+  UnifiedAuth: undefined;
+  Welcome: undefined; // Deprecated - keeping for backward compatibility
+  Login: undefined; // Deprecated - keeping for backward compatibility
+  Register: undefined; // Deprecated - keeping for backward compatibility
   ForgotPassword: undefined;
   ResetPassword: { token: string };
   VerifyEmail: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
 };
 
 // Screen props types
+export type UnifiedAuthScreenProps = NativeStackScreenProps<AuthStackParamList, 'UnifiedAuth'>;
 export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;

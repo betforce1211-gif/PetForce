@@ -1,7 +1,11 @@
 // Magic Link (Passwordless) Authentication using Supabase
 
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from './supabase-client';
-import type { AuthError } from '../types/auth';
+import type { AuthError, User } from '../types/auth';
+import { TOKEN_EXPIRY_SECONDS, AUTH_ERROR_CODES, REDIRECT_PATHS } from '../config/constants';
+import { getOrigin, isWindowAvailable } from '../utils/window-adapter';
+import { mapSupabaseUserToUser } from './auth-api';
 
 /**
  * Send a magic link to the user's email
@@ -31,7 +35,7 @@ export async function sendMagicLink(
         success: false,
         message: error.message,
         error: {
-          code: error.name || 'MAGIC_LINK_ERROR',
+          code: error.name || AUTH_ERROR_CODES.MAGIC_LINK_ERROR,
           message: error.message,
         },
       };
@@ -46,7 +50,7 @@ export async function sendMagicLink(
       success: false,
       message: 'An unexpected error occurred',
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -64,7 +68,7 @@ export async function verifyMagicLink(
 ): Promise<{
   success: boolean;
   tokens?: { accessToken: string; refreshToken: string; expiresIn: number };
-  user?: any;
+  user?: User;
   error?: AuthError;
 }> {
   try {
@@ -72,14 +76,14 @@ export async function verifyMagicLink(
 
     const { data, error } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type: type as any,
+      type: type as 'magiclink' | 'email',
     });
 
     if (error) {
       return {
         success: false,
         error: {
-          code: error.name || 'VERIFICATION_ERROR',
+          code: error.name || AUTH_ERROR_CODES.VERIFICATION_ERROR,
           message: error.message,
         },
       };
@@ -89,7 +93,7 @@ export async function verifyMagicLink(
       return {
         success: false,
         error: {
-          code: 'VERIFICATION_ERROR',
+          code: AUTH_ERROR_CODES.VERIFICATION_ERROR,
           message: 'No session returned from verification',
         },
       };
@@ -100,15 +104,15 @@ export async function verifyMagicLink(
       tokens: {
         accessToken: data.session.access_token,
         refreshToken: data.session.refresh_token,
-        expiresIn: data.session.expires_in || 900,
+        expiresIn: data.session.expires_in || TOKEN_EXPIRY_SECONDS,
       },
-      user: data.user,
+      user: mapSupabaseUserToUser(data.user),
     };
   } catch (error) {
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -121,14 +125,14 @@ export async function verifyMagicLink(
 function getDefaultRedirectUrl(): string {
   // Check if running in React Native
   if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-    return 'petforce://auth/callback';
+    return REDIRECT_PATHS.NATIVE_CALLBACK;
   }
 
   // Web environment
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/callback`;
+  if (isWindowAvailable()) {
+    return `${getOrigin()}${REDIRECT_PATHS.AUTH_CALLBACK}`;
   }
 
   // Fallback (shouldn't happen)
-  return 'petforce://auth/callback';
+  return REDIRECT_PATHS.NATIVE_CALLBACK;
 }

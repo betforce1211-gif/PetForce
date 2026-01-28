@@ -10,8 +10,14 @@ export interface CardProps {
 }
 
 export function Card({ children, padding = 'md', style }: CardProps) {
+  const paddingStyle = padding ? (
+    padding === 'sm' ? styles.paddingSm :
+    padding === 'md' ? styles.paddingMd :
+    styles.paddingLg
+  ) : undefined;
+
   return (
-    <View style={[styles.card, styles[`padding${padding.charAt(0).toUpperCase() + padding.slice(1)}`], style]}>
+    <View style={[styles.card, paddingStyle, style]}>
       {children}
     </View>
   );

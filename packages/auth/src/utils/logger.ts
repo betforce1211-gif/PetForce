@@ -3,6 +3,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { metrics } from './metrics';
+import { monitoring } from './monitoring';
 
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
@@ -37,10 +38,25 @@ class Logger {
 
   /**
    * Hash email for privacy in logs
+   * Browser-compatible simple hash for development
+   * For production, use server-side SHA-256
    */
   private hashEmail(email: string): string {
-    // Simple hash for logging - in production, use proper hashing
-    return `${email.substring(0, 3)}***@${email.split('@')[1]}`;
+    try {
+      const normalized = email.toLowerCase().trim();
+      // Simple hash for browser compatibility (development only)
+      let hash = 0;
+      for (let i = 0; i < normalized.length; i++) {
+        const char = normalized.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      const hashStr = Math.abs(hash).toString(16).padStart(8, '0');
+      return 'hash:' + hashStr;
+    } catch (error) {
+      // Fallback if hashing fails - still protect PII
+      return 'email:redacted';
+    }
   }
 
   /**
@@ -53,21 +69,20 @@ class Logger {
       message,
       context: {
         ...context,
-        // Hash email if present for privacy
+        // Hash email if present for privacy (GDPR/CCPA compliance)
         email: context.email ? this.hashEmail(context.email) : undefined,
       },
     };
 
-    // In development, log to console
-    // In production, this would send to logging service
+    // In development, log to console for immediate feedback
     if (this.isDevelopment) {
       const logFn = level === 'ERROR' ? console.error : level === 'WARN' ? console.warn : console.log;
-      logFn(`[${entry.level}] ${entry.message}`, entry.context);
-    } else {
-      // Production: Send to logging service (Sentry, Datadog, etc.)
-      // For now, just use console
-      console.log(JSON.stringify(entry));
+      logFn('[' + entry.level + '] ' + entry.message, entry.context);
     }
+    
+    // In production, send to monitoring service (Datadog, Sentry, CloudWatch)
+    // Also send in development for testing monitoring integration
+    monitoring.sendLog(entry);
   }
 
   /**
@@ -108,7 +123,7 @@ class Logger {
     requestId: string,
     context: Omit<LogContext, 'eventType' | 'requestId'>
   ): void {
-    this.info(`Auth event: ${eventType}`, {
+    this.info('Auth event: ' + eventType, {
       ...context,
       eventType,
       requestId,

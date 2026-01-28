@@ -65,24 +65,24 @@ export function PasswordStrengthIndicator({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
+    marginTop: 6, // Reduced from 8
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4, // Reduced from 6
   },
   headerText: {
-    fontSize: 13,
+    fontSize: 12, // Reduced from 13
     color: '#6B7280',
   },
   strengthLabel: {
-    fontSize: 13,
+    fontSize: 12, // Reduced from 13
     fontWeight: '600',
   },
   progressBar: {
-    height: 4,
+    height: 3, // Reduced from 4
     backgroundColor: '#E5E7EB',
     borderRadius: 2,
     overflow: 'hidden',
@@ -92,23 +92,23 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   requirements: {
-    marginTop: 12,
-    gap: 6,
+    marginTop: 8, // Reduced from 12
+    gap: 4, // Reduced from 6
   },
   requirement: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   checkmark: {
-    fontSize: 16,
-    marginRight: 8,
+    fontSize: 14, // Reduced from 16
+    marginRight: 6, // Reduced from 8
     color: '#9CA3AF',
   },
   checkmarkMet: {
     color: '#2D9B87',
   },
   requirementText: {
-    fontSize: 13,
+    fontSize: 12, // Reduced from 13
     color: '#6B7280',
   },
   requirementMet: {
