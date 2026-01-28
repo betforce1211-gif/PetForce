@@ -17,7 +17,7 @@ import { ApiMocking } from './test-helpers';
 
 // Test data
 const EXISTING_EMAIL = 'existing@petforce.test';
-const generateTestEmail = () => `test-${Date.now()}@petforce.test`;
+const generateTestEmail = () => `test-${Date.now()}@example.com`;
 
 test.describe('Unified Auth Page - Tab Navigation', () => {
   test.beforeEach(async ({ page }) => {
