@@ -1,0 +1,62 @@
+# CODEOWNERS - Defines code ownership and review requirements
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @petforce-team
+
+# Documentation
+/docs/ @peter-agent @dexter-agent
+*.md @peter-agent @dexter-agent
+CONTRIBUTING.md @chuck-agent
+README.md @peter-agent
+
+# Core packages
+/packages/auth/ @engrid-agent @samantha-agent
+/packages/supabase/ @engrid-agent @larry-agent
+/packages/ui/ @dexter-agent @engrid-agent
+
+# Applications
+/apps/web/ @engrid-agent @dexter-agent
+/apps/mobile/ @maya-agent @dexter-agent
+
+# Infrastructure & CI/CD
+/.github/ @chuck-agent
+/.github/workflows/ @chuck-agent
+/scripts/ @chuck-agent
+Dockerfile @chuck-agent
+docker-compose.yml @chuck-agent
+
+# Testing
+**/__tests__/ @tucker-agent
+**/*.test.ts @tucker-agent
+**/*.test.tsx @tucker-agent
+**/*.spec.ts @tucker-agent
+vitest.config.ts @tucker-agent
+jest.config.js @tucker-agent
+
+# Configuration files
+package.json @engrid-agent @chuck-agent
+tsconfig.json @engrid-agent
+.eslintrc.* @engrid-agent
+.prettierrc.* @engrid-agent
+turbo.json @engrid-agent @chuck-agent
+
+# Security & Environment
+.env.example @samantha-agent @chuck-agent
+.env.* @samantha-agent
+
+# OpenSpec
+/openspec/ @peter-agent @ralph-agent
+/openspec/AGENTS.md @ralph-agent
+/openspec/changes/ @peter-agent
+
+# Database & Migrations
+/supabase/ @engrid-agent @samantha-agent
+/supabase/migrations/ @engrid-agent @samantha-agent @larry-agent
+
+# Monitoring & Logging
+**/logger.ts @larry-agent
+**/monitoring/ @larry-agent
+
+# License & Legal
+LICENSE @peter-agent

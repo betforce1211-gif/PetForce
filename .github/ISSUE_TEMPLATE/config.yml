@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/betforce1211-gif/PetForce/discussions
+    about: Ask questions and discuss ideas
+  - name: Security Vulnerability
+    url: https://github.com/betforce1211-gif/PetForce/security/advisories/new
+    about: Report security vulnerabilities privately
+  - name: Documentation
+    url: https://github.com/betforce1211-gif/PetForce/tree/main/docs
+    about: Read the documentation
