@@ -13,9 +13,8 @@ async function globalSetup() {
     console.log('✓ Supabase credentials found - E2E tests will use real API');
   }
 
-  return async () => {
-    console.log('Global setup complete');
-  };
+  // No async cleanup needed
+  return undefined;
 }
 
 export default globalSetup;
