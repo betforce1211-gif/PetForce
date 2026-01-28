@@ -13,6 +13,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { ApiMocking } from './test-helpers';
 
 // Test data
 const EXISTING_EMAIL = 'existing@petforce.test';
@@ -20,6 +21,9 @@ const generateTestEmail = () => `test-${Date.now()}@petforce.test`;
 
 test.describe('Unified Auth Page - Tab Navigation', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
   });
 
@@ -102,6 +106,9 @@ test.describe('Unified Auth Page - Tab Navigation', () => {
 
 test.describe('Registration Flow - Duplicate Email Detection', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
     await page.getByRole('tab', { name: 'Sign Up' }).click();
     // Wait for animation to complete and all form fields to be interactive
@@ -181,6 +188,9 @@ test.describe('Registration Flow - Duplicate Email Detection', () => {
 
 test.describe('Registration Flow - New User Success', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
     await page.getByRole('tab', { name: 'Sign Up' }).click();
     // Wait for animation to complete and all form fields to be interactive
@@ -231,6 +241,9 @@ test.describe('Registration Flow - New User Success', () => {
 
 test.describe('Password Validation', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
     await page.getByRole('tab', { name: 'Sign Up' }).click();
     // Wait for animation to complete and all form fields to be interactive
@@ -302,6 +315,9 @@ test.describe('Password Validation', () => {
 
 test.describe('Form Layout and Scrolling', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
     await page.getByRole('tab', { name: 'Sign Up' }).click();
     // Wait for animation to complete and all form fields to be interactive
@@ -368,6 +384,9 @@ test.describe('Form Layout and Scrolling', () => {
 
 test.describe('Accessibility and UX', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
   });
 
@@ -434,6 +453,9 @@ test.describe('Accessibility and UX', () => {
 
 test.describe('Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
+    if (ApiMocking.shouldUseMocks()) {
+      await ApiMocking.setupMocks(page);
+    }
     await page.goto('/auth');
     await page.getByRole('tab', { name: 'Sign Up' }).click();
     // Wait for animation to complete and all form fields to be interactive

@@ -3,7 +3,92 @@
  * Tucker's reusable testing utilities
  */
 
-import { Page, expect } from '@playwright/test';
+import { Page, expect, Route } from '@playwright/test';
+
+/**
+ * API Mocking helpers for testing without real Supabase
+ */
+export const ApiMocking = {
+  /**
+   * Setup API mocks for all Supabase endpoints
+   */
+  async setupMocks(page: Page) {
+    // Mock Supabase Auth API - Sign Up (New User)
+    await page.route('**/auth/v1/signup', async (route: Route) => {
+      const request = route.request();
+      const body = JSON.parse(request.postData() || '{}');
+      const email = body.email;
+
+      // Simulate duplicate email error for known test email
+      if (email === 'existing@petforce.test') {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            error: {
+              message: 'User already registered',
+              status: 400,
+            },
+          }),
+        });
+        return;
+      }
+
+      // Success response for new users
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: {
+            id: `user-${Date.now()}`,
+            email: email,
+            email_confirmed_at: null, // Email not confirmed yet
+            created_at: new Date().toISOString(),
+          },
+          session: null, // No session until email confirmed
+        }),
+      });
+    });
+
+    // Mock Supabase Auth API - Sign In
+    await page.route('**/auth/v1/token?grant_type=password', async (route: Route) => {
+      const request = route.request();
+      const body = JSON.parse(request.postData() || '{}');
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
+          expires_in: 3600,
+          user: {
+            id: 'user-123',
+            email: body.email,
+            email_confirmed_at: new Date().toISOString(),
+          },
+        }),
+      });
+    });
+
+    // Mock other Supabase endpoints if needed
+    await page.route('**/auth/v1/**', async (route: Route) => {
+      // Default mock for other auth endpoints
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+    });
+  },
+
+  /**
+   * Check if we should use mocks (no real credentials available)
+   */
+  shouldUseMocks(): boolean {
+    return !process.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL === 'https://test.supabase.co';
+  },
+};
 
 /**
  * Test user data generator

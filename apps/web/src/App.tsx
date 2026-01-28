@@ -18,8 +18,16 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const legacyAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (supabaseUrl && (publishableKey || legacyAnonKey)) {
-  createSupabaseClient(supabaseUrl, publishableKey, legacyAnonKey);
+// For E2E tests: use test credentials if real ones aren't provided
+const isTestEnvironment = import.meta.env.MODE === 'test' || process.env.CI;
+const testSupabaseUrl = 'https://test.supabase.co';
+const testAnonKey = 'test-anon-key-for-e2e-tests-only';
+
+const finalUrl = supabaseUrl || (isTestEnvironment ? testSupabaseUrl : '');
+const finalKey = publishableKey || legacyAnonKey || (isTestEnvironment ? testAnonKey : '');
+
+if (finalUrl && finalKey) {
+  createSupabaseClient(finalUrl, finalKey);
 }
 
 function App() {
