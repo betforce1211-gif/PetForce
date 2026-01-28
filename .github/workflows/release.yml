@@ -167,7 +167,8 @@ Co-Authored-By: Chuck CI/CD Agent <chuck@petforce.app>"
             🎉 Release v${{ steps.bump_version.outputs.new_version }} created!
             Tag: v${{ steps.bump_version.outputs.new_version }}
             Type: ${{ inputs.version_bump }}
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
         if: success()
         continue-on-error: true
 
@@ -178,6 +179,7 @@ Co-Authored-By: Chuck CI/CD Agent <chuck@petforce.app>"
           text: |
             ❌ Release creation failed!
             Version: ${{ steps.bump_version.outputs.new_version }}
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
         if: failure()
         continue-on-error: true
