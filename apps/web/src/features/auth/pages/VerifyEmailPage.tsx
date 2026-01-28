@@ -12,7 +12,7 @@ import {
   CONFETTI_COLORS,
   ICON_SIZES,
 } from '@/config/ui-constants';
-import { getInnerHeight } from '@petforce/auth/utils/window-adapter';
+import { getInnerHeight } from '@petforce/auth';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();

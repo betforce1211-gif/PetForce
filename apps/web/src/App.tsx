@@ -2,9 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { createSupabaseClient } from '@petforce/auth';
 import {
   UnifiedAuthPage,
-  WelcomePage,
-  LoginPage,
-  RegisterPage,
   ForgotPasswordPage,
   ResetPasswordPage,
   VerifyEmailPage,

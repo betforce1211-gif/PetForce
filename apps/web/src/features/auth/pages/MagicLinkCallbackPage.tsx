@@ -5,8 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
-import { verifyMagicLink } from '@petforce/auth';
-import { getHash } from '@petforce/auth/utils/window-adapter';
+import { verifyMagicLink, getHash } from '@petforce/auth';
 import { motion } from 'framer-motion';
 
 export function MagicLinkCallbackPage() {
