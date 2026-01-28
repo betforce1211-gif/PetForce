@@ -19,7 +19,7 @@ const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const legacyAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // For E2E tests: use test credentials if real ones aren't provided
-const isTestEnvironment = import.meta.env.MODE === 'test' || process.env.CI;
+const isTestEnvironment = import.meta.env.MODE === 'test' || import.meta.env.CI === 'true';
 const testSupabaseUrl = 'https://test.supabase.co';
 const testAnonKey = 'test-anon-key-for-e2e-tests-only';
 
