@@ -1,0 +1,624 @@
+openapi: 3.0.3
+info:
+  title: PetForce Authentication API
+  description: |
+    Standardized authentication API with consistent response shapes and rate limit information.
+    All endpoints return `ApiResponse<T>` pattern for predictable integration.
+  version: 2.0.0
+  contact:
+    name: PetForce API Team
+    email: api@petforce.com
+
+servers:
+  - url: https://api.petforce.com/v1
+    description: Production
+  - url: https://staging-api.petforce.com/v1
+    description: Staging
+  - url: http://localhost:3000/v1
+    description: Local development
+
+paths:
+  /auth/register:
+    post:
+      summary: Register new user
+      description: Creates new user account with email and password
+      operationId: register
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Login with email and password
+      description: Authenticates user and returns access tokens
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials or email not confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      summary: Logout current user
+      description: Invalidates current session and tokens
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/resend-confirmation:
+    post:
+      summary: Resend email confirmation
+      description: Sends new verification email to user
+      operationId: resendConfirmation
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendConfirmationRequest'
+      responses:
+        '200':
+          description: Confirmation email sent
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+                example: 3
+              description: Maximum requests per window
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 2
+              description: Requests remaining in window
+            X-RateLimit-Reset:
+              schema:
+                type: string
+                format: date-time
+                example: '2026-01-25T12:30:00Z'
+              description: When rate limit window resets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendConfirmationResponse'
+        '429':
+          description: Rate limit exceeded
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Maximum requests per window
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 0
+              description: Requests remaining (0 when rate limited)
+            X-RateLimit-Reset:
+              schema:
+                type: string
+                format: date-time
+              description: When rate limit resets
+            Retry-After:
+              schema:
+                type: integer
+                example: 600
+              description: Seconds until retry allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+
+  /auth/password-reset/request:
+    post:
+      summary: Request password reset
+      description: Sends password reset email (always returns success to prevent enumeration)
+      operationId: requestPasswordReset
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '200':
+          description: Reset email sent (if account exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequestResponse'
+
+  /auth/user:
+    get:
+      summary: Get current user
+      description: Returns authenticated user's profile
+      operationId: getCurrentUser
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Uses refresh token to get new access token
+      operationId: refreshSession
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Request Schemas
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecurePass123!
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Doe
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+
+    ResendConfirmationRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+
+    # Response Schemas
+    RegisterResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            confirmationRequired:
+              type: boolean
+              example: true
+              description: Whether email confirmation is required before login
+        message:
+          type: string
+          example: Registration successful. Please check your email to verify your account.
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    LoginResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            tokens:
+              $ref: '#/components/schemas/AuthTokens'
+            user:
+              $ref: '#/components/schemas/User'
+        message:
+          type: string
+          example: Login successful
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    LogoutResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logged out successfully
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ResendConfirmationResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Confirmation email sent. Please check your inbox.
+        meta:
+          type: object
+          properties:
+            requestId:
+              type: string
+              example: req_abc123def456
+            rateLimit:
+              $ref: '#/components/schemas/RateLimitInfo'
+
+    PasswordResetRequestResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: If an account exists with that email, a password reset link has been sent.
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    GetUserResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    RefreshResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            tokens:
+              $ref: '#/components/schemas/AuthTokens'
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          $ref: '#/components/schemas/AuthError'
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    RateLimitErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: RATE_LIMIT_EXCEEDED
+            message:
+              type: string
+              example: Too many requests. Please try again in 10 minutes.
+        meta:
+          type: object
+          properties:
+            requestId:
+              type: string
+              example: req_xyz789
+            rateLimit:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  example: 3
+                remaining:
+                  type: integer
+                  example: 0
+                reset:
+                  type: integer
+                  example: 1737810600
+                  description: Unix timestamp (seconds)
+                retryAfter:
+                  type: integer
+                  example: 600
+                  description: Seconds until retry allowed
+
+    # Data Models
+    AuthTokens:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: v1.MRjCzKHtKRcTyGEYDQbL...
+        expiresIn:
+          type: integer
+          example: 900
+          description: Access token lifetime in seconds
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - emailVerified
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        emailVerified:
+          type: boolean
+          example: true
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Doe
+        profilePhotoUrl:
+          type: string
+          format: uri
+          example: https://cdn.petforce.com/avatars/user123.jpg
+        authMethods:
+          type: array
+          items:
+            type: string
+            enum:
+              - email_password
+              - magic_link
+              - google_sso
+              - apple_sso
+              - biometric
+          example: [email_password]
+        preferredAuthMethod:
+          type: string
+          example: email_password
+        twoFactorEnabled:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-01-25T10:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-01-25T10:00:00Z'
+
+    AuthError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - INVALID_CREDENTIALS
+            - EMAIL_NOT_CONFIRMED
+            - USER_ALREADY_EXISTS
+            - WEAK_PASSWORD
+            - INVALID_TOKEN
+            - RATE_LIMIT_EXCEEDED
+            - INVALID_REQUEST
+            - UNAUTHORIZED
+            - RESEND_ERROR
+            - LOGIN_ERROR
+            - REGISTRATION_ERROR
+            - LOGOUT_ERROR
+            - REFRESH_ERROR
+            - GET_USER_ERROR
+            - UNEXPECTED_ERROR
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          example: Email or password is incorrect
+        details:
+          type: object
+          additionalProperties: true
+          example:
+            fields:
+              password: Password must be at least 8 characters
+
+    ApiResponseMeta:
+      type: object
+      properties:
+        requestId:
+          type: string
+          example: req_abc123def456
+          description: Unique request identifier for tracing
+        rateLimit:
+          $ref: '#/components/schemas/RateLimitInfo'
+
+    RateLimitInfo:
+      type: object
+      required:
+        - limit
+        - remaining
+        - reset
+      properties:
+        limit:
+          type: integer
+          example: 3
+          description: Maximum requests allowed in time window
+        remaining:
+          type: integer
+          example: 2
+          description: Requests remaining in current window
+        reset:
+          type: integer
+          example: 1737810600
+          description: Unix timestamp (seconds) when window resets
+        retryAfter:
+          type: integer
+          example: 600
+          description: Seconds until retry allowed (only present when rate limited)
+
+tags:
+  - name: Authentication
+    description: User authentication and session management

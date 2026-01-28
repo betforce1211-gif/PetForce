@@ -1,28 +1,39 @@
 import { z } from 'zod';
+import {
+  EMAIL_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_STRONG_MIN_LENGTH,
+  PASSWORD_STRENGTH_THRESHOLD_WEAK,
+  PASSWORD_STRENGTH_THRESHOLD_MEDIUM,
+  PASSWORD_STRENGTH_MAX_SCORE,
+  PASSWORD_STRENGTH_COLORS,
+} from '../config/constants';
 
 // Email validation
 export const emailSchema = z
   .string()
   .email('Invalid email address')
   .min(1, 'Email is required')
-  .max(255, 'Email is too long');
+  .max(EMAIL_MAX_LENGTH, 'Email is too long');
 
 // Password validation
-// Minimum 8 characters, at least one uppercase, one lowercase, one number
+// Minimum 8 characters, at least one uppercase, one lowercase, one number, one special character
 export const passwordSchema = z
   .string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(100, 'Password is too long')
+  .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
+  .max(PASSWORD_MAX_LENGTH, 'Password is too long')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number');
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
 
 // Registration schema
 export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  firstName: z.string().max(100).optional(),
-  lastName: z.string().max(100).optional(),
+  firstName: z.string().max(PASSWORD_MAX_LENGTH).optional(),
+  lastName: z.string().max(PASSWORD_MAX_LENGTH).optional(),
 });
 
 // Login schema
@@ -63,20 +74,23 @@ export function isValidEmail(email: string): boolean {
   }
 }
 
+// Alias for backwards compatibility with tests
+export const validateEmail = isValidEmail;
+
 // Helper to get password strength
 export function getPasswordStrength(password: string): 'weak' | 'medium' | 'strong' {
-  if (password.length < 8) return 'weak';
+  if (password.length < PASSWORD_MIN_LENGTH) return 'weak';
 
   let strength = 0;
 
-  if (password.length >= 12) strength++;
+  if (password.length >= PASSWORD_STRONG_MIN_LENGTH) strength++;
   if (/[A-Z]/.test(password)) strength++;
   if (/[a-z]/.test(password)) strength++;
   if (/[0-9]/.test(password)) strength++;
   if (/[^A-Za-z0-9]/.test(password)) strength++; // Special characters
 
-  if (strength <= 2) return 'weak';
-  if (strength <= 4) return 'medium';
+  if (strength <= PASSWORD_STRENGTH_THRESHOLD_WEAK) return 'weak';
+  if (strength <= PASSWORD_STRENGTH_THRESHOLD_MEDIUM) return 'medium';
   return 'strong';
 }
 
@@ -91,17 +105,28 @@ export function calculatePasswordStrength(password: string): {
 } {
   let score = 0;
 
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
+  // Length scoring: meeting minimum is required, not a bonus
+  // Only give points for exceeding minimum
+  if (password.length >= PASSWORD_STRONG_MIN_LENGTH) score++; // 12+ chars
+
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
+  // Clamp score to max (important: arrays only have indices 0-4)
+  score = Math.min(score, PASSWORD_STRENGTH_MAX_SCORE);
+
   const labels: ('Weak' | 'Fair' | 'Good' | 'Strong')[] = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-  const colors = ['#EF4444', '#EF4444', '#FFC107', '#4CAF50', '#2D9B87'];
+  const colors = [
+    PASSWORD_STRENGTH_COLORS.WEAK,
+    PASSWORD_STRENGTH_COLORS.WEAK,
+    PASSWORD_STRENGTH_COLORS.FAIR,
+    PASSWORD_STRENGTH_COLORS.GOOD,
+    PASSWORD_STRENGTH_COLORS.STRONG,
+  ];
 
   return {
-    score: Math.min(score, 4),
+    score,
     label: labels[score],
     color: colors[score],
   };
@@ -122,8 +147,8 @@ export async function checkEmailExists(_email: string): Promise<boolean> {
 export function validatePassword(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters');
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.push(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`);
   }
 
   if (!/[A-Z]/.test(password)) {
@@ -136,6 +161,10 @@ export function validatePassword(password: string): { valid: boolean; errors: st
 
   if (!/[0-9]/.test(password)) {
     errors.push('Password must contain at least one number');
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    errors.push('Password must contain at least one special character');
   }
 
   return {

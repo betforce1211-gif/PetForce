@@ -1,0 +1,169 @@
+# PR Issue Linking
+# Ensures every PR references an issue
+# Chuck's Quality Gate: No orphan PRs, all work tracked
+
+name: PR Issue Link Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  issues: read
+
+jobs:
+  check-issue-link:
+    name: Verify Issue Link
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR references issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const title = pr.title || '';
+            
+            // Check for issue references in various formats
+            const issuePatterns = [
+              /#\d+/,                    // #123
+              /closes #\d+/i,            // closes #123
+              /fixes #\d+/i,             // fixes #123
+              /resolves #\d+/i,          // resolves #123
+              /relates to #\d+/i,        // relates to #123
+              /GH-\d+/                   // GH-123
+            ];
+            
+            const hasIssueRef = issuePatterns.some(pattern => 
+              pattern.test(title) || pattern.test(body)
+            );
+            
+            const hasNoIssueLabel = pr.labels.some(l => l.name === 'no-issue-needed');
+            
+            if (!hasIssueRef && !hasNoIssueLabel) {
+              // Add warning label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['missing-issue-link']
+              });
+              
+              // Post comment
+              const comment = `## ⚠️ Missing Issue Link\n\n` +
+                `This PR doesn't reference a GitHub issue.\n\n` +
+                `**Chuck's Quality Gate**: Every code change should be tracked.\n\n` +
+                `Please either:\n` +
+                `1. Add an issue reference in the PR description:\n` +
+                `   - \`Closes #123\` (for bug fixes)\n` +
+                `   - \`Relates to #456\` (for related work)\n` +
+                `   - \`Fixes #789\` (for issue resolution)\n` +
+                `2. Create a new issue and link it\n` +
+                `3. Add the \`no-issue-needed\` label if this is a trivial change (typo, docs)\n\n` +
+                `This helps us:\n` +
+                `- Track work and maintain context\n` +
+                `- Link code changes to requirements\n` +
+                `- Generate accurate release notes\n` +
+                `- Maintain audit trails`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+              
+              core.setFailed('PR must reference a GitHub issue');
+            } else {
+              // Remove warning label if it exists
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  name: 'missing-issue-link'
+                });
+              } catch (e) {
+                // Label doesn't exist, that's fine
+              }
+              
+              console.log('✅ PR has valid issue reference');
+            }
+
+  check-branch-name:
+    name: Verify Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch naming convention
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+            
+            // Branch naming patterns
+            const validPatterns = [
+              /^feature\/[A-Z]+-\d+-[\w-]+$/,     // feature/GH-123-description
+              /^bugfix\/[A-Z]+-\d+-[\w-]+$/,      // bugfix/GH-456-description
+              /^hotfix\/[A-Z]+-\d+-[\w-]+$/,      // hotfix/GH-789-description
+              /^docs\/[A-Z]+-\d+-[\w-]+$/,        // docs/GH-012-description
+              /^refactor\/[A-Z]+-\d+-[\w-]+$/,    // refactor/GH-345-description
+              /^test\/[A-Z]+-\d+-[\w-]+$/,        // test/GH-678-description
+              /^chore\/[A-Z]+-\d+-[\w-]+$/,       // chore/GH-901-description
+              /^release\/v\d+\.\d+\.\d+$/,        // release/v1.2.3
+              /^main$/,                            // main
+              /^develop$/                          // develop
+            ];
+            
+            const isValid = validPatterns.some(pattern => pattern.test(branch));
+            
+            if (!isValid) {
+              const comment = `## ⚠️ Invalid Branch Name\n\n` +
+                `Branch name: \`${branch}\` doesn't follow our naming convention.\n\n` +
+                `**Expected format**: \`type/TICKET-ID-description\`\n\n` +
+                `**Valid types**: feature, bugfix, hotfix, docs, refactor, test, chore\n\n` +
+                `**Examples**:\n` +
+                `- \`feature/GH-123-add-pet-profile\`\n` +
+                `- \`bugfix/GH-456-fix-auth-redirect\`\n` +
+                `- \`hotfix/GH-789-critical-data-loss\`\n\n` +
+                `To fix, rename your branch:\n` +
+                `\`\`\`bash\n` +
+                `git branch -m type/GH-XXX-description\n` +
+                `git push origin -u type/GH-XXX-description\n` +
+                `git push origin --delete ${branch}\n` +
+                `\`\`\`\n\n` +
+                `This convention helps us:\n` +
+                `- Track work back to issues\n` +
+                `- Generate accurate changelogs\n` +
+                `- Maintain clean git history`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['invalid-branch-name']
+              });
+              
+              core.warning('Branch name does not follow convention');
+            } else {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  name: 'invalid-branch-name'
+                });
+              } catch (e) {
+                // Label doesn't exist
+              }
+              
+              console.log('✅ Branch name is valid');
+            }

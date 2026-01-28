@@ -1,6 +1,7 @@
 // Authentication API using Supabase
 // Phase 1: Email/Password authentication
 
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getSupabaseClient } from './supabase-client';
 import { logger } from '../utils/logger';
 import type {
@@ -11,6 +12,8 @@ import type {
   User,
   AuthError,
 } from '../types/auth';
+import { TOKEN_EXPIRY_SECONDS, AUTH_ERROR_CODES, REDIRECT_PATHS } from '../config/constants';
+import { getOrigin } from '../utils/window-adapter';
 
 /**
  * Register a new user with email and password
@@ -39,7 +42,7 @@ export async function register(
           first_name: data.firstName,
           last_name: data.lastName,
         },
-        emailRedirectTo: `${window.location.origin}/auth/verify`,
+        emailRedirectTo: `${getOrigin()}${REDIRECT_PATHS.AUTH_VERIFY}`,
       },
     });
 
@@ -55,7 +58,7 @@ export async function register(
         success: false,
         message: error.message,
         error: {
-          code: error.name || 'REGISTRATION_ERROR',
+          code: error.name || AUTH_ERROR_CODES.REGISTRATION_ERROR,
           message: error.message,
         },
       };
@@ -72,7 +75,7 @@ export async function register(
         success: false,
         message: 'Registration failed',
         error: {
-          code: 'REGISTRATION_ERROR',
+          code: AUTH_ERROR_CODES.REGISTRATION_ERROR,
           message: 'No user returned from registration',
         },
       };
@@ -81,6 +84,10 @@ export async function register(
     // Check email confirmation status
     const isConfirmed = authData.user.email_confirmed_at !== null;
     const confirmationRequired = !isConfirmed;
+
+    // Note: If auto-confirm is enabled, new users will have email_confirmed_at set immediately
+    // Supabase handles duplicate email attempts by returning an error (caught above),
+    // so if we reach here with a confirmed user, it's a legitimate registration
 
     // Log successful registration with confirmation state
     logger.authEvent('registration_completed', requestId, {
@@ -120,7 +127,7 @@ export async function register(
       success: false,
       message: 'An unexpected error occurred',
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -160,7 +167,7 @@ export async function login(
       return {
         success: false,
         error: {
-          code: error.name || 'LOGIN_ERROR',
+          code: error.name || AUTH_ERROR_CODES.LOGIN_ERROR,
           message: error.message,
         },
       };
@@ -176,7 +183,7 @@ export async function login(
       return {
         success: false,
         error: {
-          code: 'LOGIN_ERROR',
+          code: AUTH_ERROR_CODES.LOGIN_ERROR,
           message: 'No session returned from login',
         },
       };
@@ -196,7 +203,7 @@ export async function login(
       return {
         success: false,
         error: {
-          code: 'EMAIL_NOT_CONFIRMED',
+          code: AUTH_ERROR_CODES.EMAIL_NOT_CONFIRMED,
           message: 'Please verify your email address before logging in. Check your inbox for the verification link.',
         },
       };
@@ -214,7 +221,7 @@ export async function login(
       tokens: {
         accessToken: authData.session.access_token,
         refreshToken: authData.session.refresh_token,
-        expiresIn: authData.session.expires_in || 900,
+        expiresIn: authData.session.expires_in || TOKEN_EXPIRY_SECONDS,
       },
       user: mapSupabaseUserToUser(authData.user),
     };
@@ -229,7 +236,7 @@ export async function login(
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -260,7 +267,7 @@ export async function logout(): Promise<{ success: boolean; error?: AuthError }>
       return {
         success: false,
         error: {
-          code: error.name || 'LOGOUT_ERROR',
+          code: error.name || AUTH_ERROR_CODES.LOGOUT_ERROR,
           message: error.message,
         },
       };
@@ -280,7 +287,7 @@ export async function logout(): Promise<{ success: boolean; error?: AuthError }>
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -307,7 +314,7 @@ export async function resendConfirmationEmail(
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/verify`,
+        emailRedirectTo: `${getOrigin()}${REDIRECT_PATHS.AUTH_VERIFY}`,
       },
     });
 
@@ -323,7 +330,7 @@ export async function resendConfirmationEmail(
         success: false,
         message: error.message,
         error: {
-          code: error.name || 'RESEND_ERROR',
+          code: error.name || AUTH_ERROR_CODES.RESEND_ERROR,
           message: error.message,
         },
       };
@@ -350,7 +357,7 @@ export async function resendConfirmationEmail(
       success: false,
       message: 'An unexpected error occurred',
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -374,7 +381,7 @@ export async function requestPasswordReset(
     const supabase = getSupabaseClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${getOrigin()}${REDIRECT_PATHS.PASSWORD_RESET}`,
     });
 
     if (error) {
@@ -389,7 +396,7 @@ export async function requestPasswordReset(
         success: false,
         message: error.message,
         error: {
-          code: error.name || 'PASSWORD_RESET_ERROR',
+          code: error.name || AUTH_ERROR_CODES.PASSWORD_RESET_ERROR,
           message: error.message,
         },
       };
@@ -417,7 +424,7 @@ export async function requestPasswordReset(
       success: false,
       message: 'An unexpected error occurred',
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -451,7 +458,7 @@ export async function getCurrentUser(): Promise<{
       return {
         user: null,
         error: {
-          code: error.name || 'GET_USER_ERROR',
+          code: error.name || AUTH_ERROR_CODES.GET_USER_ERROR,
           message: error.message,
         },
       };
@@ -481,7 +488,7 @@ export async function getCurrentUser(): Promise<{
     return {
       user: null,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -519,7 +526,7 @@ export async function refreshSession(): Promise<{
       return {
         success: false,
         error: {
-          code: error.name || 'REFRESH_ERROR',
+          code: error.name || AUTH_ERROR_CODES.REFRESH_ERROR,
           message: error.message,
         },
       };
@@ -534,7 +541,7 @@ export async function refreshSession(): Promise<{
       return {
         success: false,
         error: {
-          code: 'REFRESH_ERROR',
+          code: AUTH_ERROR_CODES.REFRESH_ERROR,
           message: 'No session returned',
         },
       };
@@ -551,7 +558,7 @@ export async function refreshSession(): Promise<{
       tokens: {
         accessToken: session.access_token,
         refreshToken: session.refresh_token,
-        expiresIn: session.expires_in || 900,
+        expiresIn: session.expires_in || TOKEN_EXPIRY_SECONDS,
       },
     };
   } catch (error) {
@@ -564,22 +571,26 @@ export async function refreshSession(): Promise<{
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
   }
 }
 
-// Helper to map Supabase user to our User type
-function mapSupabaseUserToUser(supabaseUser: any): User {
+/**
+ * Maps Supabase user object to our application's User type
+ * @param supabaseUser - The user object from Supabase Auth
+ * @returns Application User object with typed fields
+ */
+export function mapSupabaseUserToUser(supabaseUser: SupabaseUser): User {
   return {
     id: supabaseUser.id,
     email: supabaseUser.email || '',
     emailVerified: supabaseUser.email_confirmed_at !== null,
-    firstName: supabaseUser.user_metadata?.first_name,
-    lastName: supabaseUser.user_metadata?.last_name,
-    profilePhotoUrl: supabaseUser.user_metadata?.avatar_url,
+    firstName: supabaseUser.user_metadata?.first_name as string | undefined,
+    lastName: supabaseUser.user_metadata?.last_name as string | undefined,
+    profilePhotoUrl: supabaseUser.user_metadata?.avatar_url as string | undefined,
     authMethods: ['email_password'], // Default, will be enhanced in Phase 2+
     preferredAuthMethod: 'email_password',
     twoFactorEnabled: false,

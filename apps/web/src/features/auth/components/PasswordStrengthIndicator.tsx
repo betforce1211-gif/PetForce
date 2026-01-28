@@ -4,11 +4,52 @@ import { useMemo } from 'react';
 import { calculatePasswordStrength } from '@petforce/auth';
 import { motion } from 'framer-motion';
 
+/**
+ * Props for the PasswordStrengthIndicator component
+ */
 export interface PasswordStrengthIndicatorProps {
+  /** The password to evaluate for strength */
   password: string;
+  /** Whether to show the detailed requirements checklist */
   showRequirements?: boolean;
 }
 
+/**
+ * Visual password strength indicator with requirements checklist
+ *
+ * Displays:
+ * - Animated strength meter bar (0-4 score, color-coded)
+ * - Strength label (Weak, Fair, Good, Strong)
+ * - Optional checklist of password requirements:
+ *   - Minimum 8 characters
+ *   - Contains uppercase letter
+ *   - Contains lowercase letter
+ *   - Contains number
+ *
+ * Features:
+ * - Real-time password strength calculation
+ * - Color-coded visual feedback
+ * - Animated strength bar transitions
+ * - Animated requirement checkmarks
+ * - Hidden when password is empty
+ *
+ * @example
+ * ```tsx
+ * // Full indicator with requirements
+ * <PasswordStrengthIndicator password={password} />
+ *
+ * // Only strength meter, no requirements
+ * <PasswordStrengthIndicator password={password} showRequirements={false} />
+ *
+ * // In registration form
+ * <Input
+ *   type="password"
+ *   value={password}
+ *   onChange={(e) => setPassword(e.target.value)}
+ * />
+ * <PasswordStrengthIndicator password={password} />
+ * ```
+ */
 export function PasswordStrengthIndicator({
   password,
   showRequirements = true,
@@ -28,17 +69,17 @@ export function PasswordStrengthIndicator({
   if (!password) return null;
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-1.5 space-y-1.5">
       {/* Strength meter */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-sm font-medium text-gray-700">Password strength</span>
-          <span className="text-sm font-semibold" style={{ color: strength.color }}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-medium text-gray-700">Password strength</span>
+          <span className="text-xs font-semibold" style={{ color: strength.color }}>
             {strength.label}
           </span>
         </div>
 
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full"
             style={{ backgroundColor: strength.color }}
@@ -51,25 +92,25 @@ export function PasswordStrengthIndicator({
 
       {/* Requirements checklist */}
       {showRequirements && (
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {requirements.map((req, index) => (
             <motion.li
               key={index}
-              className="flex items-center gap-2 text-sm"
+              className="flex items-center gap-1.5 text-xs"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
             >
               <div
                 className={`
-                  w-4 h-4 rounded-full flex items-center justify-center
+                  w-3.5 h-3.5 rounded-full flex items-center justify-center
                   ${req.met ? 'bg-green-500' : 'bg-gray-300'}
                   transition-colors duration-200
                 `}
               >
                 {req.met && (
                   <svg
-                    className="w-3 h-3 text-white"
+                    className="w-2.5 h-2.5 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

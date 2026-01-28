@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { createSupabaseClient } from '@petforce/auth';
 import {
+  UnifiedAuthPage,
   WelcomePage,
   LoginPage,
   RegisterPage,
@@ -29,12 +30,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/auth/welcome" replace />} />
+        <Route path="/" element={<Navigate to="/auth" replace />} />
 
         {/* Public auth routes */}
-        <Route path="/auth/welcome" element={<WelcomePage />} />
-        <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth" element={<UnifiedAuthPage />} />
+
+        {/* Redirects from old routes to unified page */}
+        <Route path="/auth/welcome" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth/login" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth/register" element={<Navigate to="/auth?mode=register" replace />} />
+
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
@@ -63,7 +68,7 @@ function App() {
         />
 
         {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/auth/welcome" replace />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     </BrowserRouter>
   );

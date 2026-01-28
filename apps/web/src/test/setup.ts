@@ -37,3 +37,6 @@ global.IntersectionObserver = class IntersectionObserver {
 // Suppress console errors in tests
 global.console.error = vi.fn();
 global.console.warn = vi.fn();
+
+// jest-axe setup for accessibility testing
+import 'jest-axe/extend-expect';

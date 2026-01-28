@@ -2,11 +2,20 @@
 
 import { motion } from 'framer-motion';
 
+/**
+ * Available authentication methods
+ */
 export type AuthMethod = 'email' | 'magic-link' | 'google' | 'apple' | 'biometric';
 
+/**
+ * Props for the AuthMethodSelector component
+ */
 export interface AuthMethodSelectorProps {
+  /** Currently selected authentication method */
   selectedMethod?: AuthMethod;
+  /** Callback when user selects an authentication method */
   onSelectMethod: (method: AuthMethod) => void;
+  /** Whether to show biometric option (only available on supported devices) */
   showBiometric?: boolean;
 }
 
@@ -52,6 +61,46 @@ const authMethods = [
   },
 ];
 
+/**
+ * Authentication method selector component
+ *
+ * Displays a list of available authentication methods as selectable buttons:
+ * - Email & Password
+ * - Magic Link (passwordless email)
+ * - Google SSO
+ * - Apple SSO
+ * - Biometric (optional, device-dependent)
+ *
+ * Features:
+ * - Visual selection state with color coding
+ * - Branded icons for each method
+ * - Staggered entrance animations
+ * - Tap scale feedback
+ * - Responsive hover states
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * const [method, setMethod] = useState<AuthMethod>('email');
+ * <AuthMethodSelector
+ *   selectedMethod={method}
+ *   onSelectMethod={setMethod}
+ * />
+ *
+ * // With biometric option
+ * <AuthMethodSelector
+ *   selectedMethod={method}
+ *   onSelectMethod={setMethod}
+ *   showBiometric={true}
+ * />
+ *
+ * // Conditional rendering based on selection
+ * <AuthMethodSelector selectedMethod={method} onSelectMethod={setMethod} />
+ * {method === 'email' && <EmailPasswordForm />}
+ * {method === 'magic-link' && <MagicLinkForm />}
+ * {method === 'google' && <SSOButtons />}
+ * ```
+ */
 export function AuthMethodSelector({
   selectedMethod,
   onSelectMethod,

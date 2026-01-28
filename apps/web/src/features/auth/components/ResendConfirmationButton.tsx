@@ -5,13 +5,54 @@ import { Button } from '@/components/ui/Button';
 import { resendConfirmationEmail } from '@petforce/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Props for the ResendConfirmationButton component
+ */
 export interface ResendConfirmationButtonProps {
+  /** Email address to resend confirmation to */
   email: string;
+  /** Button visual variant */
   variant?: 'primary' | 'secondary' | 'outline';
+  /** Button size */
   size?: 'sm' | 'md' | 'lg';
+  /** Additional CSS classes */
   className?: string;
 }
 
+/**
+ * Button to resend email confirmation with rate limiting
+ *
+ * Features:
+ * - Sends verification email to the specified email address
+ * - Client-side rate limiting (5-minute cooldown)
+ * - Countdown timer display when on cooldown
+ * - Success/error message display with animations
+ * - Loading state during API call
+ * - Automatic success message dismissal after 5 seconds
+ *
+ * Rate Limiting:
+ * - Client: 1 resend per 5 minutes
+ * - Server: 3 requests per 15 minutes per email
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <ResendConfirmationButton email="user@example.com" />
+ *
+ * // Custom styling
+ * <ResendConfirmationButton
+ *   email={email}
+ *   variant="primary"
+ *   size="lg"
+ *   className="mt-4"
+ * />
+ *
+ * // In error context
+ * {error?.code === 'EMAIL_NOT_CONFIRMED' && (
+ *   <ResendConfirmationButton email={email} variant="outline" size="sm" />
+ * )}
+ * ```
+ */
 export function ResendConfirmationButton({
   email,
   variant = 'outline',

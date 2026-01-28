@@ -2,6 +2,8 @@
 // Platform-specific implementation for Face ID, Touch ID, and Fingerprint
 
 import type { AuthError } from '../types/auth';
+import { AUTH_ERROR_CODES, BIOMETRIC_CONFIG } from '../config/constants';
+import { isWebAuthnSupported } from '../utils/window-adapter';
 
 // Platform detection
 const isReactNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
@@ -27,7 +29,7 @@ export async function isBiometricAvailable(): Promise<{
   try {
     if (!isReactNative) {
       // Web/Desktop - check for WebAuthn support
-      if (typeof window !== 'undefined' && window.PublicKeyCredential) {
+      if (isWebAuthnSupported()) {
         return {
           available: true,
           biometryType: 'Biometrics',
@@ -67,7 +69,7 @@ export async function isBiometricAvailable(): Promise<{
     return {
       available: false,
       error: {
-        code: 'NOT_AVAILABLE',
+        code: AUTH_ERROR_CODES.NOT_AVAILABLE,
         message: 'expo-local-authentication not available',
       },
     };
@@ -75,7 +77,7 @@ export async function isBiometricAvailable(): Promise<{
     return {
       available: false,
       error: {
-        code: 'BIOMETRIC_CHECK_ERROR',
+        code: AUTH_ERROR_CODES.BIOMETRIC_CHECK_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -87,7 +89,7 @@ export async function isBiometricAvailable(): Promise<{
  * @param promptMessage - Message to show in the biometric prompt
  */
 export async function authenticateWithBiometrics(
-  promptMessage: string = 'Authenticate to access PetForce'
+  promptMessage: string = BIOMETRIC_CONFIG.DEFAULT_PROMPT_MESSAGE
 ): Promise<{ success: boolean; error?: AuthError }> {
   try {
     if (!isReactNative) {
@@ -95,7 +97,7 @@ export async function authenticateWithBiometrics(
       return {
         success: false,
         error: {
-          code: 'NOT_IMPLEMENTED',
+          code: AUTH_ERROR_CODES.NOT_IMPLEMENTED,
           message: 'Web biometric authentication will be implemented with WebAuthn',
         },
       };
@@ -105,8 +107,8 @@ export async function authenticateWithBiometrics(
     if (LocalAuthentication) {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage,
-        fallbackLabel: 'Use passcode',
-        disableDeviceFallback: false,
+        fallbackLabel: BIOMETRIC_CONFIG.FALLBACK_LABEL,
+        disableDeviceFallback: BIOMETRIC_CONFIG.DISABLE_DEVICE_FALLBACK,
       });
 
       if (result.success) {
@@ -115,7 +117,7 @@ export async function authenticateWithBiometrics(
         return {
           success: false,
           error: {
-            code: 'BIOMETRIC_AUTH_FAILED',
+            code: AUTH_ERROR_CODES.BIOMETRIC_AUTH_FAILED,
             message: result.error || 'Biometric authentication failed',
           },
         };
@@ -125,7 +127,7 @@ export async function authenticateWithBiometrics(
     return {
       success: false,
       error: {
-        code: 'NOT_AVAILABLE',
+        code: AUTH_ERROR_CODES.NOT_AVAILABLE,
         message: 'expo-local-authentication not available',
       },
     };
@@ -133,7 +135,7 @@ export async function authenticateWithBiometrics(
     return {
       success: false,
       error: {
-        code: 'BIOMETRIC_AUTH_ERROR',
+        code: AUTH_ERROR_CODES.BIOMETRIC_AUTH_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -154,7 +156,7 @@ export async function enrollBiometrics(_userId: string): Promise<{
       return {
         success: false,
         error: {
-          code: 'NOT_IMPLEMENTED',
+          code: AUTH_ERROR_CODES.NOT_IMPLEMENTED,
           message: 'Web biometric enrollment will be implemented with WebAuthn',
         },
       };
@@ -164,7 +166,7 @@ export async function enrollBiometrics(_userId: string): Promise<{
     return {
       success: false,
       error: {
-        code: 'NOT_IMPLEMENTED',
+        code: AUTH_ERROR_CODES.NOT_IMPLEMENTED,
         message: 'Biometric enrollment will be added with react-native-biometrics package',
       },
     };
@@ -172,7 +174,7 @@ export async function enrollBiometrics(_userId: string): Promise<{
     return {
       success: false,
       error: {
-        code: 'BIOMETRIC_ENROLL_ERROR',
+        code: AUTH_ERROR_CODES.BIOMETRIC_ENROLL_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -203,7 +205,7 @@ export async function disableBiometrics(_userId: string): Promise<{
     return {
       success: false,
       error: {
-        code: 'BIOMETRIC_DISABLE_ERROR',
+        code: AUTH_ERROR_CODES.BIOMETRIC_DISABLE_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };

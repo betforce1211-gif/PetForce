@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 
 export function WelcomePage() {
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState<AuthMethod>('email');
+  const [selectedMethod, setSelectedMethod] = useState<AuthMethod | undefined>(undefined);
 
   const handleMethodSelect = (method: AuthMethod) => {
     setSelectedMethod(method);

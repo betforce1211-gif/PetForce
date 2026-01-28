@@ -9,13 +9,56 @@ import { ResendConfirmationButton } from './ResendConfirmationButton';
 import { useAuth } from '@petforce/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Props for the EmailPasswordForm component
+ */
 export interface EmailPasswordFormProps {
+  /** The form mode - 'login' for sign in, 'register' for account creation */
   mode: 'login' | 'register';
+  /** Optional callback called when authentication succeeds */
   onSuccess?: () => void;
+  /** Optional callback for "Forgot Password" link (login mode only) */
   onForgotPassword?: () => void;
+  /** Optional callback to toggle between login and register modes */
   onToggleMode?: () => void;
 }
 
+/**
+ * Email and password authentication form component
+ *
+ * Provides a unified form for both login and registration flows with:
+ * - Email and password inputs with validation
+ * - Password strength indicator (register mode)
+ * - Password confirmation field (register mode)
+ * - Show/hide password toggle
+ * - Automatic email verification flow integration
+ * - Resend confirmation button for unverified accounts
+ * - Animated error messages
+ * - Forgot password link (login mode)
+ * - Mode toggle option
+ *
+ * @example
+ * ```tsx
+ * // Login mode
+ * <EmailPasswordForm
+ *   mode="login"
+ *   onSuccess={() => navigate('/dashboard')}
+ *   onForgotPassword={() => navigate('/forgot-password')}
+ * />
+ *
+ * // Register mode
+ * <EmailPasswordForm
+ *   mode="register"
+ *   onSuccess={() => navigate('/verify-pending')}
+ * />
+ *
+ * // With mode toggle
+ * <EmailPasswordForm
+ *   mode={mode}
+ *   onToggleMode={() => setMode(m => m === 'login' ? 'register' : 'login')}
+ * />
+ * ```
+ */
 export function EmailPasswordForm({
   mode,
   onSuccess,
@@ -66,7 +109,7 @@ export function EmailPasswordForm({
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="space-y-4"
+      className="space-y-3"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -161,7 +204,7 @@ export function EmailPasswordForm({
       <AnimatePresence>
         {error && (
           <motion.div
-            className={`p-3 border rounded-lg text-sm ${
+            className={`p-2 border rounded-lg text-xs ${
               error.code === 'EMAIL_NOT_CONFIRMED'
                 ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
                 : 'bg-red-50 border-red-200 text-red-700'
@@ -169,9 +212,44 @@ export function EmailPasswordForm({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
+            role="alert"
+            aria-live="assertive"
           >
-            <div className="space-y-3">
-              <p>{error.message}</p>
+            <div className="space-y-1">
+              {/* User-friendly error message */}
+              <p className="font-medium text-xs">
+                {error.message.includes('already') || error.message.includes('exist')
+                  ? 'This email is already registered'
+                  : error.message}
+              </p>
+
+              {/* Actionable guidance for duplicate email */}
+              {(error.message.includes('already') || error.message.includes('exist')) && mode === 'register' && (
+                <p className="text-xs">
+                  Already have an account?{' '}
+                  {onToggleMode && (
+                    <button
+                      type="button"
+                      onClick={onToggleMode}
+                      className="font-medium text-red-700 hover:text-red-800 underline"
+                    >
+                      Sign in
+                    </button>
+                  )}
+                  {onToggleMode && onForgotPassword && ' or '}
+                  {onForgotPassword && (
+                    <button
+                      type="button"
+                      onClick={onForgotPassword}
+                      className="font-medium text-red-700 hover:text-red-800 underline"
+                    >
+                      reset password
+                    </button>
+                  )}
+                </p>
+              )}
+
+              {/* Resend confirmation for unverified accounts */}
               {showResendButton && error.code === 'EMAIL_NOT_CONFIRMED' && (
                 <div className="pt-2 border-t border-yellow-300">
                   <p className="text-xs text-yellow-700 mb-2">
