@@ -1,6 +1,6 @@
 // Auth Toggle Panel - Mobile toggle-based login/register interface
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EmailPasswordForm } from './EmailPasswordForm';
 import { SSOButtons } from './SSOButtons';
@@ -20,15 +20,12 @@ type AuthMode = 'login' | 'register';
 export function AuthTogglePanel() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeMode, setActiveMode] = useState<AuthMode>('login');
 
-  // Check URL parameter for initial mode
-  useEffect(() => {
+  // Initialize state from URL parameter (lazy initialization to avoid cascading renders)
+  const [activeMode, setActiveMode] = useState<AuthMode>(() => {
     const mode = searchParams.get('mode');
-    if (mode === 'register') {
-      setActiveMode('register');
-    }
-  }, [searchParams]);
+    return mode === 'register' ? 'register' : 'login';
+  });
 
   const handleLoginSuccess = () => {
     navigate('/dashboard');

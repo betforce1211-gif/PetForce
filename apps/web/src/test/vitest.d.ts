@@ -2,6 +2,8 @@
 import type { AxeMatchers } from 'jest-axe';
 
 declare module 'vitest' {
-  interface Assertion<T = any> extends AxeMatchers {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface Assertion extends AxeMatchers {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface AsymmetricMatchersContaining extends AxeMatchers {}
 }

@@ -11,6 +11,9 @@ import type {
   DryRunResult,
 } from './types';
 
+// Type guard for browser environment detection
+declare const window: unknown;
+
 export class DatabaseManager {
   private pool: Pool;
   private dryRun: boolean = false;
