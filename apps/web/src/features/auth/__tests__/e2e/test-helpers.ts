@@ -35,48 +35,57 @@ export const ApiMocking = {
 
     // Mock Supabase Auth API - Sign Up (New User)
     await page.route(`${supabaseTestUrl}/auth/v1/signup**`, async (route: Route) => {
-      const request = route.request();
-      const body = JSON.parse(request.postData() || '{}');
-      const email = body.email;
+      try {
+        const request = route.request();
+        const postData = request.postData();
+        console.log('🔍 [SIGNUP] Raw POST data:', postData);
 
-      console.log('🔍 Mock intercepted signup request for:', email);
+        const body = JSON.parse(postData || '{}');
+        const email = body.email;
 
-      // Add realistic delay (500ms) to allow loading states to be visible
-      await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('🔍 [SIGNUP] Parsed email:', email);
+        console.log('🔍 [SIGNUP] Checking if email matches existing@petforce.test:', email === 'existing@petforce.test');
 
-      // Simulate duplicate email error for known test email
-      if (email === 'existing@petforce.test') {
-        console.log('❌ Returning duplicate email error');
+        // Add realistic delay (500ms) to allow loading states to be visible
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Simulate duplicate email error for known test email
+        if (email === 'existing@petforce.test') {
+          console.log('❌ [SIGNUP] Returning duplicate email error for:', email);
+          await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              msg: 'User already registered',
+              error: 'user_already_exists',
+              error_description: 'User already registered',
+            }),
+          });
+          return;
+        }
+
+        // Success response for new users
+        console.log('✅ [SIGNUP] Returning success response for:', email);
         await route.fulfill({
-          status: 400,
+          status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            msg: 'User already registered',
-            error: 'user_already_exists',
-            error_description: 'User already registered',
+            user: {
+              id: `user-${Date.now()}`,
+              email: email,
+              email_confirmed_at: null, // Email not confirmed yet
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              aud: 'authenticated',
+              role: 'authenticated',
+            },
+            session: null, // No session until email confirmed
           }),
         });
-        return;
+      } catch (error) {
+        console.error('❌ [SIGNUP] Mock error:', error);
+        await route.continue();
       }
-
-      // Success response for new users
-      console.log('✅ Returning success response');
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          user: {
-            id: `user-${Date.now()}`,
-            email: email,
-            email_confirmed_at: null, // Email not confirmed yet
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            aud: 'authenticated',
-            role: 'authenticated',
-          },
-          session: null, // No session until email confirmed
-        }),
-      });
     });
 
     // Mock Supabase Auth API - Sign In
@@ -115,10 +124,20 @@ export const ApiMocking = {
     });
 
     // Mock other Supabase endpoints - return empty/null responses
+    // NOTE: This catch-all should NOT intercept /signup, /token, /resend, or /user
+    // which have specific handlers above
     await page.route(`${supabaseTestUrl}/auth/v1/**`, async (route: Route) => {
+      const url = route.request().url();
       const method = route.request().method();
 
-      console.log(`🔍 Mock intercepted ${method} request to:`, route.request().url());
+      // Let specific routes pass through to their handlers
+      if (url.includes('/signup') || url.includes('/token') || url.includes('/resend') || url.includes('/user')) {
+        console.log(`🔍 Mock catch-all deferring to specific handler:`, url);
+        await route.fallback(); // Let other handlers process this
+        return;
+      }
+
+      console.log(`🔍 Mock catch-all intercepted ${method} request to:`, url);
 
       // For GET requests, return null/empty data
       if (method === 'GET') {

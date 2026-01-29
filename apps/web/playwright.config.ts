@@ -1,4 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load test environment variables to ensure mocks intercept API calls
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 /**
  * Playwright E2E Test Configuration
@@ -40,6 +50,14 @@ if (!process.env.CI) {
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120000,
+    // CRITICAL: Inject test env vars so Vite serves mocked Supabase URL
+    // Without this, browser gets real URL from .env and mocks never intercept
+    // This ensures the JavaScript bundle contains the mock URL, not the real one
+    env: {
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key-for-testing-only',
+      NODE_ENV: 'test',
+    },
   };
 }
 

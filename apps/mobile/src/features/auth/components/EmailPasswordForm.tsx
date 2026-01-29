@@ -1,17 +1,20 @@
 // Email Password Form - Unified form for login and registration
 
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Keyboard, AccessibilityInfo } from 'react-native';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 import { useAuth } from '@petforce/auth';
+import { useNetworkStatus } from '../../../hooks/useNetworkStatus';
+import { HapticFeedback } from '../../../utils/haptics';
 import type { AuthMode } from './AuthTabControl';
 
 export interface EmailPasswordFormProps {
   mode: AuthMode;
   onSuccess?: () => void;
   onForgotPassword?: () => void;
+  onNavigateToVerify?: (email: string) => void;
 }
 
 /**
@@ -32,29 +35,69 @@ export function EmailPasswordForm({
   mode,
   onSuccess,
   onForgotPassword,
+  onNavigateToVerify,
 }: EmailPasswordFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   const { loginWithPassword, registerWithPassword, isLoading, error } = useAuth();
+  const { isConnected } = useNetworkStatus();
+
+  const isOffline = !isConnected;
+
+  // P0: Announce status changes to screen readers
+  useEffect(() => {
+    if (statusMessage) {
+      AccessibilityInfo.announceForAccessibility(statusMessage);
+    }
+  }, [statusMessage]);
 
   const handleSubmit = async () => {
+    // P0: Check offline status before attempting submission
+    if (isOffline) {
+      setStatusMessage("You're offline. Registration requires an internet connection.");
+      await HapticFeedback.error();
+      return;
+    }
+
+    // P0: Dismiss keyboard immediately
+    Keyboard.dismiss();
+
+    // P0: Haptic feedback on submit
+    await HapticFeedback.medium();
+
     if (mode === 'login') {
+      setStatusMessage('Signing in...');
       const result = await loginWithPassword({ email, password });
       if (result.success) {
+        setStatusMessage('Sign in successful!');
+        await HapticFeedback.success();
         onSuccess?.();
+      } else {
+        setStatusMessage(`Sign in failed: ${result.error?.message || 'Unknown error'}`);
+        await HapticFeedback.error();
       }
     } else {
       // Register mode
       if (password !== confirmPassword) {
+        setStatusMessage("Passwords don't match");
+        await HapticFeedback.error();
         return;
       }
 
+      setStatusMessage('Creating account...');
       const result = await registerWithPassword({ email, password });
       if (result.success) {
-        onSuccess?.();
+        setStatusMessage('Account created! Redirecting to verification...');
+        await HapticFeedback.success();
+        // P0: Navigate to verification page with email
+        onNavigateToVerify?.(email);
+      } else {
+        setStatusMessage(`Registration failed: ${error?.message || 'Unknown error'}`);
+        await HapticFeedback.error();
       }
     }
   };
@@ -67,6 +110,32 @@ export function EmailPasswordForm({
 
   return (
     <View style={styles.container}>
+      {/* P0: Offline banner */}
+      {isOffline && (
+        <View
+          style={styles.offlineBanner}
+          accessible={true}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+        >
+          <Text style={styles.offlineBannerText}>
+            You're offline. {mode === 'register' ? 'Registration' : 'Sign in'} requires an internet connection.
+          </Text>
+        </View>
+      )}
+
+      {/* P0: Hidden status message for screen readers */}
+      {statusMessage && (
+        <View
+          accessible={true}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={styles.srOnly}
+        >
+          <Text>{statusMessage}</Text>
+        </View>
+      )}
+
       <Input
         label="Email address"
         placeholder="you@example.com"
@@ -78,6 +147,10 @@ export function EmailPasswordForm({
         textContentType="emailAddress"
         autoComplete="email"
         containerStyle={styles.input}
+        editable={!isLoading}
+        accessible={true}
+        accessibilityLabel="Email address"
+        accessibilityHint="Enter your email address"
       />
 
       <View style={styles.input}>
@@ -90,6 +163,10 @@ export function EmailPasswordForm({
           textContentType={mode === 'login' ? 'password' : 'newPassword'}
           autoComplete={mode === 'login' ? 'password' : 'password-new'}
           containerStyle={{ marginBottom: 0 }}
+          editable={!isLoading}
+          accessible={true}
+          accessibilityLabel="Password"
+          accessibilityHint={mode === 'login' ? 'Enter your password' : 'Create a password'}
         />
 
         {mode === 'register' && password && (
@@ -101,6 +178,11 @@ export function EmailPasswordForm({
         <TouchableOpacity
           onPress={onForgotPassword}
           style={styles.forgotPassword}
+          disabled={isLoading}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Forgot password"
+          accessibilityHint="Reset your password"
         >
           <Text style={styles.forgotPasswordText}>Forgot password?</Text>
         </TouchableOpacity>
@@ -117,11 +199,20 @@ export function EmailPasswordForm({
           autoComplete="password-new"
           error={!passwordsMatch ? "Passwords don't match" : undefined}
           containerStyle={styles.input}
+          editable={!isLoading}
+          accessible={true}
+          accessibilityLabel="Confirm password"
+          accessibilityHint="Re-enter your password to confirm"
         />
       )}
 
       {error && (
-        <View style={styles.errorContainer}>
+        <View
+          style={styles.errorContainer}
+          accessible={true}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="assertive"
+        >
           <Text style={styles.errorText}>{error.message}</Text>
         </View>
       )}
@@ -131,8 +222,9 @@ export function EmailPasswordForm({
         size="lg"
         onPress={handleSubmit}
         isLoading={isLoading}
-        disabled={!isFormValid}
+        disabled={!isFormValid || isOffline}
         style={styles.submitButton}
+        testID={`${mode}-submit-button`}
       >
         {mode === 'login' ? 'Sign in' : 'Create account'}
       </Button>
@@ -184,5 +276,27 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 4,
+  },
+  offlineBanner: {
+    backgroundColor: '#FEF3C7',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    marginBottom: 12,
+  },
+  offlineBannerText: {
+    color: '#92400E',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  srOnly: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: 'hidden',
   },
 });

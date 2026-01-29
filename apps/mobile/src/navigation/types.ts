@@ -1,6 +1,7 @@
 // Navigation types for React Native app
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type AuthStackParamList = {
   UnifiedAuth: undefined;
@@ -9,7 +10,7 @@ export type AuthStackParamList = {
   Register: undefined; // Deprecated - keeping for backward compatibility
   ForgotPassword: undefined;
   ResetPassword: { token: string };
-  VerifyEmail: undefined;
+  VerifyEmail: { email: string };
   OAuthCallback: { accessToken: string; refreshToken: string };
   MagicLinkCallback: { token: string; type?: 'magiclink' | 'email' };
 };
@@ -19,8 +20,8 @@ export type AppStackParamList = {
 };
 
 export type RootStackParamList = {
-  Auth: undefined;
-  App: undefined;
+  Auth: NavigatorScreenParams<AuthStackParamList>;
+  App: NavigatorScreenParams<AppStackParamList>;
 };
 
 // Screen props types

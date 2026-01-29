@@ -44,11 +44,16 @@ export function Button({
       disabled={disabled || isLoading}
       activeOpacity={0.7}
       testID={testID}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || isLoading, busy: isLoading }}
+      accessibilityLabel={typeof children === 'string' ? children : undefined}
     >
       {isLoading ? (
         <ActivityIndicator
           color={variant === 'primary' || variant === 'secondary' ? '#FFFFFF' : '#2D9B87'}
-          size="small"
+          size={size === 'lg' ? 20 : 18}
+          accessibilityLabel="Loading"
         />
       ) : (
         <Text style={textStyle}>{children}</Text>

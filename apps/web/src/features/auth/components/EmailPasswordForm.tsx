@@ -72,6 +72,7 @@ export function EmailPasswordForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
   const [passwordMismatchError, setPasswordMismatchError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
   const { loginWithPassword, registerWithPassword, isLoading, error } = useAuth();
 
@@ -79,29 +80,40 @@ export function EmailPasswordForm({
     e.preventDefault();
     setShowResendButton(false);
     setPasswordMismatchError(null);
+    setStatusMessage('');
 
     if (mode === 'register') {
       if (password !== confirmPassword) {
         setPasswordMismatchError("Passwords don't match. Please make sure both passwords are identical.");
         return;
       }
+
+      setStatusMessage('Creating your account...');
       const result = await registerWithPassword({ email, password });
 
       if (result.success) {
+        setStatusMessage('Account created successfully. Redirecting to verification page...');
         // Redirect to verification pending page
         if (result.confirmationRequired) {
           navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`);
         } else {
           onSuccess?.();
         }
+      } else {
+        setStatusMessage('');
       }
     } else {
+      setStatusMessage('Signing in...');
       const result = await loginWithPassword({ email, password });
       if (result.success) {
+        setStatusMessage('Sign in successful. Redirecting...');
         onSuccess?.();
       } else if (result.error?.code === 'EMAIL_NOT_CONFIRMED') {
+        setStatusMessage('');
         // Show resend button for unconfirmed users
         setShowResendButton(true);
+      } else {
+        setStatusMessage('');
       }
     }
   };
@@ -114,77 +126,85 @@ export function EmailPasswordForm({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Email input */}
-      <Input
-        label="Email address"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        autoComplete="email"
-        placeholder="you@example.com"
-      />
-
-      {/* Password input */}
-      <div>
-        <div className="relative">
-          <Input
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-            placeholder="••••••••"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-9 text-gray-400 hover:text-gray-600"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
-            {showPassword ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            )}
-          </button>
-        </div>
-
-        {mode === 'register' && <PasswordStrengthIndicator password={password} />}
+      {/* ARIA live region for status announcements */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {statusMessage}
       </div>
 
-      {/* Confirm password (register only) */}
-      {mode === 'register' && (
+      <fieldset disabled={isLoading} className="space-y-3 border-0 p-0 m-0">
+        {/* Email input */}
         <Input
-          label="Confirm password"
-          type={showPassword ? 'text' : 'password'}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          label="Email address"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
-          autoComplete="new-password"
-          placeholder="••••••••"
-          error={password !== confirmPassword && confirmPassword ? "Passwords don't match" : undefined}
+          autoComplete="email"
+          placeholder="you@example.com"
         />
-      )}
 
-      {/* Forgot password link (login only) */}
-      {mode === 'login' && onForgotPassword && (
-        <div className="text-right">
-          <button
-            type="button"
-            onClick={onForgotPassword}
-            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            Forgot password?
-          </button>
+        {/* Password input */}
+        <div>
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 text-gray-400 hover:text-gray-600"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {mode === 'register' && <PasswordStrengthIndicator password={password} />}
         </div>
-      )}
+
+        {/* Confirm password (register only) */}
+        {mode === 'register' && (
+          <Input
+            label="Confirm password"
+            type={showPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            placeholder="••••••••"
+            error={password !== confirmPassword && confirmPassword ? "Passwords don't match" : undefined}
+          />
+        )}
+
+        {/* Forgot password link (login only) */}
+        {mode === 'login' && onForgotPassword && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Forgot password?
+            </button>
+          </div>
+        )}
+
+      </fieldset>
 
       {/* Password mismatch error (registration only) */}
       <AnimatePresence>
@@ -264,7 +284,14 @@ export function EmailPasswordForm({
       </AnimatePresence>
 
       {/* Submit button */}
-      <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={isLoading}>
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        className="w-full"
+        isLoading={isLoading}
+        loadingText={mode === 'register' ? 'Creating your account...' : 'Signing in...'}
+      >
         {mode === 'register' ? 'Create account' : 'Sign in'}
       </Button>
 
