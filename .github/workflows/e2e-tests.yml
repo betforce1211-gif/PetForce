@@ -10,9 +10,9 @@ on:
   pull_request:
     branches: [main, develop]
     paths:
-      - 'apps/web/**'
-      - 'packages/auth/**'
-      - '.github/workflows/e2e-tests.yml'
+      - "apps/web/**"
+      - "packages/auth/**"
+      - ".github/workflows/e2e-tests.yml"
 
 # Cancel in-progress runs when a new run is triggered
 concurrency:
@@ -24,7 +24,7 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,8 +32,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: ".nvmrc"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -42,22 +42,15 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: apps/web
 
-      - name: Build web app
-        run: |
-          cd apps/web
-          npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Start dev server
+      - name: Start dev server with test env
         run: |
           cd apps/web
           npm run dev &
           npx wait-on http://localhost:3000 --timeout 120000
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: https://test.supabase.co
+          VITE_SUPABASE_ANON_KEY: mock-anon-key-for-testing-only
+          NODE_ENV: test
 
       - name: Run Playwright E2E tests
         run: |
@@ -65,8 +58,6 @@ jobs:
           npm run test:e2e -- --project=chromium
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Upload test results
         if: always()
@@ -99,15 +90,15 @@ jobs:
           script: |
             const fs = require('fs');
             const comment = `## E2E Test Failure
-            
+
             The Playwright E2E tests failed. Please review the artifacts:
             - [Test Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             - Screenshots and traces are available in the workflow artifacts
-            
+
             **Note**: Some tests may be failing due to animation timing issues. Engrid is working on fixes.
-            
+
             Current status: 8/27 tests passing (19 tests have known animation timing issues)`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -120,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: e2e-tests
     if: always()
-    
+
     steps:
       - name: Check E2E test results
         run: |
