@@ -1,0 +1,147 @@
+{
+  "baseline_period": {
+    "start": "2026-01-28T00:00:00Z",
+    "end": "2026-01-29T00:00:00Z",
+    "duration_hours": 24
+  },
+  "environment": "staging",
+  "status": "broken_state_before_fix",
+  "funnel": {
+    "page_viewed": {
+      "count": 0,
+      "percentage": 100
+    },
+    "form_interaction": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0
+    },
+    "form_filled": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0
+    },
+    "submit_clicked": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0
+    },
+    "api_success": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0
+    },
+    "navigation_success": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0,
+      "notes": "CRITICAL BUG: Should be 100% but is 0%"
+    },
+    "verify_page_viewed": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0,
+      "notes": "Cannot view page due to navigation failure"
+    },
+    "email_verified": {
+      "count": 0,
+      "percentage": 0,
+      "drop_off_from_previous": 0,
+      "notes": "Users never reach verification page"
+    }
+  },
+  "key_metrics": {
+    "total_registrations": 0,
+    "successful_api_calls": 0,
+    "failed_api_calls": 0,
+    "api_success_rate": 0,
+    "navigation_success_rate": 0,
+    "verification_rate": 0,
+    "overall_conversion_rate": 0,
+    "error_rate": 0
+  },
+  "performance": {
+    "button_disable_latency_ms": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0
+    },
+    "api_response_time_ms": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0
+    },
+    "total_registration_time_ms": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0
+    },
+    "navigation_time_ms": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "max": null,
+      "notes": "No successful navigations to measure"
+    }
+  },
+  "errors": {
+    "total_errors": 0,
+    "by_type": {
+      "navigation": 0,
+      "api": 0,
+      "validation": 0,
+      "network": 0,
+      "unexpected": 0
+    },
+    "by_code": {
+      "NAVIGATION_BLOCKED": 0,
+      "EMAIL_EXISTS": 0,
+      "PASSWORD_WEAK": 0,
+      "NETWORK_TIMEOUT": 0
+    },
+    "top_errors": []
+  },
+  "user_behavior": {
+    "avg_form_fill_time_ms": 0,
+    "password_toggle_rate": 0,
+    "tab_switch_rate": 0,
+    "avg_password_attempts": 0
+  },
+  "platform_breakdown": {
+    "web": {
+      "total_registrations": 0,
+      "success_rate": 0,
+      "navigation_success_rate": 0,
+      "verification_rate": 0,
+      "avg_time_ms": 0
+    },
+    "mobile": {
+      "total_registrations": 0,
+      "success_rate": 0,
+      "navigation_success_rate": 0,
+      "verification_rate": 0,
+      "avg_time_ms": 0
+    }
+  },
+  "alerts_triggered": [],
+  "notes": [
+    "This baseline captures the broken state before P0 fixes.",
+    "Expected findings:",
+    "- Navigation success rate should be 0%",
+    "- Verification page views should be 0",
+    "- Email verification rate should be 0%",
+    "- Users are stuck after successful registration",
+    "Use this as comparison for post-fix validation."
+  ],
+  "targets": {
+    "navigation_success_rate": 100,
+    "verification_rate": 75,
+    "api_success_rate": 95,
+    "error_rate": 5,
+    "p95_api_response_time_ms": 3000,
+    "p95_total_time_ms": 5000
+  }
+}
