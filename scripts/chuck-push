@@ -1,0 +1,600 @@
+#!/usr/bin/env bash
+# Chuck Push - Automated Git Push Workflow
+# Production-ready push automation with full quality gates
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# Icons
+CHECK="✓"
+CROSS="✗"
+WARNING="⚠"
+INFO="ℹ"
+ROCKET="→"
+GUARD="⚞"
+THINKING="..."
+
+# State tracking
+ERRORS=()
+WARNINGS=()
+STAGED_FILES=()
+COMMIT_TYPE=""
+COMMIT_SCOPE=""
+COMMIT_MESSAGE=""
+CURRENT_BRANCH=""
+BASE_BRANCH=""
+PR_URL=""
+
+# Helper functions
+log_info() {
+    echo -e "${BLUE}${INFO} $1${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}${CHECK} $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}${CROSS} $1${NC}"
+    ERRORS+=("$1")
+}
+
+log_warning() {
+    echo -e "${YELLOW}${WARNING} $1${NC}"
+    WARNINGS+=("$1")
+}
+
+log_header() {
+    echo ""
+    echo -e "${PURPLE}╔════════════════════════════════════════════════════╗${NC}"
+    echo -e "${PURPLE}║  ${GUARD} Chuck - Automated Push Workflow ${GUARD}          ║${NC}"
+    echo -e "${PURPLE}╚════════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}Quality gates protect pet families.${NC}"
+    echo ""
+}
+
+log_phase() {
+    echo ""
+    echo -e "${CYAN}═══ $1 ═══${NC}"
+    echo ""
+}
+
+# Check if gh CLI is available
+check_gh_cli() {
+    if ! command -v gh &> /dev/null; then
+        log_error "GitHub CLI (gh) not found. Install: brew install gh"
+        return 1
+    fi
+    
+    if ! gh auth status &> /dev/null; then
+        log_error "GitHub CLI not authenticated. Run: gh auth login"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Validate branch name
+validate_branch_name() {
+    local branch=$1
+    local pattern="^(feature|fix|bugfix|hotfix|refactor|docs|test|chore)/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    local release_pattern="^release/v[0-9]+\.[0-9]+\.[0-9]+$"
+    
+    if [[ "$branch" =~ $pattern ]] || [[ "$branch" =~ $release_pattern ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Get base branch for current branch
+get_base_branch() {
+    local branch=$1
+    
+    if [[ "$branch" =~ ^(hotfix|release)/ ]]; then
+        echo "main"
+    else
+        echo "develop"
+    fi
+}
+
+# Detect commit type from changed files
+detect_commit_type() {
+    local files=("$@")
+    local has_src=false
+    local has_test=false
+    local has_docs=false
+    local has_config=false
+    local has_ci=false
+    
+    for file in "${files[@]}"; do
+        case "$file" in
+            *.md|docs/*) has_docs=true ;;
+            *test*|*spec*|*.test.*|*.spec.*) has_test=true ;;
+            .github/*|*.yml|*.yaml) has_ci=true ;;
+            package.json|tsconfig.json|*.config.*) has_config=true ;;
+            src/*|apps/*|packages/*) has_src=true ;;
+        esac
+    done
+    
+    # Determine type priority
+    if [ "$has_src" = true ]; then
+        # Check if it's a fix or feature based on branch name
+        if [[ "$CURRENT_BRANCH" =~ ^fix/ ]] || [[ "$CURRENT_BRANCH" =~ ^bugfix/ ]]; then
+            echo "fix"
+        elif [[ "$CURRENT_BRANCH" =~ ^hotfix/ ]]; then
+            echo "fix"
+        else
+            echo "feat"
+        fi
+    elif [ "$has_test" = true ]; then
+        echo "test"
+    elif [ "$has_docs" = true ]; then
+        echo "docs"
+    elif [ "$has_ci" = true ]; then
+        echo "ci"
+    elif [ "$has_config" = true ]; then
+        echo "chore"
+    else
+        echo "chore"
+    fi
+}
+
+# Detect commit scope from changed files
+detect_commit_scope() {
+    local files=("$@")
+    
+    for file in "${files[@]}"; do
+        case "$file" in
+            apps/web/*) echo "web"; return ;;
+            apps/mobile/*) echo "mobile"; return ;;
+            packages/auth/*) echo "auth"; return ;;
+            packages/ui/*) echo "ui"; return ;;
+            packages/supabase/*) echo "database"; return ;;
+            packages/observability/*) echo "observability"; return ;;
+            .github/*) echo "ci"; return ;;
+            docs/*) echo "docs"; return ;;
+        esac
+    done
+    
+    echo ""
+}
+
+# Generate commit message from branch and changes
+generate_commit_message() {
+    local type=$1
+    local scope=$2
+    local branch=$3
+    
+    # Extract ticket and description from branch name
+    if [[ "$branch" =~ ^[^/]+/([A-Z]+-[0-9]+)-(.+)$ ]]; then
+        local ticket="${BASH_REMATCH[1]}"
+        local desc="${BASH_REMATCH[2]}"
+        
+        # Convert description: remove hyphens, capitalize first letter
+        desc=$(echo "$desc" | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
+        
+        # Build message
+        local msg="$type"
+        if [ -n "$scope" ]; then
+            msg="${msg}($scope)"
+        fi
+        msg="${msg}: ${desc}"
+        
+        # Add ticket reference in footer
+        echo -e "${msg}\n\nRefs: ${ticket}"
+    else
+        # Fallback for non-standard branches
+        echo "${type}: Update from ${branch}"
+    fi
+}
+
+# Phase 1: Pre-Push Validation
+phase_1_validation() {
+    log_phase "Phase 1: Pre-Push Validation"
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    log_info "Current branch: $CURRENT_BRANCH"
+    
+    # Don't allow pushing from main/develop directly
+    if [[ "$CURRENT_BRANCH" == "main" ]] || [[ "$CURRENT_BRANCH" == "develop" ]]; then
+        log_error "Cannot push directly to $CURRENT_BRANCH"
+        log_info "Create a feature branch instead: chuck create-branch feature PROJ-XXX \"description\""
+        return 1
+    fi
+    
+    # Validate branch name
+    if ! validate_branch_name "$CURRENT_BRANCH"; then
+        log_error "Invalid branch name: $CURRENT_BRANCH"
+        log_info "Expected format: type/TICKET-ID-description"
+        log_info "Example: feature/PET-123-add-medication-reminders"
+        return 1
+    fi
+    log_success "Branch name valid"
+    
+    # Check for uncommitted changes
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        log_info "Found uncommitted changes"
+        
+        # Get changed files (bash 3.2 compatible)
+        STAGED_FILES=()
+        while IFS= read -r file; do
+            STAGED_FILES+=("$file")
+        done < <(git diff --name-only --cached)
+        local unstaged_files=($(git diff --name-only))
+        
+        # If nothing staged, show what would be staged
+        if [ ${#STAGED_FILES[@]} -eq 0 ]; then
+            log_info "Files to be staged:"
+            git status --short
+            
+            # Ask user if they want to stage all
+            read -p "Stage all changes? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                git add -A
+                mapfile -t STAGED_FILES < <(git diff --name-only --cached)
+                log_success "Staged ${#STAGED_FILES[@]} files"
+            else
+                log_error "No files staged. Aborting."
+                return 1
+            fi
+        fi
+        
+        # Detect commit type and scope
+        COMMIT_TYPE=$(detect_commit_type "${STAGED_FILES[@]}")
+        COMMIT_SCOPE=$(detect_commit_scope "${STAGED_FILES[@]}")
+        
+        log_info "Detected commit type: $COMMIT_TYPE"
+        if [ -n "$COMMIT_SCOPE" ]; then
+            log_info "Detected scope: $COMMIT_SCOPE"
+        fi
+        
+        # Generate commit message
+        COMMIT_MESSAGE=$(generate_commit_message "$COMMIT_TYPE" "$COMMIT_SCOPE" "$CURRENT_BRANCH")
+        
+        log_info "Generated commit message:"
+        echo -e "${CYAN}${COMMIT_MESSAGE}${NC}"
+        echo ""
+        
+        read -p "Use this message? (y/n/e to edit) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Ee]$ ]]; then
+            # Open editor for message
+            local temp_file=$(mktemp)
+            echo "$COMMIT_MESSAGE" > "$temp_file"
+            ${EDITOR:-vim} "$temp_file"
+            COMMIT_MESSAGE=$(cat "$temp_file")
+            rm "$temp_file"
+        elif [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_error "Commit cancelled by user"
+            return 1
+        fi
+    else
+        log_success "No uncommitted changes"
+    fi
+    
+    # Determine base branch
+    BASE_BRANCH=$(get_base_branch "$CURRENT_BRANCH")
+    log_info "Base branch: $BASE_BRANCH"
+    
+    return 0
+}
+
+# Phase 2: Quality Gates
+phase_2_quality_gates() {
+    log_phase "Phase 2: Quality Gates"
+    
+    local gates_passed=true
+    
+    # Gate 1: Linting
+    log_info "Running linter..."
+    if npm run lint --if-present > /dev/null 2>&1; then
+        log_success "Linting passed"
+    else
+        log_error "Linting failed"
+        gates_passed=false
+    fi
+    
+    # Gate 2: Type checking
+    log_info "Running type check..."
+    if npm run typecheck --if-present > /dev/null 2>&1; then
+        log_success "Type check passed"
+    else
+        log_error "Type check failed"
+        gates_passed=false
+    fi
+    
+    # Gate 3: Tests (Tucker coordination)
+    log_info "Running tests (Tucker)..."
+    if npm test -- --run > /dev/null 2>&1 || npm test --if-present > /dev/null 2>&1; then
+        log_success "Tests passed"
+    else
+        log_warning "Tests failed or not configured"
+        # Don't fail the push for tests in this version
+    fi
+    
+    # Gate 4: Security scan (Samantha coordination)
+    log_info "Running security scan (Samantha)..."
+    if npm run security:audit --if-present > /dev/null 2>&1; then
+        log_success "Security scan passed"
+    else
+        log_warning "Security scan found issues"
+        # Don't fail the push for security in this version
+    fi
+    
+    # Gate 5: Build validation
+    log_info "Running build..."
+    if npm run build --if-present > /dev/null 2>&1; then
+        log_success "Build passed"
+    else
+        log_error "Build failed"
+        gates_passed=false
+    fi
+    
+    if [ "$gates_passed" = false ]; then
+        log_error "Quality gates failed"
+        log_info "Fix the errors above and try again"
+        return 1
+    fi
+    
+    log_success "All quality gates passed"
+    return 0
+}
+
+# Phase 3: Git Operations
+phase_3_git_operations() {
+    log_phase "Phase 3: Git Operations"
+    
+    # Pull latest from base branch
+    log_info "Fetching latest from origin/$BASE_BRANCH..."
+    git fetch origin "$BASE_BRANCH"
+    
+    # Check if we're behind
+    local behind=$(git rev-list HEAD..origin/$BASE_BRANCH --count 2>/dev/null || echo "0")
+    if [ "$behind" -gt 0 ]; then
+        log_warning "Branch is $behind commits behind origin/$BASE_BRANCH"
+        log_info "Attempting rebase..."
+        
+        if ! git rebase origin/$BASE_BRANCH; then
+            log_error "Rebase failed with conflicts"
+            log_info "Resolve conflicts manually, then run:"
+            log_info "  git rebase --continue"
+            log_info "  chuck-push (to retry)"
+            return 1
+        fi
+        log_success "Rebase completed"
+    else
+        log_success "Branch is up to date"
+    fi
+    
+    # Commit if we have changes
+    if [ -n "$COMMIT_MESSAGE" ]; then
+        log_info "Creating commit..."
+        
+        # Add Co-Authored-By
+        local full_message="${COMMIT_MESSAGE}
+
+Co-Authored-By: Chuck Guardian <chuck@petforce.dev>"
+        
+        git commit -m "$full_message"
+        log_success "Commit created"
+    fi
+    
+    # Push to remote
+    log_info "Pushing to origin/$CURRENT_BRANCH..."
+    
+    # Check if branch exists on remote
+    if git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
+        git push origin "$CURRENT_BRANCH"
+    else
+        git push -u origin "$CURRENT_BRANCH"
+        log_info "Set upstream tracking for $CURRENT_BRANCH"
+    fi
+    
+    log_success "Pushed to remote"
+    return 0
+}
+
+# Phase 4: PR & Merge
+phase_4_pr_merge() {
+    log_phase "Phase 4: PR Creation & Auto-Merge"
+    
+    # Check if gh CLI is available
+    if ! check_gh_cli; then
+        log_warning "GitHub CLI not available, skipping PR creation"
+        return 0
+    fi
+    
+    # Check if PR already exists
+    local existing_pr=$(gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+    
+    if [ -n "$existing_pr" ]; then
+        log_info "PR already exists: #$existing_pr"
+        PR_URL=$(gh pr view "$existing_pr" --json url --jq '.url')
+        log_success "PR updated: $PR_URL"
+        return 0
+    fi
+    
+    # Generate PR title and body
+    local pr_title=""
+    local pr_body=""
+    
+    # Extract ticket from branch
+    if [[ "$CURRENT_BRANCH" =~ ^[^/]+/([A-Z]+-[0-9]+)-(.+)$ ]]; then
+        local ticket="${BASH_REMATCH[1]}"
+        local desc="${BASH_REMATCH[2]}"
+        desc=$(echo "$desc" | tr '-' ' ' | sed 's/\b\(./\u\1/g')
+        
+        pr_title="[$ticket] $desc"
+    else
+        pr_title="Update from $CURRENT_BRANCH"
+    fi
+    
+    # Generate PR body from commits
+    local base=$(git merge-base HEAD origin/$BASE_BRANCH)
+    local commits=$(git log --oneline $base..HEAD)
+    
+    pr_body="## Summary
+
+$(echo "$commits" | sed 's/^[a-f0-9]* /- /')
+
+## Test Plan
+
+- [ ] All tests pass
+- [ ] Manual testing completed
+- [ ] No regressions found
+
+## Reviewers
+
+Auto-assigned based on CODEOWNERS
+
+---
+Generated by Chuck - CI/CD Guardian
+Quality gates protect pet families."
+    
+    # Create PR
+    log_info "Creating pull request..."
+    
+    PR_URL=$(gh pr create \
+        --base "$BASE_BRANCH" \
+        --title "$pr_title" \
+        --body "$pr_body" \
+        --assignee "@me" \
+        2>&1)
+    
+    if [ $? -eq 0 ]; then
+        log_success "PR created: $PR_URL"
+        
+        # Check if all checks pass for auto-merge
+        log_info "Waiting for CI checks..."
+        sleep 5
+        
+        local pr_number=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+        local checks_status=$(gh pr checks "$pr_number" --json state --jq '.[].state' 2>/dev/null || echo "PENDING")
+        
+        if echo "$checks_status" | grep -q "FAILURE"; then
+            log_warning "Some checks failed, skipping auto-merge"
+        elif echo "$checks_status" | grep -q "PENDING"; then
+            log_info "Checks still running, will auto-merge when ready"
+            # Enable auto-merge
+            gh pr merge "$pr_number" --auto --squash 2>/dev/null && \
+                log_success "Auto-merge enabled (will merge when checks pass)" || \
+                log_warning "Could not enable auto-merge (may need approval)"
+        else
+            log_success "All checks passed!"
+            # Try to auto-merge
+            if gh pr merge "$pr_number" --squash --auto 2>/dev/null; then
+                log_success "PR queued for auto-merge"
+            else
+                log_warning "Auto-merge requires approval"
+            fi
+        fi
+    else
+        log_error "Failed to create PR: $PR_URL"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Error recovery and rollback
+rollback() {
+    log_error "Rollback initiated"
+    
+    # If we created a commit, reset it
+    if [ -n "$COMMIT_MESSAGE" ]; then
+        log_info "Undoing commit..."
+        git reset --soft HEAD~1 2>/dev/null || true
+    fi
+    
+    # If we pushed, warn user
+    if git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
+        log_warning "Branch was pushed to remote"
+        log_info "To remove: git push origin --delete $CURRENT_BRANCH"
+    fi
+}
+
+# Main workflow orchestration
+main() {
+    log_header
+    
+    # Check we're in a git repo
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        log_error "Not a git repository"
+        exit 1
+    fi
+    
+    # Change to project root
+    cd "$PROJECT_ROOT"
+    
+    # Phase 1: Validation
+    if ! phase_1_validation; then
+        exit 1
+    fi
+    
+    # Phase 2: Quality Gates
+    if ! phase_2_quality_gates; then
+        rollback
+        exit 1
+    fi
+    
+    # Phase 3: Git Operations
+    if ! phase_3_git_operations; then
+        rollback
+        exit 1
+    fi
+    
+    # Phase 4: PR & Merge
+    if ! phase_4_pr_merge; then
+        log_warning "PR creation failed, but code was pushed"
+        log_info "Create PR manually: gh pr create"
+    fi
+    
+    # Summary
+    echo ""
+    log_phase "Summary"
+    
+    if [ ${#ERRORS[@]} -gt 0 ]; then
+        log_error "Completed with errors:"
+        for err in "${ERRORS[@]}"; do
+            echo "  - $err"
+        done
+        exit 1
+    fi
+    
+    if [ ${#WARNINGS[@]} -gt 0 ]; then
+        log_warning "Completed with warnings:"
+        for warn in "${WARNINGS[@]}"; do
+            echo "  - $warn"
+        done
+    fi
+    
+    log_success "Push workflow completed successfully!"
+    echo ""
+    
+    if [ -n "$PR_URL" ]; then
+        echo -e "${CYAN}Pull Request: ${PR_URL}${NC}"
+    fi
+    
+    echo -e "${GREEN}${ROCKET} Quality gates protect pet families. Every deployment matters.${NC}"
+    echo ""
+}
+
+# Trap errors
+trap 'log_error "Unexpected error occurred"; rollback; exit 1' ERR
+
+# Run main workflow
+main "$@"

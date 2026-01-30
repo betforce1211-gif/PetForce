@@ -1,0 +1,151 @@
+# Chuck CI/CD Guardian Configuration
+# Git Flow workflow automation settings
+
+version: 1.0.0
+
+# Branch naming conventions
+branches:
+  patterns:
+    feature: "^feature/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    fix: "^(fix|bugfix)/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    hotfix: "^hotfix/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    release: "^release/v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    docs: "^docs/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    refactor: "^refactor/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    test: "^test/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    chore: "^chore/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+
+  base:
+    feature: develop
+    fix: develop
+    bugfix: develop
+    docs: develop
+    refactor: develop
+    test: develop
+    chore: develop
+    hotfix: main
+    release: main
+
+# Quality gates
+quality_gates:
+  required:
+    - lint
+    - typecheck
+    - build
+
+  optional:
+    - test
+    - security
+    - coverage
+
+  coverage:
+    line_threshold: 80
+    branch_threshold: 75
+
+  security:
+    audit_level: moderate
+    block_on_high: true
+    block_on_critical: true
+
+# Commit message configuration
+commits:
+  format: conventional
+  types:
+    - feat
+    - fix
+    - docs
+    - style
+    - refactor
+    - perf
+    - test
+    - build
+    - ci
+    - chore
+    - revert
+
+  scopes:
+    - web
+    - mobile
+    - auth
+    - ui
+    - database
+    - ci
+    - docs
+    - observability
+
+  max_length: 100
+  require_ticket: true
+
+# PR configuration
+pull_requests:
+  auto_create: true
+  auto_assign: true
+  auto_merge:
+    enabled: true
+    require_approval: true
+    min_approvals: 1
+    require_ci_pass: true
+    merge_method: squash
+
+  reviewers:
+    codeowners: true
+    auto_assign:
+      - chuck-agent # CI/CD changes
+
+  templates:
+    title_format: "[{ticket}] {description}"
+    include_commits: true
+    include_test_plan: true
+
+# Agent coordination
+agents:
+  tucker:
+    name: "Tucker - Test Guardian"
+    trigger: test
+    required: false
+
+  samantha:
+    name: "Samantha - Security Guardian"
+    trigger: security
+    required: false
+
+  thomas:
+    name: "Thomas - Documentation Guardian"
+    trigger: docs
+    required: false
+
+# Merge strategy
+merge:
+  strategy: squash
+  delete_branch: true
+  update_base: true
+
+  protected_branches:
+    - main
+    - develop
+
+  require_up_to_date: true
+
+# Automation behavior
+automation:
+  interactive: true
+  auto_stage: prompt
+  auto_commit: prompt
+  auto_push: true
+  auto_pr: true
+
+  rollback_on_failure: true
+
+  notifications:
+    on_success: true
+    on_failure: true
+    on_warning: true
+
+# Git Flow specific
+git_flow:
+  main_branch: main
+  develop_branch: develop
+  feature_prefix: feature/
+  release_prefix: release/
+  hotfix_prefix: hotfix/
+  version_tag_prefix: v
