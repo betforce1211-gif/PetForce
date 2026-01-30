@@ -1,6 +1,6 @@
 // Root Navigator - Switches between Auth and App navigators
 
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, type LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '@petforce/auth';
 import { useEffect } from 'react';
@@ -12,7 +12,7 @@ import type { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Deep linking configuration
-const linking = {
+const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['petforce://', 'https://petforce.app'],
   config: {
     screens: {

@@ -26,7 +26,7 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
 
     const result = await registerWithPassword({ email, password });
     if (result.success) {
-      navigation.navigate('VerifyEmail');
+      navigation.navigate('VerifyEmail', { email });
     }
   };
 
