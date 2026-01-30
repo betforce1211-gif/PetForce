@@ -1,7 +1,6 @@
 // Navigation types for React Native app
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 export type AuthStackParamList = {
   UnifiedAuth: undefined;
@@ -12,7 +11,7 @@ export type AuthStackParamList = {
   ResetPassword: { token: string };
   VerifyEmail: { email: string };
   OAuthCallback: { accessToken: string; refreshToken: string };
-  MagicLinkCallback: { token: string; type?: 'magiclink' | 'email' };
+  MagicLinkCallback: { token: string; type?: "magiclink" | "email" };
 };
 
 export type AppStackParamList = {
@@ -20,16 +19,40 @@ export type AppStackParamList = {
 };
 
 export type RootStackParamList = {
-  Auth: NavigatorScreenParams<AuthStackParamList>;
-  App: NavigatorScreenParams<AppStackParamList>;
+  Auth: undefined;
+  App: undefined;
 };
 
 // Screen props types
-export type UnifiedAuthScreenProps = NativeStackScreenProps<AuthStackParamList, 'UnifiedAuth'>;
-export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
-export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
-export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
-export type ForgotPasswordScreenProps = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
-export type ResetPasswordScreenProps = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
-export type VerifyEmailScreenProps = NativeStackScreenProps<AuthStackParamList, 'VerifyEmail'>;
-export type DashboardScreenProps = NativeStackScreenProps<AppStackParamList, 'Dashboard'>;
+export type UnifiedAuthScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "UnifiedAuth"
+>;
+export type WelcomeScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "Welcome"
+>;
+export type LoginScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "Login"
+>;
+export type RegisterScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "Register"
+>;
+export type ForgotPasswordScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "ForgotPassword"
+>;
+export type ResetPasswordScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "ResetPassword"
+>;
+export type VerifyEmailScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  "VerifyEmail"
+>;
+export type DashboardScreenProps = NativeStackScreenProps<
+  AppStackParamList,
+  "Dashboard"
+>;
