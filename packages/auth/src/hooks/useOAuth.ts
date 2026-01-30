@@ -3,6 +3,8 @@
 import { useState, useCallback } from 'react';
 import { signInWithGoogle, signInWithApple, handleOAuthCallback } from '../api/oauth';
 import type { AuthError, AuthTokens, User } from '../types/auth';
+import { AUTH_ERROR_CODES } from '../config/constants';
+import { navigateToUrl } from '../utils/window-adapter';
 
 export interface UseOAuthReturn {
   isLoading: boolean;
@@ -36,16 +38,14 @@ export function useOAuth(): UseOAuthReturn {
 
       if (result.success && result.url) {
         // Redirect to Google OAuth consent screen
-        if (typeof window !== 'undefined') {
-          window.location.href = result.url;
-        }
+        navigateToUrl(result.url);
       } else if (result.error) {
         setError(result.error);
         setIsLoading(false);
       }
     } catch (err) {
       setError({
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
       });
       setIsLoading(false);
@@ -61,16 +61,14 @@ export function useOAuth(): UseOAuthReturn {
 
       if (result.success && result.url) {
         // Redirect to Apple sign-in screen
-        if (typeof window !== 'undefined') {
-          window.location.href = result.url;
-        }
+        navigateToUrl(result.url);
       } else if (result.error) {
         setError(result.error);
         setIsLoading(false);
       }
     } catch (err) {
       setError({
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
       });
       setIsLoading(false);
@@ -92,7 +90,7 @@ export function useOAuth(): UseOAuthReturn {
       }
     } catch (err) {
       setError({
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
       });
     } finally {

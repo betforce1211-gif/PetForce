@@ -1,0 +1,74 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e8]: 🐾
+    - heading "Welcome to PetForce" [level=1] [ref=e9]
+    - paragraph [ref=e10]: The simplest way to care for your family's pets
+  - generic [ref=e11]:
+    - tablist [ref=e12]:
+      - tab "Sign In" [ref=e13] [cursor=pointer]
+      - tab "Sign Up" [selected] [ref=e14] [cursor=pointer]
+    - tabpanel [ref=e15]:
+      - region "Create a new account" [ref=e17]:
+        - generic [ref=e18]:
+          - heading "Join the Family" [level=2] [ref=e19]
+          - paragraph [ref=e20]: Create your account
+        - generic [ref=e22]:
+          - button "Continue with Google" [ref=e23] [cursor=pointer]:
+            - img [ref=e25]
+            - text: Continue with Google
+          - button "Continue with Apple" [ref=e30] [cursor=pointer]:
+            - img [ref=e32]
+            - text: Continue with Apple
+        - generic [ref=e38]: Or sign up with email
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: Email address*
+            - textbox "Email address*" [ref=e42]:
+              - /placeholder: you@example.com
+              - text: test-1769558377260@petforce.test
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]:
+                - generic [ref=e46]: Password*
+                - textbox "Password*" [ref=e47]:
+                  - /placeholder: ••••••••
+                  - text: TestP@ssw0rd123!
+              - button "Show password" [ref=e48] [cursor=pointer]:
+                - img [ref=e49]
+            - generic [ref=e52]:
+              - generic [ref=e55]: Password strength
+              - list [ref=e58]:
+                - listitem [ref=e59]:
+                  - img [ref=e61]
+                  - generic [ref=e63]: At least 8 characters
+                - listitem [ref=e64]:
+                  - img [ref=e66]
+                  - generic [ref=e68]: Contains uppercase letter
+                - listitem [ref=e69]:
+                  - img [ref=e71]
+                  - generic [ref=e73]: Contains lowercase letter
+                - listitem [ref=e74]:
+                  - img [ref=e76]
+                  - generic [ref=e78]: Contains number
+          - generic [ref=e79]:
+            - generic [ref=e80]: Confirm password*
+            - textbox "Confirm password*" [ref=e81]:
+              - /placeholder: ••••••••
+              - text: TestP@ssw0rd123!
+          - alert [ref=e82]:
+            - paragraph [ref=e84]: email rate limit exceeded
+          - button "Create account" [ref=e85] [cursor=pointer]
+          - paragraph [ref=e86]:
+            - text: Already have an account?
+            - button "Sign in" [ref=e87] [cursor=pointer]
+        - paragraph [ref=e88]:
+          - text: By continuing, you agree to our
+          - link "Terms of Service" [ref=e89] [cursor=pointer]:
+            - /url: "#"
+          - text: and
+          - link "Privacy Policy" [ref=e90] [cursor=pointer]:
+            - /url: "#"
+```

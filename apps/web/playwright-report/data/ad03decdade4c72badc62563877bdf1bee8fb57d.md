@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e8]: 🐾
+    - heading "Welcome to PetForce" [level=1] [ref=e9]
+    - paragraph [ref=e10]: The simplest way to care for your family's pets
+  - generic [ref=e11]:
+    - tablist [ref=e12]:
+      - tab "Sign In" [ref=e13] [cursor=pointer]
+      - tab "Sign Up" [active] [selected] [ref=e14] [cursor=pointer]
+    - tabpanel [ref=e15]:
+      - region "Create a new account" [ref=e17]:
+        - generic [ref=e18]:
+          - heading "Join the Family" [level=2] [ref=e19]
+          - paragraph [ref=e20]: Create your account
+        - generic [ref=e22]:
+          - button "Continue with Google" [ref=e23] [cursor=pointer]:
+            - img [ref=e25]
+            - text: Continue with Google
+          - button "Continue with Apple" [ref=e30] [cursor=pointer]:
+            - img [ref=e32]
+            - text: Continue with Apple
+        - generic [ref=e38]: Or sign up with email
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: Email address*
+            - textbox "Email address*" [ref=e42]:
+              - /placeholder: you@example.com
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: Password*
+              - textbox "Password*" [ref=e47]:
+                - /placeholder: ••••••••
+            - button "Show password" [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+          - generic [ref=e52]:
+            - generic [ref=e53]: Confirm password*
+            - textbox "Confirm password*" [ref=e54]:
+              - /placeholder: ••••••••
+          - button "Create account" [ref=e55] [cursor=pointer]
+          - paragraph [ref=e56]:
+            - text: Already have an account?
+            - button "Sign in" [ref=e57] [cursor=pointer]
+        - paragraph [ref=e58]:
+          - text: By continuing, you agree to our
+          - link "Terms of Service" [ref=e59] [cursor=pointer]:
+            - /url: "#"
+          - text: and
+          - link "Privacy Policy" [ref=e60] [cursor=pointer]:
+            - /url: "#"
+```

@@ -1,0 +1,327 @@
+#!/usr/bin/env bash
+# Chuck - PetForce CI/CD Guardian
+# Git workflow helper script
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Icons
+CHECK="✅"
+CROSS="❌"
+WARNING="⚠️"
+INFO="ℹ️"
+ROCKET="🚀"
+GUARD="🛡️"
+
+# Helper functions
+info() {
+    echo -e "${BLUE}${INFO} $1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}${CHECK} $1${NC}"
+}
+
+error() {
+    echo -e "${RED}${CROSS} $1${NC}"
+}
+
+warning() {
+    echo -e "${YELLOW}${WARNING} $1${NC}"
+}
+
+header() {
+    echo ""
+    echo -e "${PURPLE}${GUARD} Chuck - CI/CD Guardian${NC}"
+    echo -e "${PURPLE}================================${NC}"
+    echo ""
+}
+
+# Validate branch name
+validate_branch() {
+    local branch=$1
+    local pattern="^(feature|fix|bugfix|hotfix|refactor|docs|test|chore)/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+    local release_pattern="^release/v[0-9]+\.[0-9]+\.[0-9]+$"
+    local main_pattern="^(main|develop)$"
+
+    if [[ "$branch" =~ $main_pattern ]] || [[ "$branch" =~ $pattern ]] || [[ "$branch" =~ $release_pattern ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Create branch
+create_branch() {
+    local type=$1
+    local ticket=$2
+    local desc=$3
+
+    # Validate type
+    local valid_types="feature fix bugfix hotfix refactor docs test chore"
+    if [[ ! " $valid_types " =~ " $type " ]]; then
+        error "Invalid type: $type"
+        info "Valid types: $valid_types"
+        exit 1
+    fi
+
+    # Convert description to lowercase and replace spaces with hyphens
+    desc=$(echo "$desc" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+    # Create branch name
+    local branch="$type/$ticket-$desc"
+
+    info "Creating branch: $branch"
+
+    # Checkout develop and pull latest
+    git checkout develop
+    git pull origin develop
+
+    # Create and checkout new branch
+    git checkout -b "$branch"
+
+    success "Created and checked out branch: $branch"
+}
+
+# Validate current branch
+validate_current_branch() {
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    
+    info "Validating branch: $branch"
+
+    if validate_branch "$branch"; then
+        success "Branch name valid: $branch"
+        return 0
+    else
+        error "Invalid branch name: $branch"
+        echo ""
+        info "Expected format: type/TICKET-ID-description"
+        info "Examples:"
+        echo "  - feature/PET-123-add-medication-reminders"
+        echo "  - fix/PET-456-login-validation-error"
+        echo "  - hotfix/PET-789-critical-auth-bug"
+        return 1
+    fi
+}
+
+# Check commits
+check_commits() {
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local base=$(git merge-base HEAD develop 2>/dev/null || git merge-base HEAD main 2>/dev/null || echo "")
+
+    if [ -z "$base" ]; then
+        warning "Could not find base branch"
+        return 0
+    fi
+
+    info "Checking commits since branching from develop/main"
+
+    local commits=$(git log --oneline $base..HEAD)
+    local pattern="^[a-f0-9]+ (feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?(!)?: .{1,100}$"
+
+    local invalid=()
+    while IFS= read -r line; do
+        if [ -n "$line" ] && ! [[ "$line" =~ $pattern ]]; then
+            invalid+=("$line")
+        fi
+    done <<< "$commits"
+
+    if [ ${#invalid[@]} -eq 0 ]; then
+        success "All commits follow Conventional Commits format"
+        return 0
+    else
+        error "Invalid commit messages found:"
+        for c in "${invalid[@]}"; do
+            echo "  $c"
+        done
+        echo ""
+        info "Commit messages must follow Conventional Commits format:"
+        echo "  type(scope): subject"
+        echo ""
+        info "Valid types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+        return 1
+    fi
+}
+
+# Run all checks
+check_all() {
+    header
+    info "Running all checks..."
+    echo ""
+
+    local failed=0
+
+    # Branch validation
+    validate_current_branch || failed=1
+
+    # Commit validation
+    check_commits || failed=1
+
+    # Lint
+    info "Running lint..."
+    if npm run lint --if-present; then
+        success "Lint passed"
+    else
+        error "Lint failed"
+        failed=1
+    fi
+
+    # Type check
+    info "Running type check..."
+    if npm run typecheck --if-present; then
+        success "Type check passed"
+    else
+        error "Type check failed"
+        failed=1
+    fi
+
+    # Tests
+    info "Running tests..."
+    if npm test -- --run 2>/dev/null || npm test --if-present; then
+        success "Tests passed"
+    else
+        error "Tests failed"
+        failed=1
+    fi
+
+    # Build
+    info "Running build..."
+    if npm run build --if-present; then
+        success "Build passed"
+    else
+        error "Build failed"
+        failed=1
+    fi
+
+    echo ""
+    if [ $failed -eq 0 ]; then
+        success "All checks passed! ${ROCKET}"
+        echo ""
+        info "Your PR is ready for review."
+        return 0
+    else
+        error "Some checks failed. Please fix the issues above."
+        return 1
+    fi
+}
+
+# PR validation
+pr_validate() {
+    header
+    info "Validating PR readiness..."
+    echo ""
+
+    # Run all checks
+    if ! check_all; then
+        exit 1
+    fi
+
+    # Check if up to date with base
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local base="develop"
+
+    if [[ "$branch" == hotfix/* ]] || [[ "$branch" == release/* ]]; then
+        base="main"
+    fi
+
+    info "Checking if branch is up to date with $base..."
+    git fetch origin $base 2>/dev/null || true
+    local behind=$(git rev-list HEAD..origin/$base --count 2>/dev/null || echo "0")
+
+    if [ "$behind" -gt 0 ]; then
+        warning "Branch is $behind commits behind $base"
+        info "Run: git rebase origin/$base"
+    else
+        success "Branch is up to date with $base"
+    fi
+
+    echo ""
+    success "PR validation complete!"
+}
+
+# Show help
+show_help() {
+    header
+    echo "Chuck - PetForce CI/CD Guardian"
+    echo ""
+    echo "Usage: chuck <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  validate-branch              Validate current branch name"
+    echo "  create-branch <type> <ticket> \"<description>\""
+    echo "                              Create a new branch"
+    echo "  check commits               Check commit messages"
+    echo "  check all                   Run all checks (lint, test, build)"
+    echo "  pr validate                 Validate PR readiness"
+    echo "  help                        Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  chuck validate-branch"
+    echo "  chuck create-branch feature PET-123 \"add medication reminders\""
+    echo "  chuck check commits"
+    echo "  chuck check all"
+    echo "  chuck pr validate"
+    echo ""
+    echo "Quality gates protect pet families. Every deployment matters."
+}
+
+# Main command router
+case "${1:-}" in
+    validate-branch)
+        header
+        validate_current_branch
+        ;;
+    create-branch)
+        if [ $# -lt 4 ]; then
+            error "Missing arguments"
+            info "Usage: chuck create-branch <type> <ticket> \"<description>\""
+            exit 1
+        fi
+        header
+        create_branch "$2" "$3" "$4"
+        ;;
+    check)
+        case "${2:-}" in
+            commits)
+                header
+                check_commits
+                ;;
+            all)
+                check_all
+                ;;
+            *)
+                error "Unknown check command: $2"
+                info "Valid: commits, all"
+                exit 1
+                ;;
+        esac
+        ;;
+    pr)
+        case "${2:-}" in
+            validate)
+                pr_validate
+                ;;
+            *)
+                error "Unknown pr command: $2"
+                info "Valid: validate"
+                exit 1
+                ;;
+        esac
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        error "Unknown command: $1"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

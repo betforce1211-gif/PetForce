@@ -13,9 +13,16 @@ This plugin automates the entire feature development lifecycle:
 
 ## Commands
 
+### Development Workflows
 - `/feature <description>` - Full autonomous feature development
 - `/bugfix <description>` - Fast bug fix workflow with testing
 - `/change <description>` - General changes (refactoring, config, docs)
+
+### Git Operations (Chuck's CI/CD)
+- `/push [commit-message]` - Safe push to GitHub with automated checks
+- `/pull [branch-name]` - Safe pull from GitHub with smart updates
+
+### Help
 - `/help` - Detailed help and examples
 
 ## Quick Start
@@ -23,14 +30,26 @@ This plugin automates the entire feature development lifecycle:
 ```bash
 # Install the plugin (done automatically when in PetForce directory)
 
+# Daily workflow: Pull latest changes
+/pull develop
+
 # Create a new feature
 /feature "Add user settings page with theme preferences"
+
+# Push your changes
+/push "feat(settings): add user settings page"
 
 # Fix a bug
 /bugfix "Login redirect loops on invalid credentials"
 
+# Push the fix
+/push "fix(auth): correct login redirect logic"
+
 # Refactor code
 /change "Extract validation logic into utils" --type refactor
+
+# Push refactoring
+/push "refactor(utils): extract validation logic"
 ```
 
 ## How It Works

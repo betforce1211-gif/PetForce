@@ -6,10 +6,44 @@ import { Button } from '@/components/ui/Button';
 import { useMagicLink } from '@petforce/auth';
 import { motion } from 'framer-motion';
 
+/**
+ * Props for the MagicLinkForm component
+ */
 export interface MagicLinkFormProps {
+  /** Optional callback called when the magic link email is successfully sent */
   onEmailSent?: () => void;
 }
 
+/**
+ * Passwordless authentication form using magic links
+ *
+ * Features:
+ * - Simple email input for passwordless authentication
+ * - Sends a one-time sign-in link to user's email
+ * - Success state with visual feedback
+ * - Resend functionality if email not received
+ * - Animated transitions between form and success states
+ * - Error handling with user-friendly messages
+ *
+ * Flow:
+ * 1. User enters email address
+ * 2. Click "Send magic link"
+ * 3. Success screen shows confirmation
+ * 4. User checks email and clicks link
+ * 5. MagicLinkCallbackPage handles authentication
+ * 6. User is signed in automatically
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <MagicLinkForm onEmailSent={() => console.log('Email sent!')} />
+ *
+ * // In authentication flow
+ * {authMethod === 'magic-link' && (
+ *   <MagicLinkForm onEmailSent={() => setShowInstructions(true)} />
+ * )}
+ * ```
+ */
 export function MagicLinkForm({ onEmailSent }: MagicLinkFormProps) {
   const [email, setEmail] = useState('');
   const { sendLink, isLoading, error, emailSent } = useMagicLink();

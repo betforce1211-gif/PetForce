@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 import type {
   TableSchema,
   ColumnDef,
@@ -10,6 +10,9 @@ import type {
   QueryResult,
   DryRunResult,
 } from './types';
+
+// Type guard for browser environment detection
+declare const window: unknown;
 
 export class DatabaseManager {
   private pool: Pool;

@@ -1,0 +1,25 @@
+{
+  "name": "@petforce/observability",
+  "version": "1.0.0",
+  "description": "Comprehensive logging, monitoring, and performance tracking for PetForce",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@petforce/auth": "file:../auth",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.0",
+    "vitest": "^1.0.0"
+  },
+  "keywords": [
+    "logging",
+    "observability",
+    "monitoring",
+    "performance",
+    "analytics"
+  ]
+}

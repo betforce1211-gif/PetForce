@@ -245,4 +245,8 @@ jobs:
     needs: [lint, typecheck, test, build, openspec, security]
     steps:
       - name: All checks passed
-        run: echo "✅ All CI checks passed successfully!"
+        run: |
+          echo "✅ All CI checks passed successfully!"
+          echo ""
+          echo "Note: E2E tests run separately in the 'E2E Tests' workflow"
+          echo "Please ensure E2E tests pass before merging to main/develop"

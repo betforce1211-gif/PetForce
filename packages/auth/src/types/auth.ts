@@ -76,6 +76,14 @@ export interface AuthError {
   details?: Record<string, unknown>;
 }
 
+// Standardized API response wrapper
+export interface ApiResponse<T = void> {
+  success: boolean;
+  data?: T;
+  error?: AuthError;
+  message?: string;
+}
+
 // OAuth types
 export interface OAuthConnection {
   id: string;

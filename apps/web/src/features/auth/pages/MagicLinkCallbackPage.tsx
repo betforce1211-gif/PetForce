@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
-import { verifyMagicLink } from '@petforce/auth';
+import { verifyMagicLink, getHash } from '@petforce/auth';
 import { motion } from 'framer-motion';
 
 export function MagicLinkCallbackPage() {
@@ -18,7 +18,8 @@ export function MagicLinkCallbackPage() {
     const verifyLink = async () => {
       try {
         // Get token from URL (can be in hash or query params)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const hash = getHash();
+        const hashParams = new URLSearchParams(hash.substring(1));
         const token = searchParams.get('token') || hashParams.get('token');
         const type = (searchParams.get('type') || hashParams.get('type') || 'magiclink') as 'magiclink' | 'email';
 

@@ -28,7 +28,14 @@ export const mockAuthError: AuthError = {
 };
 
 // Mock useAuth hook
-export const mockUseAuth = {
+export const mockUseAuth: {
+  loginWithPassword: ReturnType<typeof vi.fn>;
+  registerWithPassword: ReturnType<typeof vi.fn>;
+  logout: ReturnType<typeof vi.fn>;
+  isLoading: boolean;
+  error: AuthError | null;
+  user: User | null;
+} = {
   loginWithPassword: vi.fn(),
   registerWithPassword: vi.fn(),
   logout: vi.fn(),

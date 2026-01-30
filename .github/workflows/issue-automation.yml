@@ -1,0 +1,222 @@
+# Issue Management Automation
+# Auto-labels, assigns, and links issues based on content
+# Chuck's Quality Gate: Every bug, feature, and task tracked
+
+name: Issue Automation
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  auto-label:
+    name: Auto-label Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Auto-label by agent
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+            const title = issue.title || '';
+            const labels = [];
+            
+            // Agent-based labeling
+            const agentMentions = {
+              'peter': /peter|product|requirements|pm/i,
+              'engrid': /engrid|engineering|code|implementation/i,
+              'tucker': /tucker|qa|testing|test/i,
+              'larry': /larry|logging|monitoring|observability/i,
+              'dexter': /dexter|ux|design|ui/i,
+              'samantha': /samantha|security|auth|encryption/i,
+              'chuck': /chuck|ci\/cd|deployment|pipeline/i,
+              'maya': /maya|mobile|ios|android/i,
+              'axel': /axel|api|endpoint/i,
+              'buck': /buck|data|etl|database/i,
+              'ana': /ana|analytics|metrics|dashboard/i,
+              'isabel': /isabel|infrastructure|devops|cloud/i,
+              'thomas': /thomas|docs|documentation/i,
+              'casey': /casey|customer|support|success/i
+            };
+            
+            for (const [agent, pattern] of Object.entries(agentMentions)) {
+              if (pattern.test(title) || pattern.test(body)) {
+                labels.push(`agent:${agent}`);
+              }
+            }
+            
+            // Severity labeling
+            if (/critical|down|broken|urgent/i.test(title) || /🚨 Critical/i.test(body)) {
+              labels.push('severity:critical', 'priority:high');
+            } else if (/high|major/i.test(title) || /⚠️ High/i.test(body)) {
+              labels.push('severity:high', 'priority:high');
+            } else if (/medium/i.test(title) || /🔶 Medium/i.test(body)) {
+              labels.push('severity:medium', 'priority:medium');
+            } else if (/low|minor/i.test(title) || /🔷 Low/i.test(body)) {
+              labels.push('severity:low', 'priority:low');
+            }
+            
+            // Type labeling
+            if (issue.labels.some(l => l.name === 'bug')) {
+              labels.push('type:bug');
+            } else if (issue.labels.some(l => l.name === 'enhancement')) {
+              labels.push('type:feature');
+            }
+            
+            // Component labeling
+            const components = {
+              'auth': /auth|login|signup|password/i,
+              'database': /database|db|migration|supabase/i,
+              'frontend': /frontend|ui|react|component/i,
+              'backend': /backend|api|server/i,
+              'mobile': /mobile|ios|android|react-native/i,
+              'docs': /documentation|readme|guide/i,
+              'ci-cd': /ci\/cd|pipeline|deploy|github actions/i,
+              'security': /security|vulnerability|cve/i,
+              'performance': /performance|slow|optimization/i
+            };
+            
+            for (const [component, pattern] of Object.entries(components)) {
+              if (pattern.test(title) || pattern.test(body)) {
+                labels.push(`component:${component}`);
+              }
+            }
+            
+            // Apply labels if any were found
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+              
+              console.log(`Added labels: ${labels.join(', ')}`);
+            }
+
+      - name: Auto-assign to agent
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(l => l.name);
+            
+            // Agent assignees mapping (add GitHub usernames here)
+            const agentAssignees = {
+              'agent:peter': [],
+              'agent:engrid': [],
+              'agent:tucker': [],
+              'agent:chuck': [],
+              'agent:samantha': [],
+              // Add more as team members join
+            };
+            
+            const assignees = [];
+            for (const [label, users] of Object.entries(agentAssignees)) {
+              if (labels.includes(label) && users.length > 0) {
+                assignees.push(...users);
+              }
+            }
+            
+            if (assignees.length > 0) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: assignees
+              });
+            }
+
+  link-related-issues:
+    name: Link Related Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+      - name: Find and link related issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            
+            // Search for related issues
+            const searchTerms = title.split(' ')
+              .filter(word => word.length > 4)
+              .slice(0, 3)
+              .join(' ');
+            
+            if (!searchTerms) return;
+            
+            const { data: relatedIssues } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} ${searchTerms} is:issue -is:closed`,
+              per_page: 5
+            });
+            
+            const related = relatedIssues.items.filter(i => i.number !== issue.number);
+            
+            if (related.length > 0) {
+              const comment = `## Related Issues\n\n` +
+                `Found potentially related issues:\n\n` +
+                related.map(i => `- #${i.number}: ${i.title}`).join('\n') +
+                `\n\nThese may contain relevant context or solutions.`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+            }
+
+  welcome-message:
+    name: Welcome Message
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+      - name: Welcome new contributor
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const author = issue.user.login;
+            
+            // Check if this is their first issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              creator: author,
+              state: 'all',
+              per_page: 2
+            });
+            
+            if (issues.length === 1) {
+              const labels = issue.labels.map(l => l.name);
+              const isBug = labels.includes('bug');
+              
+              const message = `👋 Welcome to PetForce, @${author}! Thanks for ${isBug ? 'reporting this bug' : 'your suggestion'}.\n\n` +
+                `**Quality gates protect pet families** - we take every issue seriously.\n\n` +
+                `Our team will review this and respond soon. In the meantime:\n` +
+                `- Check our [Contributing Guide](../blob/main/CONTRIBUTING.md)\n` +
+                `- Read the [Getting Started](../blob/main/GETTING-STARTED.md)\n` +
+                `- Join our community discussions\n\n` +
+                `This issue will be automatically labeled and assigned to the relevant agent.`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: message
+              });
+            }

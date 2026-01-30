@@ -1,6 +1,7 @@
 {
   "name": "@petforce/supabase",
   "version": "0.1.0",
+  "type": "module",
   "description": "Database management tools and utilities for PetForce",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -28,6 +29,10 @@
   "devDependencies": {
     "@types/node": "^20.11.19",
     "@types/pg": "^8.11.2",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   }

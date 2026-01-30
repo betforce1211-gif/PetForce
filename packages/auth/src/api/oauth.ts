@@ -2,6 +2,8 @@
 
 import { getSupabaseClient } from './supabase-client';
 import type { AuthError, AuthTokens, User } from '../types/auth';
+import { TOKEN_EXPIRY_SECONDS, AUTH_ERROR_CODES, REDIRECT_PATHS, OAUTH_CONFIG } from '../config/constants';
+import { getOrigin, isWindowAvailable } from '../utils/window-adapter';
 
 export type OAuthProvider = 'google' | 'apple';
 
@@ -23,7 +25,7 @@ export async function signInWithOAuth(
       provider,
       options: {
         redirectTo: finalRedirectTo,
-        scopes: provider === 'google' ? 'email profile' : undefined,
+        scopes: provider === 'google' ? OAUTH_CONFIG.GOOGLE_SCOPES : undefined,
         queryParams:
           provider === 'apple'
             ? {
@@ -37,7 +39,7 @@ export async function signInWithOAuth(
       return {
         success: false,
         error: {
-          code: error.name || 'OAUTH_ERROR',
+          code: error.name || AUTH_ERROR_CODES.OAUTH_ERROR,
           message: error.message,
         },
       };
@@ -51,7 +53,7 @@ export async function signInWithOAuth(
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -95,7 +97,7 @@ export async function handleOAuthCallback(): Promise<{
       return {
         success: false,
         error: {
-          code: error.name || 'OAUTH_CALLBACK_ERROR',
+          code: error.name || AUTH_ERROR_CODES.OAUTH_CALLBACK_ERROR,
           message: error.message,
         },
       };
@@ -105,7 +107,7 @@ export async function handleOAuthCallback(): Promise<{
       return {
         success: false,
         error: {
-          code: 'OAUTH_CALLBACK_ERROR',
+          code: AUTH_ERROR_CODES.OAUTH_CALLBACK_ERROR,
           message: 'No session found after OAuth callback',
         },
       };
@@ -120,7 +122,7 @@ export async function handleOAuthCallback(): Promise<{
       tokens: {
         accessToken: session.access_token,
         refreshToken: session.refresh_token,
-        expiresIn: session.expires_in || 900,
+        expiresIn: session.expires_in || TOKEN_EXPIRY_SECONDS,
       },
       user: user
         ? {
@@ -142,7 +144,7 @@ export async function handleOAuthCallback(): Promise<{
     return {
       success: false,
       error: {
-        code: 'UNEXPECTED_ERROR',
+        code: AUTH_ERROR_CODES.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
@@ -155,14 +157,14 @@ export async function handleOAuthCallback(): Promise<{
 function getDefaultRedirectUrl(): string {
   // Check if running in React Native
   if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-    return 'petforce://auth/callback';
+    return REDIRECT_PATHS.NATIVE_CALLBACK;
   }
 
   // Web environment
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/callback`;
+  if (isWindowAvailable()) {
+    return `${getOrigin()}${REDIRECT_PATHS.AUTH_CALLBACK}`;
   }
 
   // Fallback
-  return 'petforce://auth/callback';
+  return REDIRECT_PATHS.NATIVE_CALLBACK;
 }

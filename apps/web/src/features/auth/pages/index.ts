@@ -1,5 +1,6 @@
 // Export all auth pages
 
+export * from './UnifiedAuthPage';
 export * from './WelcomePage';
 export * from './LoginPage';
 export * from './RegisterPage';

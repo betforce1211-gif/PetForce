@@ -5,6 +5,14 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import {
+  ANIMATION_TIMINGS,
+  UI_COUNTS,
+  ANIMATION_VALUES,
+  CONFETTI_COLORS,
+  ICON_SIZES,
+} from '@/config/ui-constants';
+import { getInnerHeight } from '@petforce/auth';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
@@ -12,7 +20,7 @@ export function VerifyEmailPage() {
 
   useEffect(() => {
     // Trigger confetti animation after a brief delay
-    const timer = setTimeout(() => setShowConfetti(true), 500);
+    const timer = setTimeout(() => setShowConfetti(true), ANIMATION_TIMINGS.CONFETTI_DELAY);
     return () => clearTimeout(timer);
   }, []);
 
@@ -21,28 +29,39 @@ export function VerifyEmailPage() {
       {/* Confetti */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(50)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `-10%`,
-                backgroundColor: ['#2D9B87', '#FF9F40', '#4CAF50', '#2196F3'][Math.floor(Math.random() * 4)],
-              }}
-              initial={{ y: 0, opacity: 1, rotate: 0 }}
-              animate={{
-                y: window.innerHeight + 100,
-                opacity: 0,
-                rotate: Math.random() * 360,
-              }}
-              transition={{
-                duration: 2 + Math.random() * 2,
-                delay: Math.random() * 0.5,
-                ease: 'easeOut',
-              }}
-            />
-          ))}
+          {[...Array(UI_COUNTS.CONFETTI_PARTICLES)].map((_, i) => {
+            const colorIndex = Math.floor(Math.random() * UI_COUNTS.COLOR_PALETTE_SIZE);
+            const windowHeight = getInnerHeight(ANIMATION_VALUES.WINDOW_HEIGHT_FALLBACK);
+            const baseDuration = ANIMATION_TIMINGS.CONFETTI_MIN_DURATION / 1000; // Convert to seconds
+            const randomDuration =
+              (ANIMATION_TIMINGS.CONFETTI_MAX_DURATION - ANIMATION_TIMINGS.CONFETTI_MIN_DURATION) / 1000;
+            const randomDelay = (Math.random() * ANIMATION_TIMINGS.CONFETTI_RANDOM_DELAY) / 1000;
+
+            return (
+              <motion.div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: ICON_SIZES.CONFETTI_PARTICLE,
+                  height: ICON_SIZES.CONFETTI_PARTICLE,
+                  left: `${Math.random() * 100}%`,
+                  top: `-10%`,
+                  backgroundColor: CONFETTI_COLORS[colorIndex],
+                }}
+                initial={{ y: 0, opacity: 1, rotate: 0 }}
+                animate={{
+                  y: windowHeight + ANIMATION_VALUES.CONFETTI_FALL_DISTANCE,
+                  opacity: 0,
+                  rotate: Math.random() * ANIMATION_VALUES.CONFETTI_MAX_ROTATION,
+                }}
+                transition={{
+                  duration: baseDuration + Math.random() * randomDuration,
+                  delay: randomDelay,
+                  ease: 'easeOut',
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -56,7 +75,11 @@ export function VerifyEmailPage() {
           <div className="text-center space-y-6">
             {/* Success animation */}
             <motion.div
-              className="mx-auto w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center relative"
+              className="mx-auto bg-primary-100 rounded-full flex items-center justify-center relative"
+              style={{
+                width: ICON_SIZES.SUCCESS_ICON_CONTAINER,
+                height: ICON_SIZES.SUCCESS_ICON_CONTAINER,
+              }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
@@ -67,7 +90,8 @@ export function VerifyEmailPage() {
                 transition={{ delay: 0.5, type: 'spring', stiffness: 150 }}
               >
                 <svg
-                  className="w-12 h-12 text-primary-600"
+                  className="text-primary-600"
+                  style={{ width: ICON_SIZES.SUCCESS_ICON, height: ICON_SIZES.SUCCESS_ICON }}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

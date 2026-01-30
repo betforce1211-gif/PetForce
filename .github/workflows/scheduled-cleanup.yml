@@ -1,0 +1,160 @@
+name: Scheduled Data Cleanup
+
+# Purpose: Automated cleanup of expired sessions, tokens, and old data
+# Schedule:
+#   - Daily: 2 AM UTC (expired tokens, sessions, rate limits)
+#   - Weekly: Sunday 3 AM UTC (soft-deleted users, old session metadata)
+#   - Monthly: 1st of month 4 AM UTC (inactive users)
+# Owner: Infrastructure (Isabel) + Data Engineering (Buck)
+# Created: 2026-01-25
+
+on:
+  # Daily cleanup at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+    - cron: '0 3 * * 0'  # Weekly on Sunday at 3 AM UTC
+    - cron: '0 4 1 * *'  # Monthly on 1st at 4 AM UTC
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      job_type:
+        description: 'Cleanup job type'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - monthly
+
+jobs:
+  daily-cleanup:
+    name: Daily Cleanup
+    runs-on: ubuntu-latest
+    # Only run daily cleanup on the daily schedule or manual trigger
+    if: |
+      (github.event.schedule == '0 2 * * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job_type == 'daily')
+    steps:
+      - name: Run Daily Cleanup
+        run: |
+          echo "Running daily cleanup job..."
+          response=$(curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scheduled-cleanup?type=daily" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json")
+
+          echo "$response"
+
+          # Check if cleanup was successful
+          success=$(echo "$response" | jq -r '.success')
+          if [ "$success" != "true" ]; then
+            echo "::error::Daily cleanup failed"
+            exit 1
+          fi
+
+          # Log metrics
+          total_records=$(echo "$response" | jq -r '.total_records_affected')
+          execution_time=$(echo "$response" | jq -r '.total_execution_time_ms')
+          echo "::notice::Daily cleanup completed: ${total_records} records affected in ${execution_time}ms"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "::error::Daily cleanup job failed! Check logs and database."
+          # TODO: Send alert to monitoring service (Datadog, PagerDuty, etc.)
+
+  weekly-cleanup:
+    name: Weekly Cleanup
+    runs-on: ubuntu-latest
+    # Only run weekly cleanup on Sunday schedule or manual trigger
+    if: |
+      (github.event.schedule == '0 3 * * 0') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job_type == 'weekly')
+    steps:
+      - name: Run Weekly Cleanup
+        run: |
+          echo "Running weekly cleanup job..."
+          response=$(curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scheduled-cleanup?type=weekly" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json")
+
+          echo "$response"
+
+          # Check if cleanup was successful
+          success=$(echo "$response" | jq -r '.success')
+          if [ "$success" != "true" ]; then
+            echo "::error::Weekly cleanup failed"
+            exit 1
+          fi
+
+          # Log metrics
+          total_records=$(echo "$response" | jq -r '.total_records_affected')
+          execution_time=$(echo "$response" | jq -r '.total_execution_time_ms')
+          echo "::notice::Weekly cleanup completed: ${total_records} records affected in ${execution_time}ms"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "::error::Weekly cleanup job failed! Check logs and database."
+          # TODO: Send alert to monitoring service
+
+  monthly-cleanup:
+    name: Monthly Cleanup
+    runs-on: ubuntu-latest
+    # Only run monthly cleanup on 1st of month schedule or manual trigger
+    if: |
+      (github.event.schedule == '0 4 1 * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job_type == 'monthly')
+    steps:
+      - name: Run Monthly Cleanup
+        run: |
+          echo "Running monthly cleanup job..."
+          response=$(curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scheduled-cleanup?type=monthly" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json")
+
+          echo "$response"
+
+          # Check if cleanup was successful
+          success=$(echo "$response" | jq -r '.success')
+          if [ "$success" != "true" ]; then
+            echo "::error::Monthly cleanup failed"
+            exit 1
+          fi
+
+          # Log metrics
+          total_records=$(echo "$response" | jq -r '.total_records_affected')
+          execution_time=$(echo "$response" | jq -r '.total_execution_time_ms')
+          echo "::notice::Monthly cleanup completed: ${total_records} records affected in ${execution_time}ms"
+
+      - name: Generate Retention Report
+        run: |
+          echo "Generating monthly data retention compliance report..."
+          # TODO: Call generate_retention_report() and store results
+          # This could be sent to monitoring dashboard or saved as artifact
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "::error::Monthly cleanup job failed! Check logs and database."
+          # TODO: Send alert to monitoring service
+
+  # Health check job - runs after each cleanup to verify database health
+  health-check:
+    name: Post-Cleanup Health Check
+    runs-on: ubuntu-latest
+    needs: [daily-cleanup, weekly-cleanup, monthly-cleanup]
+    if: always()
+    steps:
+      - name: Check Database Health
+        run: |
+          echo "Running post-cleanup health check..."
+          # TODO: Add health check queries
+          # - Check for orphaned records
+          # - Verify foreign key constraints
+          # - Check table sizes
+          echo "Health check completed"

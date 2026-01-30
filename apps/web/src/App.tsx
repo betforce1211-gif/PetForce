@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { createSupabaseClient } from '@petforce/auth';
 import {
-  WelcomePage,
-  LoginPage,
-  RegisterPage,
+  UnifiedAuthPage,
   ForgotPasswordPage,
   ResetPasswordPage,
   VerifyEmailPage,
@@ -20,8 +18,17 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const legacyAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (supabaseUrl && (publishableKey || legacyAnonKey)) {
-  createSupabaseClient(supabaseUrl, publishableKey, legacyAnonKey);
+// For E2E tests: use test credentials if real ones aren't provided
+const isTestEnvironment = import.meta.env.MODE === 'test' || import.meta.env.CI === 'true';
+const testSupabaseUrl = 'https://test.supabase.co';
+const testAnonKey = 'test-anon-key-for-e2e-tests-only';
+
+const finalUrl = supabaseUrl || (isTestEnvironment ? testSupabaseUrl : '');
+const finalPublishableKey = publishableKey;
+const finalAnonKey = legacyAnonKey || (isTestEnvironment ? testAnonKey : '');
+
+if (finalUrl && (finalPublishableKey || finalAnonKey)) {
+  createSupabaseClient(finalUrl, finalPublishableKey, finalAnonKey);
 }
 
 function App() {
@@ -29,12 +36,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/auth/welcome" replace />} />
+        <Route path="/" element={<Navigate to="/auth" replace />} />
 
         {/* Public auth routes */}
-        <Route path="/auth/welcome" element={<WelcomePage />} />
-        <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth" element={<UnifiedAuthPage />} />
+
+        {/* Redirects from old routes to unified page */}
+        <Route path="/auth/welcome" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth/login" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth/register" element={<Navigate to="/auth?mode=register" replace />} />
+
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
@@ -63,7 +74,7 @@ function App() {
         />
 
         {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/auth/welcome" replace />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     </BrowserRouter>
   );

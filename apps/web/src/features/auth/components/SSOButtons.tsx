@@ -3,10 +3,42 @@
 import { Button } from '@/components/ui/Button';
 import { useOAuth } from '@petforce/auth';
 
+/**
+ * Props for the SSOButtons component
+ */
 export interface SSOButtonsProps {
+  /** Optional callback called when SSO authentication succeeds */
   onSuccess?: () => void;
 }
 
+/**
+ * Single Sign-On buttons for Google and Apple authentication
+ *
+ * Provides branded buttons for OAuth authentication with:
+ * - Google Sign-In with official branding
+ * - Apple Sign-In with official branding
+ * - Loading state management
+ * - Automatic redirect handling after successful authentication
+ *
+ * The OAuth flow is handled automatically by the useOAuth hook:
+ * 1. User clicks button
+ * 2. Redirect to OAuth provider
+ * 3. User authenticates
+ * 4. Provider redirects back to app
+ * 5. OAuthCallbackPage processes the response
+ * 6. User is authenticated
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <SSOButtons onSuccess={() => navigate('/dashboard')} />
+ *
+ * // In login page with divider
+ * <EmailPasswordForm mode="login" />
+ * <div className="text-center my-4">or</div>
+ * <SSOButtons onSuccess={() => navigate('/dashboard')} />
+ * ```
+ */
 export function SSOButtons({ onSuccess: _onSuccess }: SSOButtonsProps) {
   const { loginWithGoogle, loginWithApple, isLoading } = useOAuth();
 

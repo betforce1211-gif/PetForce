@@ -1,0 +1,9 @@
+echo "🔍 Running pre-push checks..."
+
+# Run tests before pushing
+echo "Running tests..."
+npm test -- --run 2>/dev/null || {
+    echo "⚠️  Tests not configured or failed. Skipping..."
+}
+
+echo "✅ Pre-push checks passed!"

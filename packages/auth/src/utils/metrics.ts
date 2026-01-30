@@ -1,6 +1,8 @@
 // Authentication Metrics Collection
 // Tracks registration funnel and confirmation rates
 
+import { monitoring } from './monitoring';
+
 export interface AuthMetric {
   event: string;
   timestamp: number;
@@ -48,10 +50,8 @@ class MetricsCollector {
     // Notify listeners
     this.notifyListeners();
 
-    // In production, send to monitoring service
-    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'development') {
-      this.sendToMonitoringService(metric);
-    }
+    // Send to monitoring service (replaces console.log)
+    monitoring.sendMetric(metric);
   }
 
   /**
@@ -164,7 +164,7 @@ class MetricsCollector {
     if (summary.registrationCompleted > 10 && summary.confirmationRatePercent < 70) {
       alerts.push({
         level: summary.confirmationRatePercent < 50 ? 'critical' : 'warning',
-        message: `Low email confirmation rate: ${summary.confirmationRatePercent}% (last hour)`,
+        message: 'Low email confirmation rate: ' + summary.confirmationRatePercent + '% (last hour)',
       });
     }
 
@@ -174,7 +174,7 @@ class MetricsCollector {
       if (rejectedPercent > 20) {
         alerts.push({
           level: 'warning',
-          message: `High unconfirmed login attempts: ${summary.loginRejectedUnconfirmed} (${Math.round(rejectedPercent)}% of logins)`,
+          message: 'High unconfirmed login attempts: ' + summary.loginRejectedUnconfirmed + ' (' + Math.round(rejectedPercent) + '% of logins)',
         });
       }
     }
@@ -183,7 +183,7 @@ class MetricsCollector {
     if (summary.avgTimeToConfirmMinutes && summary.avgTimeToConfirmMinutes > 60) {
       alerts.push({
         level: 'warning',
-        message: `Slow email confirmation: Average ${Math.round(summary.avgTimeToConfirmMinutes)} minutes`,
+        message: 'Slow email confirmation: Average ' + Math.round(summary.avgTimeToConfirmMinutes) + ' minutes',
       });
     }
 
@@ -191,7 +191,7 @@ class MetricsCollector {
     if (summary.loginAttempts > 10 && summary.loginSuccessRatePercent < 70) {
       alerts.push({
         level: summary.loginSuccessRatePercent < 50 ? 'critical' : 'warning',
-        message: `Low login success rate: ${summary.loginSuccessRatePercent}%`,
+        message: 'Low login success rate: ' + summary.loginSuccessRatePercent + '%',
       });
     }
 
@@ -201,17 +201,6 @@ class MetricsCollector {
   private notifyListeners(): void {
     const summary = this.getSummary();
     this.metricsListeners.forEach((listener) => listener(summary));
-  }
-
-  private sendToMonitoringService(metric: AuthMetric): void {
-    // In production, send to Datadog, Sentry, CloudWatch, etc.
-    // For now, just log to console in production format
-    console.log(JSON.stringify({
-      service: 'auth',
-      metric: metric.event,
-      timestamp: metric.timestamp,
-      ...metric.metadata,
-    }));
   }
 }
 

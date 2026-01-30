@@ -5,6 +5,9 @@ node_modules
 
 # Testing
 coverage
+test-results/
+playwright-report/
+*.tsbuildinfo
 
 # Production
 build
@@ -36,6 +39,7 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+.claude/statusline.log
 
 # OS
 .DS_Store
@@ -62,3 +66,4 @@ apps/mobile/android/app/build/
 *.apk
 *.ap_
 *.aab
+.archive/

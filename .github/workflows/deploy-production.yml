@@ -6,9 +6,8 @@ name: Deploy Production
 
 on:
   push:
-    branches: [main]
     tags:
-      - 'v*.*.*' # Semantic versioning tags
+      - 'v*.*.*' # Semantic versioning tags (production releases only)
   workflow_dispatch: # Allow manual trigger with approval
 
 concurrency:
@@ -103,7 +102,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: '🎉 Production deployment successful!'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
         if: success()
         continue-on-error: true
 
@@ -112,7 +112,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: '🚨 Production deployment failed! @channel'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
         if: failure()
         continue-on-error: true
 

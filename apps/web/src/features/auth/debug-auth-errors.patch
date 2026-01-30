@@ -1,0 +1,51 @@
+# Debug patch for EmailPasswordForm.tsx
+# Add this console.log to line 76 to debug error display
+
+--- a/src/features/auth/components/EmailPasswordForm.tsx
++++ b/src/features/auth/components/EmailPasswordForm.tsx
+@@ -73,6 +73,10 @@
+   const [showResendButton, setShowResendButton] = useState(false);
+   const [passwordMismatchError, setPasswordMismatchError] = useState<string | null>(null);
+ 
++  // DEBUG: Log error state
++  console.log('[EmailPasswordForm] Current error:', error);
++  console.log('[EmailPasswordForm] Loading state:', isLoading);
++
+   const { loginWithPassword, registerWithPassword, isLoading, error } = useAuth();
+ 
+   const handleSubmit = async (e: FormEvent) => {
+
+# Add this to auth-api.ts line 49 to debug Supabase errors
+
+--- a/packages/auth/src/api/auth-api.ts
++++ b/packages/auth/src/api/auth-api.ts
+@@ -47,6 +47,8 @@
+     });
+ 
+     if (error) {
++      // DEBUG: Log Supabase error
++      console.log('[auth-api] Supabase signup error:', error);
+       // Log registration failure
+       logger.authEvent('registration_failed', requestId, {
+         email: data.email,
+
+# Add this to useAuth.ts line 75 to debug hook error handling
+
+--- a/packages/auth/src/hooks/useAuth.ts
++++ b/packages/auth/src/hooks/useAuth.ts
+@@ -74,6 +74,8 @@
+     try {
+       const result = await register(data);
+ 
++      // DEBUG: Log registration result
++      console.log('[useAuth] Registration result:', result);
+       if (result.success) {
+         // Store registration result for redirect
+         setRegistrationResult({
+@@ -83,6 +85,7 @@
+         return { success: true, confirmationRequired: result.confirmationRequired };
+       } else if (result.error) {
+         setError(result.error);
++        console.log('[useAuth] Setting error state:', result.error);
+         return { success: false };
+       }

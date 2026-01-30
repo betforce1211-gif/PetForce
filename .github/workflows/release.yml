@@ -1,0 +1,185 @@
+# Release Workflow
+# Automates versioning, changelog generation, and release creation
+# Triggered manually with version bump selection
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Bump version
+          npm version ${{ inputs.version_bump }} --no-git-tag-version
+          
+          # Get new version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Update version in workspace packages
+          for pkg in packages/*/package.json apps/*/package.json; do
+            if [ -f "$pkg" ]; then
+              node -e "const fs=require('fs'); const p='$pkg'; const pkg=JSON.parse(fs.readFileSync(p)); pkg.version='$NEW_VERSION'; fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');"
+            fi
+          done
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, using all commits"
+            COMMITS=$(git log --pretty=format:"* %s (%h)" --no-merges)
+          else
+            echo "Generating changelog since $PREVIOUS_TAG"
+            COMMITS=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"* %s (%h)" --no-merges)
+          fi
+          
+          # Create changelog
+          cat > CHANGELOG_TEMP.md << 'CHANGELOG_EOF'
+          ## What's Changed
+          
+          ### Features
+          CHANGELOG_EOF
+          
+          echo "$COMMITS" | grep "^* feat" >> CHANGELOG_TEMP.md || echo "* No new features" >> CHANGELOG_TEMP.md
+          
+          echo "" >> CHANGELOG_TEMP.md
+          echo "### Bug Fixes" >> CHANGELOG_TEMP.md
+          echo "$COMMITS" | grep "^* fix" >> CHANGELOG_TEMP.md || echo "* No bug fixes" >> CHANGELOG_TEMP.md
+          
+          echo "" >> CHANGELOG_TEMP.md
+          echo "### Other Changes" >> CHANGELOG_TEMP.md
+          echo "$COMMITS" | grep -v "^* feat" | grep -v "^* fix" >> CHANGELOG_TEMP.md || echo "* No other changes" >> CHANGELOG_TEMP.md
+          
+          cat CHANGELOG_TEMP.md
+
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION="${{ steps.bump_version.outputs.new_version }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Create new CHANGELOG entry
+          {
+            echo "# Changelog"
+            echo ""
+            echo "## [$VERSION] - $DATE"
+            echo ""
+            cat CHANGELOG_TEMP.md
+            echo ""
+            if [ -f CHANGELOG.md ]; then
+              tail -n +2 CHANGELOG.md
+            fi
+          } > CHANGELOG_NEW.md
+          
+          mv CHANGELOG_NEW.md CHANGELOG.md
+          rm -f CHANGELOG_TEMP.md
+
+      - name: Commit version bump
+        run: |
+          git add .
+          git commit -m "chore(release): bump version to ${{ steps.bump_version.outputs.new_version }}
+
+Release notes:
+- Version bump: ${{ inputs.version_bump }}
+- Pre-release: ${{ inputs.prerelease }}
+
+Co-Authored-By: Chuck CI/CD Agent <chuck@petforce.app>"
+
+      - name: Create Git tag
+        run: |
+          TAG="v${{ steps.bump_version.outputs.new_version }}"
+          git tag -a "$TAG" -m "Release $TAG"
+          echo "Created tag: $TAG"
+
+      - name: Push changes
+        run: |
+          git push origin main
+          git push origin --tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: Release v${{ steps.bump_version.outputs.new_version }}
+          body_path: CHANGELOG_TEMP.md
+          draft: false
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🎉 Release v${{ steps.bump_version.outputs.new_version }} created!
+            Tag: v${{ steps.bump_version.outputs.new_version }}
+            Type: ${{ inputs.version_bump }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        if: success()
+        continue-on-error: true
+
+      - name: Notify failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            ❌ Release creation failed!
+            Version: ${{ steps.bump_version.outputs.new_version }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        if: failure()
+        continue-on-error: true

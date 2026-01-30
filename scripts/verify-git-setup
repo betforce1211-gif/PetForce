@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+# Verify Git Best Practices Setup
+# Run this script to ensure everything is configured correctly
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Icons
+CHECK="✅"
+CROSS="❌"
+WARNING="⚠️"
+
+echo ""
+echo "🛡️ Chuck - Git Best Practices Verification"
+echo "=========================================="
+echo ""
+
+# Track failures
+FAILURES=0
+
+# Helper functions
+check_file() {
+    local file=$1
+    local name=$2
+    
+    if [ -f "$file" ]; then
+        echo -e "${GREEN}${CHECK} $name exists${NC}"
+        return 0
+    else
+        echo -e "${RED}${CROSS} $name missing${NC}"
+        FAILURES=$((FAILURES + 1))
+        return 1
+    fi
+}
+
+check_executable() {
+    local file=$1
+    local name=$2
+    
+    if [ -x "$file" ]; then
+        echo -e "${GREEN}${CHECK} $name is executable${NC}"
+        return 0
+    else
+        echo -e "${RED}${CROSS} $name not executable${NC}"
+        FAILURES=$((FAILURES + 1))
+        return 1
+    fi
+}
+
+check_command() {
+    local cmd=$1
+    local name=$2
+    
+    if command -v "$cmd" &> /dev/null; then
+        local version=$($cmd --version 2>&1 | head -n 1)
+        echo -e "${GREEN}${CHECK} $name installed${NC} ($version)"
+        return 0
+    else
+        echo -e "${RED}${CROSS} $name not installed${NC}"
+        FAILURES=$((FAILURES + 1))
+        return 1
+    fi
+}
+
+# Check Git hooks
+echo "Checking Git Hooks..."
+check_file ".husky/pre-commit" "Pre-commit hook"
+check_file ".husky/commit-msg" "Commit-msg hook"
+check_file ".husky/pre-push" "Pre-push hook"
+check_executable ".husky/pre-commit" "Pre-commit hook"
+check_executable ".husky/commit-msg" "Commit-msg hook"
+check_executable ".husky/pre-push" "Pre-push hook"
+echo ""
+
+# Check configuration files
+echo "Checking Configuration Files..."
+check_file "commitlint.config.js" "Commitlint config"
+check_file ".lintstagedrc.json" "Lint-staged config"
+check_file "package.json" "Package.json"
+echo ""
+
+# Check GitHub templates
+echo "Checking GitHub Templates..."
+check_file ".github/CODEOWNERS" "CODEOWNERS file"
+check_file ".github/pull_request_template.md" "PR template"
+check_file ".github/ISSUE_TEMPLATE/bug_report.md" "Bug report template"
+check_file ".github/ISSUE_TEMPLATE/feature_request.md" "Feature template"
+check_file ".github/ISSUE_TEMPLATE/tech_debt.md" "Tech debt template"
+check_file ".github/ISSUE_TEMPLATE/security.md" "Security template"
+check_file ".github/ISSUE_TEMPLATE/config.yml" "Issue config"
+echo ""
+
+# Check workflows
+echo "Checking GitHub Actions Workflows..."
+check_file ".github/workflows/ci.yml" "CI workflow"
+check_file ".github/workflows/release.yml" "Release workflow"
+check_file ".github/workflows/security-scan.yml" "Security scan workflow"
+check_file ".github/workflows/deploy-staging.yml" "Staging deploy workflow"
+check_file ".github/workflows/deploy-production.yml" "Production deploy workflow"
+echo ""
+
+# Check documentation
+echo "Checking Documentation..."
+check_file "docs/GIT_WORKFLOW.md" "Git workflow guide"
+check_file "docs/GIT_SETUP.md" "Git setup guide"
+check_file "docs/BRANCH_PROTECTION.md" "Branch protection docs"
+check_file "docs/GIT_BEST_PRACTICES_SUMMARY.md" "Best practices summary"
+check_file "CONTRIBUTING.md" "Contributing guide"
+echo ""
+
+# Check scripts
+echo "Checking Scripts..."
+check_file "scripts/chuck" "Chuck CLI"
+check_executable "scripts/chuck" "Chuck CLI"
+echo ""
+
+# Check dependencies
+echo "Checking Node.js Dependencies..."
+check_command "node" "Node.js"
+check_command "npm" "npm"
+check_command "git" "Git"
+
+# Check Husky
+if npm list husky &> /dev/null; then
+    echo -e "${GREEN}${CHECK} Husky installed${NC}"
+else
+    echo -e "${RED}${CROSS} Husky not installed${NC}"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# Check commitlint
+if npm list @commitlint/cli &> /dev/null; then
+    echo -e "${GREEN}${CHECK} Commitlint installed${NC}"
+else
+    echo -e "${RED}${CROSS} Commitlint not installed${NC}"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# Check lint-staged
+if npm list lint-staged &> /dev/null; then
+    echo -e "${GREEN}${CHECK} Lint-staged installed${NC}"
+else
+    echo -e "${RED}${CROSS} Lint-staged not installed${NC}"
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
+# Test Chuck CLI
+echo "Testing Chuck CLI..."
+if ./scripts/chuck help &> /dev/null; then
+    echo -e "${GREEN}${CHECK} Chuck CLI working${NC}"
+else
+    echo -e "${RED}${CROSS} Chuck CLI not working${NC}"
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
+# Test commit message validation
+echo "Testing Commit Message Validation..."
+if echo "feat: test message" | npx commitlint &> /dev/null; then
+    echo -e "${GREEN}${CHECK} Commitlint validation working${NC}"
+else
+    echo -e "${RED}${CROSS} Commitlint validation not working${NC}"
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
+# Summary
+echo "=========================================="
+if [ $FAILURES -eq 0 ]; then
+    echo -e "${GREEN}${CHECK} All checks passed!${NC}"
+    echo ""
+    echo "Your Git best practices setup is complete and working."
+    echo ""
+    echo "Next steps:"
+    echo "  1. Read docs/GIT_WORKFLOW.md"
+    echo "  2. Configure GitHub branch protection"
+    echo "  3. Set up GitHub Secrets for CI/CD"
+    echo "  4. Share documentation with team"
+    echo ""
+    exit 0
+else
+    echo -e "${RED}${CROSS} $FAILURES check(s) failed${NC}"
+    echo ""
+    echo "Please fix the issues above and run this script again."
+    echo ""
+    echo "For help, see:"
+    echo "  - docs/GIT_SETUP.md"
+    echo "  - docs/GIT_BEST_PRACTICES_SUMMARY.md"
+    echo ""
+    exit 1
+fi

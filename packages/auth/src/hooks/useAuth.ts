@@ -16,7 +16,7 @@ export interface UseAuthReturn {
   } | null;
 
   // Actions
-  loginWithPassword: (credentials: LoginRequest) => Promise<void>;
+  loginWithPassword: (credentials: LoginRequest) => Promise<{ success: boolean; error?: AuthError }>;
   registerWithPassword: (data: RegisterRequest) => Promise<{ success: boolean; confirmationRequired?: boolean }>;
   logoutUser: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -47,14 +47,20 @@ export function useAuth(): UseAuthReturn {
       if (result.success && result.tokens && result.user) {
         setTokens(result.tokens);
         setUser(result.user);
+        return { success: true };
       } else if (result.error) {
         setError(result.error);
+        return { success: false, error: result.error };
       }
+
+      return { success: false };
     } catch (err) {
-      setError({
+      const error = {
         code: 'UNEXPECTED_ERROR',
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
-      });
+      };
+      setError(error);
+      return { success: false, error };
     } finally {
       setIsLoading(false);
     }
