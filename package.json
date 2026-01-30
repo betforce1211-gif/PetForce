@@ -30,7 +30,11 @@
     "release": "npm run check:all && npm version",
     "branches:clean": "git branch --merged | grep -v '\\*\\|main\\|develop' | xargs -n 1 git branch -d",
     "git:status": "git status && git log --oneline -10",
-    "git:sync": "git fetch --all --prune && git pull origin $(git rev-parse --abbrev-ref HEAD)"
+    "git:sync": "git fetch --all --prune && git pull origin $(git rev-parse --abbrev-ref HEAD)",
+    "chuck:push": "./scripts/chuck-push",
+    "chuck:validate": "./scripts/chuck validate-branch",
+    "chuck:check": "./scripts/chuck check all",
+    "chuck:pr": "./scripts/chuck pr validate"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",

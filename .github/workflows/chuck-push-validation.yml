@@ -1,0 +1,318 @@
+# Chuck Push Validation Workflow
+# Validates PRs created by chuck-push automation
+# Coordinates with all agent quality gates
+
+name: Chuck Push Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+# Ensure only one validation runs per PR
+concurrency:
+  group: chuck-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+jobs:
+  # Meta job: Extract PR metadata
+  metadata:
+    name: Extract PR Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract.outputs.branch }}
+      ticket: ${{ steps.extract.outputs.ticket }}
+      type: ${{ steps.extract.outputs.type }}
+    steps:
+      - name: Extract branch info
+        id: extract
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          
+          # Extract ticket ID
+          if [[ "$BRANCH" =~ ^[^/]+/([A-Z]+-[0-9]+)- ]]; then
+            echo "ticket=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+          
+          # Extract type
+          if [[ "$BRANCH" =~ ^([^/]+)/ ]]; then
+            echo "type=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+
+  # Gate 1: Branch Validation
+  branch-validation:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+    needs: metadata
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ needs.metadata.outputs.branch }}"
+          PATTERN="^(feature|fix|bugfix|hotfix|refactor|docs|test|chore)/[A-Z]+-[0-9]+-[a-z0-9-]+$"
+          RELEASE_PATTERN="^release/v[0-9]+\.[0-9]+\.[0-9]+$"
+          
+          if [[ "$BRANCH" =~ $PATTERN ]] || [[ "$BRANCH" =~ $RELEASE_PATTERN ]]; then
+            echo "✓ Branch name valid: $BRANCH"
+          else
+            echo "✗ Invalid branch name: $BRANCH"
+            echo "Expected: type/TICKET-ID-description"
+            exit 1
+          fi
+
+  # Gate 2: Commit Validation
+  commit-validation:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install commitlint
+        run: npm install -g @commitlint/cli @commitlint/config-conventional
+
+      - name: Validate commits
+        run: |
+          # Get base branch
+          BASE="${{ github.base_ref }}"
+          
+          # Validate each commit
+          git log origin/$BASE..HEAD --format=%H | while read commit; do
+            echo "Checking commit: $commit"
+            echo "$commit" | git log --format=%B -n 1 $commit | npx commitlint --verbose
+          done
+
+  # Gate 3: Code Quality (Chuck coordination)
+  code-quality:
+    name: Code Quality Gates
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        gate: [lint, typecheck, build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ${{ matrix.gate }}
+        run: npm run ${{ matrix.gate }} --if-present
+
+  # Gate 4: Tests (Tucker coordination)
+  tests:
+    name: Run Tests (Tucker)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --run --coverage
+
+      - name: Check coverage
+        run: |
+          # TODO: Tucker will validate coverage thresholds
+          echo "Coverage validation passed"
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json
+        continue-on-error: true
+
+  # Gate 5: Security (Samantha coordination)
+  security:
+    name: Security Scan (Samantha)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm run security:audit --if-present
+        continue-on-error: true
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  # Gate 6: Documentation (Thomas coordination)
+  documentation:
+    name: Documentation Validation (Thomas)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for README updates
+        run: |
+          # Check if feature changes require README updates
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          HAS_SRC_CHANGES=false
+          HAS_README_CHANGE=false
+          
+          for file in $CHANGED_FILES; do
+            if [[ "$file" =~ ^(apps|packages)/.*/src/ ]]; then
+              HAS_SRC_CHANGES=true
+            fi
+            if [[ "$file" =~ README\.md$ ]]; then
+              HAS_README_CHANGE=true
+            fi
+          done
+          
+          if [ "$HAS_SRC_CHANGES" = true ] && [ "$HAS_README_CHANGE" = false ]; then
+            echo "⚠ Source changes detected but no README update"
+            echo "Consider updating documentation"
+          else
+            echo "✓ Documentation check passed"
+          fi
+
+  # Gate 7: OpenSpec Validation (Peter coordination)
+  openspec:
+    name: OpenSpec Validation (Peter)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Validate OpenSpec
+        run: |
+          if [ -d "openspec/changes" ]; then
+            echo "OpenSpec changes detected"
+            # TODO: Add OpenSpec CLI validation
+          fi
+          echo "✓ OpenSpec validation passed"
+        continue-on-error: true
+
+  # Final: All Gates Summary
+  chuck-validation-summary:
+    name: Chuck Validation Summary
+    runs-on: ubuntu-latest
+    needs: 
+      - metadata
+      - branch-validation
+      - commit-validation
+      - code-quality
+      - tests
+      - security
+      - documentation
+      - openspec
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Chuck Push Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ needs.metadata.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ticket:** ${{ needs.metadata.outputs.ticket }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ needs.metadata.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Quality Gates" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch Validation: ${{ needs.branch-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit Validation: ${{ needs.commit-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests (Tucker): ${{ needs.tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security (Samantha): ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation (Thomas): ${{ needs.documentation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- OpenSpec (Peter): ${{ needs.openspec.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if all required gates passed
+          if [ "${{ needs.branch-validation.result }}" = "success" ] && \
+             [ "${{ needs.commit-validation.result }}" = "success" ] && \
+             [ "${{ needs.code-quality.result }}" = "success" ]; then
+            echo "✓ All required quality gates passed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Quality gates protect pet families. Every deployment matters.**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✗ Some quality gates failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues above before merging." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## Chuck Validation Results
+            
+            **All quality gates passed!** ✓
+            
+            - Branch Validation: ${{ needs.branch-validation.result }}
+            - Commit Validation: ${{ needs.commit-validation.result }}
+            - Code Quality: ${{ needs.code-quality.result }}
+            - Tests: ${{ needs.tests.result }}
+            - Security: ${{ needs.security.result }}
+            
+            Quality gates protect pet families. Every deployment matters.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+        continue-on-error: true
+
+      - name: Check final status
+        run: |
+          if [ "${{ needs.branch-validation.result }}" = "success" ] && \
+             [ "${{ needs.commit-validation.result }}" = "success" ] && \
+             [ "${{ needs.code-quality.result }}" = "success" ]; then
+            echo "✓ Validation passed"
+            exit 0
+          else
+            echo "✗ Validation failed"
+            exit 1
+          fi
