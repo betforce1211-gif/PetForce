@@ -40,9 +40,9 @@ export function AuthTogglePanel() {
   };
 
   return (
-    <Card padding="md" className="w-full max-w-md mx-auto">
+    <Card padding="sm" className="w-full max-w-md mx-auto">
       {/* Toggle Switch */}
-      <div className="flex border-b border-gray-200 mb-4" role="tablist">
+      <div className="flex border-b border-gray-200 mb-3" role="tablist">
         <button
           role="tab"
           aria-selected={activeMode === 'login'}
@@ -83,20 +83,20 @@ export function AuthTogglePanel() {
           >
             {activeMode === 'login' ? (
               <section aria-label="Sign in to your account">
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1 font-heading">
+                <div className="mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-0.5 font-heading">
                     Welcome Back!
                   </h2>
                   <p className="text-sm text-gray-600">Sign in to continue</p>
                 </div>
 
                 {/* SSO Buttons */}
-                <div className="mb-4">
+                <div className="mb-2">
                   <SSOButtons onSuccess={handleLoginSuccess} />
                 </div>
 
                 {/* Divider */}
-                <div className="relative my-4">
+                <div className="relative my-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>
@@ -114,20 +114,20 @@ export function AuthTogglePanel() {
               </section>
             ) : (
               <section aria-label="Create a new account">
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1 font-heading">
+                <div className="mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-0.5 font-heading">
                     Join the Family
                   </h2>
                   <p className="text-sm text-gray-600">Create your account</p>
                 </div>
 
                 {/* SSO Buttons */}
-                <div className="mb-4">
+                <div className="mb-2">
                   <SSOButtons onSuccess={handleLoginSuccess} />
                 </div>
 
                 {/* Divider */}
-                <div className="relative my-4">
+                <div className="relative my-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>
@@ -145,7 +145,7 @@ export function AuthTogglePanel() {
                 />
 
                 {/* Terms and Privacy */}
-                <p className="text-xs text-center text-gray-500 mt-3">
+                <p className="text-xs text-center text-gray-500 mt-1.5">
                   By continuing, you agree to our{' '}
                   <a href="#" className="underline hover:text-gray-700">
                     Terms of Service

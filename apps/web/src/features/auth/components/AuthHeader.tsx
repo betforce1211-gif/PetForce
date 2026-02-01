@@ -10,20 +10,20 @@ import { motion } from 'framer-motion';
  */
 export function AuthHeader() {
   return (
-    <div className="text-center mb-6 md:mb-8">
+    <div className="text-center mb-4 md:mb-6">
       <motion.div
-        className="inline-block mb-3 md:mb-4"
+        className="inline-block mb-2 md:mb-3"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
       >
-        <div className="w-14 h-14 md:w-16 md:h-16 bg-primary-500 rounded-full flex items-center justify-center">
-          <span className="text-3xl md:text-4xl">🐾</span>
+        <div className="w-12 h-12 md:w-16 md:h-16 bg-primary-500 rounded-full flex items-center justify-center">
+          <span className="text-2xl md:text-4xl">🐾</span>
         </div>
       </motion.div>
 
       <motion.h1
-        className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2 font-heading"
+        className="text-xl md:text-3xl font-bold text-gray-900 mb-0.5 md:mb-2 font-heading"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -32,7 +32,7 @@ export function AuthHeader() {
       </motion.h1>
 
       <motion.p
-        className="text-sm md:text-base text-gray-600"
+        className="text-xs md:text-base text-gray-600"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}

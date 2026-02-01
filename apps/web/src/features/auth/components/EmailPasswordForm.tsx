@@ -109,7 +109,7 @@ export function EmailPasswordForm({
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="space-y-3"
+      className="space-y-2.5"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -156,7 +156,8 @@ export function EmailPasswordForm({
           </button>
         </div>
 
-        {mode === 'register' && <PasswordStrengthIndicator password={password} />}
+        {/* Password strength indicator - Only show strength bar, no requirements */}
+        {mode === 'register' && <PasswordStrengthIndicator password={password} showRequirements={false} />}
       </div>
 
       {/* Confirm password (register only) */}
@@ -264,7 +265,7 @@ export function EmailPasswordForm({
       </AnimatePresence>
 
       {/* Submit button */}
-      <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={isLoading}>
+      <Button type="submit" variant="primary" size="md" className="w-full" isLoading={isLoading}>
         {mode === 'register' ? 'Create account' : 'Sign in'}
       </Button>
 
