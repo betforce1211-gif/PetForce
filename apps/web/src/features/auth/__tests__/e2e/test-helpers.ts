@@ -1,6 +1,6 @@
 /**
  * Test Helpers for E2E Authentication Tests
- * Tucker's reusable testing utilities
+ * Tucker's reusable testing utilities with comprehensive API mocking
  */
 
 import { Page, expect, Route } from '@playwright/test';
@@ -10,117 +10,139 @@ import { Page, expect, Route } from '@playwright/test';
  */
 export const ApiMocking = {
   /**
-   * Setup API mocks for all Supabase endpoints
+   * Setup comprehensive API mocks for all Supabase endpoints
+   * MUST be called BEFORE navigating to any pages
    */
   async setupMocks(page: Page) {
-    // Use more specific URL pattern to match Supabase test URL
-    const supabaseTestUrl = 'https://test.supabase.co';
+    // Mock ALL Supabase auth API requests with a single comprehensive handler
+    await page.route('**/auth/v1/**', async (route: Route) => {
+      const url = route.request().url();
+      const method = route.request().method();
 
-    // Mock GET /auth/v1/user - Check current user session
-    await page.route(`${supabaseTestUrl}/auth/v1/user**`, async (route: Route) => {
-      if (route.request().method() === 'GET') {
-        // No user logged in initially
+      console.log(`🔍 Mock intercepted ${method} ${url}`);
+
+      // Extract endpoint from URL
+      const urlObj = new window.URL(url);
+      const pathname = urlObj.pathname;
+
+      // Mock GET /auth/v1/user - Check current user session
+      if (pathname.endsWith('/user') && method === 'GET') {
+        console.log('✅ Mocking GET /auth/v1/user - no session');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ user: null, session: null }),
+        });
+        return;
+      }
+
+      // Mock POST /auth/v1/signup - Registration
+      if (pathname.includes('/signup') && method === 'POST') {
+        const body = JSON.parse(route.request().postData() || '{}');
+        const email = body.email;
+
+        console.log(`✅ Mocking POST /auth/v1/signup for: ${email}`);
+
+        // Add realistic delay to allow loading states to be visible
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Simulate duplicate email error for known test email
+        if (email === 'existing@petforce.test') {
+          console.log('❌ Returning duplicate email error');
+          await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              msg: 'User already registered',
+              error: 'user_already_exists',
+              error_description: 'User already registered',
+            }),
+          });
+          return;
+        }
+
+        // Success response for new users
+        console.log('✅ Returning success response for new user');
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            user: null,
-            session: null,
+            user: {
+              id: `user-${Date.now()}`,
+              email: email,
+              email_confirmed_at: null, // Email not confirmed yet
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              aud: 'authenticated',
+              role: 'authenticated',
+              user_metadata: {},
+            },
+            session: null, // No session until email confirmed
           }),
         });
         return;
       }
-      await route.continue();
-    });
 
-    // Mock Supabase Auth API - Sign Up (New User)
-    await page.route(`${supabaseTestUrl}/auth/v1/signup**`, async (route: Route) => {
-      const request = route.request();
-      const body = JSON.parse(request.postData() || '{}');
-      const email = body.email;
+      // Mock POST /auth/v1/token - Sign In with password
+      if (pathname.includes('/token') && method === 'POST') {
+        const body = JSON.parse(route.request().postData() || '{}');
+        
+        console.log('✅ Mocking POST /auth/v1/token (sign in)');
 
-      console.log('🔍 Mock intercepted signup request for:', email);
-
-      // Add realistic delay (500ms) to allow loading states to be visible
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Simulate duplicate email error for known test email
-      if (email === 'existing@petforce.test') {
-        console.log('❌ Returning duplicate email error');
         await route.fulfill({
-          status: 400,
+          status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            msg: 'User already registered',
-            error: 'user_already_exists',
-            error_description: 'User already registered',
+            access_token: 'mock-access-token',
+            refresh_token: 'mock-refresh-token',
+            expires_in: 3600,
+            token_type: 'bearer',
+            user: {
+              id: 'user-123',
+              email: body.email,
+              email_confirmed_at: new Date().toISOString(),
+              user_metadata: {},
+            },
           }),
         });
         return;
       }
 
-      // Success response for new users
-      console.log('✅ Returning success response');
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          user: {
-            id: `user-${Date.now()}`,
-            email: email,
-            email_confirmed_at: null, // Email not confirmed yet
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            aud: 'authenticated',
-            role: 'authenticated',
-          },
-          session: null, // No session until email confirmed
-        }),
-      });
-    });
-
-    // Mock Supabase Auth API - Sign In
-    await page.route(`${supabaseTestUrl}/auth/v1/token**`, async (route: Route) => {
-      if (!route.request().url().includes('grant_type=password')) {
-        await route.continue();
+      // Mock POST /auth/v1/resend - Resend confirmation
+      if (pathname.includes('/resend') && method === 'POST') {
+        console.log('✅ Mocking POST /auth/v1/resend');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({}),
+        });
         return;
       }
 
-      const request = route.request();
-      const body = JSON.parse(request.postData() || '{}');
+      // Mock POST /auth/v1/recover - Password reset
+      if (pathname.includes('/recover') && method === 'POST') {
+        console.log('✅ Mocking POST /auth/v1/recover');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({}),
+        });
+        return;
+      }
 
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          access_token: 'mock-access-token',
-          refresh_token: 'mock-refresh-token',
-          expires_in: 3600,
-          user: {
-            id: 'user-123',
-            email: body.email,
-            email_confirmed_at: new Date().toISOString(),
-          },
-        }),
-      });
-    });
+      // Mock POST /auth/v1/logout - Sign out
+      if (pathname.includes('/logout') && method === 'POST') {
+        console.log('✅ Mocking POST /auth/v1/logout');
+        await route.fulfill({
+          status: 204,
+          contentType: 'application/json',
+          body: '',
+        });
+        return;
+      }
 
-    // Mock resend confirmation endpoint
-    await page.route(`${supabaseTestUrl}/auth/v1/resend**`, async (route: Route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({}),
-      });
-    });
-
-    // Mock other Supabase endpoints - return empty/null responses
-    await page.route(`${supabaseTestUrl}/auth/v1/**`, async (route: Route) => {
-      const method = route.request().method();
-
-      console.log(`🔍 Mock intercepted ${method} request to:`, route.request().url());
-
-      // For GET requests, return null/empty data
+      // Default handler for any other auth endpoints
+      console.log(`⚠️  Unhandled auth endpoint: ${method} ${pathname} - returning empty success`);
       if (method === 'GET') {
         await route.fulfill({
           status: 200,
@@ -128,7 +150,6 @@ export const ApiMocking = {
           body: JSON.stringify({ data: null }),
         });
       } else {
-        // For POST/PUT/DELETE, return success
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -136,6 +157,18 @@ export const ApiMocking = {
         });
       }
     });
+
+    // Also mock the base Supabase REST API (for potential future queries)
+    await page.route('**/rest/v1/**', async (route: Route) => {
+      console.log(`🔍 Mock intercepted REST API: ${route.request().method()} ${route.request().url()}`);
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+    });
+
+    console.log('✅ All Supabase API mocks configured');
   },
 
   /**
