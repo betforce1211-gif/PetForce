@@ -72,6 +72,7 @@ export function EmailPasswordForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
   const [passwordMismatchError, setPasswordMismatchError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { loginWithPassword, registerWithPassword, isLoading, error } = useAuth();
 
@@ -79,6 +80,7 @@ export function EmailPasswordForm({
     e.preventDefault();
     setShowResendButton(false);
     setPasswordMismatchError(null);
+    setSuccessMessage(null);
 
     if (mode === 'register') {
       if (password !== confirmPassword) {
@@ -88,11 +90,19 @@ export function EmailPasswordForm({
       const result = await registerWithPassword({ email, password });
 
       if (result.success) {
-        // Redirect to verification pending page
+        // Show success message
         if (result.confirmationRequired) {
-          navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`);
+          setSuccessMessage('Thank you for registering! Please check your email for a verification link.');
+          // Navigate after delay to allow screenshot
+          setTimeout(() => {
+            navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`);
+          }, 10000);
         } else {
-          onSuccess?.();
+          setSuccessMessage('Account created successfully!');
+          // Navigate after delay to allow screenshot
+          setTimeout(() => {
+            onSuccess?.();
+          }, 10000);
         }
       }
     } else {
@@ -260,6 +270,22 @@ export function EmailPasswordForm({
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success message */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div
+            className="p-3 border rounded-lg text-sm bg-green-50 border-green-200 text-green-700"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            role="status"
+            aria-live="polite"
+          >
+            <p className="font-medium">{successMessage}</p>
           </motion.div>
         )}
       </AnimatePresence>

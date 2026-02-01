@@ -32,7 +32,9 @@ export function AuthTogglePanel() {
   };
 
   const handleRegisterSuccess = () => {
-    // EmailPasswordForm handles navigation to verify-pending
+    // Show success message and redirect to dashboard
+    // Note: If email confirmation is required, EmailPasswordForm redirects to verify-pending instead
+    navigate('/dashboard');
   };
 
   const handleForgotPassword = () => {

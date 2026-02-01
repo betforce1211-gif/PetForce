@@ -34,6 +34,47 @@ export async function register(
 
     const supabase = getSupabaseClient();
 
+    // DATABASE-AGNOSTIC DUPLICATE DETECTION
+    // Check our own user_registrations table before calling auth provider
+    // This gives us full control regardless of Supabase configuration
+    console.log('🔍 TUCKER: Checking if email already registered in our database...');
+
+    const { data: existingRegistrations, error: lookupError } = await supabase
+      .from('user_registrations')
+      .select('email, registered_at')
+      .eq('email', data.email)
+      .limit(1);
+
+    if (lookupError) {
+      console.log('⚠️ TUCKER: Error checking registrations table:', lookupError);
+      // If table doesn't exist yet, log it but continue (for first-time setup)
+      if (!lookupError.message.includes('does not exist')) {
+        throw lookupError;
+      }
+      console.log('📝 TUCKER: user_registrations table does not exist yet - run migration first');
+    }
+
+    if (existingRegistrations && existingRegistrations.length > 0) {
+      console.log('🚨 TUCKER: Email already registered!', existingRegistrations[0]);
+      logger.authEvent('registration_failed', requestId, {
+        email: data.email,
+        errorCode: 'USER_ALREADY_EXISTS',
+        errorMessage: 'This email is already registered',
+        registeredAt: existingRegistrations[0].registered_at,
+      });
+
+      return {
+        success: false,
+        message: 'This email is already registered',
+        error: {
+          code: 'USER_ALREADY_EXISTS',
+          message: 'This email is already registered',
+        },
+      };
+    }
+
+    console.log('✅ TUCKER: Email not found in database - proceeding with signup');
+
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -81,13 +122,32 @@ export async function register(
       };
     }
 
+    // Record this registration in our database for future duplicate detection
+    console.log('📝 TUCKER: Recording registration in user_registrations table...');
+    const { error: insertError } = await supabase
+      .from('user_registrations')
+      .insert({
+        email: data.email,
+        auth_user_id: authData.user.id,
+        registered_at: new Date().toISOString(),
+        confirmed_at: authData.user.email_confirmed_at,
+      });
+
+    if (insertError) {
+      console.log('⚠️ TUCKER: Error recording registration:', insertError);
+      // Log but don't fail - user is already registered in auth system
+      logger.error('Failed to record registration in tracking table', {
+        requestId,
+        email: data.email,
+        error: insertError.message,
+      });
+    } else {
+      console.log('✅ TUCKER: Registration recorded successfully');
+    }
+
     // Check email confirmation status
     const isConfirmed = authData.user.email_confirmed_at !== null;
     const confirmationRequired = !isConfirmed;
-
-    // Note: If auto-confirm is enabled, new users will have email_confirmed_at set immediately
-    // Supabase handles duplicate email attempts by returning an error (caught above),
-    // so if we reach here with a confirmed user, it's a legitimate registration
 
     // Log successful registration with confirmation state
     logger.authEvent('registration_completed', requestId, {
@@ -107,6 +167,7 @@ export async function register(
         message: 'User must click verification link in email before they can login',
       });
     }
+
 
     return {
       success: true,
