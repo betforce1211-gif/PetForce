@@ -138,7 +138,7 @@ export function PasswordStrengthIndicator({
               exit={{ opacity: 0 }}
             >
               <AnimatePresence>
-                {unmetRequirements.map((req, index) => (
+                {unmetRequirements.map((req) => (
                   <motion.span
                     key={req.label}
                     className="inline-flex items-center gap-1 mr-2"

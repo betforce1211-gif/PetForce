@@ -57,7 +57,7 @@ export function SSOButtons({ onSuccess: _onSuccess }: SSOButtonsProps) {
       {/* Google SSO */}
       <Button
         variant="outline"
-        size="sm"
+        size="md"
         className="w-full border-gray-300 hover:bg-gray-50"
         onClick={handleGoogleSignIn}
         isLoading={isLoading}
@@ -88,7 +88,7 @@ export function SSOButtons({ onSuccess: _onSuccess }: SSOButtonsProps) {
       {/* Apple SSO */}
       <Button
         variant="outline"
-        size="sm"
+        size="md"
         className="w-full border-gray-300 hover:bg-gray-50"
         onClick={handleAppleSignIn}
         isLoading={isLoading}

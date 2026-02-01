@@ -14,17 +14,15 @@ export const ApiMocking = {
    * MUST be called BEFORE navigating to any pages
    */
   async setupMocks(page: Page) {
-    const supabaseTestUrl = 'https://test.supabase.co';
-
     // Mock ALL Supabase auth API requests with a single comprehensive handler
     await page.route('**/auth/v1/**', async (route: Route) => {
       const url = route.request().url();
       const method = route.request().method();
-      
+
       console.log(`🔍 Mock intercepted ${method} ${url}`);
 
       // Extract endpoint from URL
-      const urlObj = new URL(url);
+      const urlObj = new window.URL(url);
       const pathname = urlObj.pathname;
 
       // Mock GET /auth/v1/user - Check current user session
