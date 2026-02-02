@@ -38,35 +38,21 @@
                   - text: TestP@ssw0rd123!
               - button "Show password" [ref=e48] [cursor=pointer]:
                 - img [ref=e49]
-            - generic [ref=e52]:
-              - generic [ref=e55]: Password strength
-              - list [ref=e58]:
-                - listitem [ref=e59]:
-                  - img [ref=e61]
-                  - generic [ref=e63]: At least 8 characters
-                - listitem [ref=e64]:
-                  - img [ref=e66]
-                  - generic [ref=e68]: Contains uppercase letter
-                - listitem [ref=e69]:
-                  - img [ref=e71]
-                  - generic [ref=e73]: Contains lowercase letter
-                - listitem [ref=e74]:
-                  - img [ref=e76]
-                  - generic [ref=e78]: Contains number
-          - generic [ref=e79]:
-            - generic [ref=e80]: Confirm password*
-            - textbox "Confirm password*" [active] [ref=e81]:
+            - generic [ref=e56]: Strong
+          - generic [ref=e57]:
+            - generic [ref=e58]: Confirm password*
+            - textbox "Confirm password*" [active] [ref=e59]:
               - /placeholder: ••••••••
               - text: TestP@ssw0rd123!
-          - button "Create account" [ref=e82] [cursor=pointer]
-          - paragraph [ref=e83]:
+          - button "Create account" [ref=e60] [cursor=pointer]
+          - paragraph [ref=e61]:
             - text: Already have an account?
-            - button "Sign in" [ref=e84] [cursor=pointer]
-        - paragraph [ref=e85]:
+            - button "Sign in" [ref=e62] [cursor=pointer]
+        - paragraph [ref=e63]:
           - text: By continuing, you agree to our
-          - link "Terms of Service" [ref=e86] [cursor=pointer]:
+          - link "Terms of Service" [ref=e64] [cursor=pointer]:
             - /url: "#"
           - text: and
-          - link "Privacy Policy" [ref=e87] [cursor=pointer]:
+          - link "Privacy Policy" [ref=e65] [cursor=pointer]:
             - /url: "#"
 ```

@@ -25,10 +25,25 @@ vi.mock('../../utils/logger', () => ({
 
 describe('Auth API', () => {
   let mockSupabase: any;
+  let mockTableQuery: any;
 
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
+
+    // Mock table query chain for user_registrations table
+    mockTableQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ 
+        data: null,  // No existing registration by default
+        error: null 
+      }),
+      insert: vi.fn().mockResolvedValue({ 
+        data: [{ id: '123' }], 
+        error: null 
+      })
+    };
 
     // Mock Supabase client
     mockSupabase = {
@@ -40,6 +55,7 @@ describe('Auth API', () => {
         getUser: vi.fn(),
         refreshSession: vi.fn(),
       },
+      from: vi.fn().mockReturnValue(mockTableQuery),
     };
 
     (getSupabaseClient as any).mockReturnValue(mockSupabase);

@@ -96,13 +96,13 @@ export function EmailPasswordForm({
           // Navigate after delay to allow screenshot
           setTimeout(() => {
             navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`);
-          }, 10000);
+          }, 100);
         } else {
           setSuccessMessage('Account created successfully!');
           // Navigate after delay to allow screenshot
           setTimeout(() => {
             onSuccess?.();
-          }, 10000);
+          }, 100);
         }
       }
     } else {

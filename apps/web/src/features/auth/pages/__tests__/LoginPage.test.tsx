@@ -5,11 +5,12 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRouter } from '@/test/utils/test-utils';
 import { LoginPage } from '../LoginPage';
-import { mockUseAuth } from '@/test/mocks/auth';
+import { mockUseAuth, mockUseOAuth } from '@/test/mocks/auth';
 
 // Mock the auth hook
 vi.mock('@petforce/auth', () => ({
   useAuth: () => mockUseAuth,
+  useOAuth: () => mockUseOAuth,
 }));
 
 // Mock react-router-dom navigation
@@ -23,10 +24,17 @@ vi.mock('react-router-dom', async () => {
 });
 
 describe('LoginPage', () => {
+  // Helper to get password input
+  const getPasswordInput = () => {
+    return screen.getByLabelText(/^Password/i) as HTMLInputElement;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.isLoading = false;
     mockUseAuth.error = null;
+    mockUseOAuth.isLoading = false;
+    mockUseOAuth.error = null;
   });
 
   it('renders login form', () => {
@@ -34,7 +42,7 @@ describe('LoginPage', () => {
 
     expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(getPasswordInput()).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
@@ -65,7 +73,7 @@ describe('LoginPage', () => {
     renderWithRouter(<LoginPage />);
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(getPasswordInput(), 'password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
@@ -76,11 +84,17 @@ describe('LoginPage', () => {
     });
   });
 
-  it('disables submit button when fields are empty', () => {
+  it('prevents submission with empty fields', async () => {
+    const user = userEvent.setup();
     renderWithRouter(<LoginPage />);
 
     const submitButton = screen.getByRole('button', { name: /sign in/i });
-    expect(submitButton).toBeDisabled();
+    
+    // Button is not visually disabled, but form validation prevents submission
+    await user.click(submitButton);
+
+    // The form should not have called loginWithPassword due to HTML5 validation
+    expect(mockUseAuth.loginWithPassword).not.toHaveBeenCalled();
   });
 
   it('enables submit button when fields are filled', async () => {
@@ -88,7 +102,7 @@ describe('LoginPage', () => {
     renderWithRouter(<LoginPage />);
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(getPasswordInput(), 'password123');
 
     const submitButton = screen.getByRole('button', { name: /sign in/i });
     expect(submitButton).not.toBeDisabled();
@@ -107,7 +121,11 @@ describe('LoginPage', () => {
 
     renderWithRouter(<LoginPage />);
 
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    // When loading, the button shows a spinner and has no accessible name
+    const form = document.querySelector('form');
+    const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement;
+    
+    expect(submitButton).toBeDefined();
     expect(submitButton).toBeDisabled();
   });
 
@@ -115,17 +133,23 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     renderWithRouter(<LoginPage />);
 
-    await user.click(screen.getByText(/sign up/i));
+    const signUpLink = screen.getByText(/sign up/i);
+    await user.click(signUpLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/register');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/auth/register');
+    });
   });
 
   it('navigates to forgot password page', async () => {
     const user = userEvent.setup();
     renderWithRouter(<LoginPage />);
 
-    await user.click(screen.getByText(/forgot password/i));
+    const forgotPasswordLink = screen.getByText(/forgot password/i);
+    await user.click(forgotPasswordLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/forgot-password');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/auth/forgot-password');
+    });
   });
 });

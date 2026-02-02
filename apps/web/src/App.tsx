@@ -12,6 +12,7 @@ import {
 } from './features/auth/pages';
 import { ProtectedRoute } from './features/auth/components';
 import DashboardPage from './features/auth/pages/DashboardPage';
+import { HouseholdOnboardingPage } from './features/households/pages';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -69,6 +70,16 @@ function App() {
           element={
             <ProtectedRoute>
               <AuthMetricsDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Household onboarding */}
+        <Route
+          path="/onboarding/household"
+          element={
+            <ProtectedRoute>
+              <HouseholdOnboardingPage />
             </ProtectedRoute>
           }
         />

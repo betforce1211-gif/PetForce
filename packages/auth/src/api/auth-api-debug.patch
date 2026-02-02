@@ -1,0 +1,44 @@
+--- a/auth-api.ts
++++ b/auth-api.ts
+@@ -84,13 +84,31 @@
+     // Database-agnostic duplicate detection
+     // If signUp returns a user that was created more than 5 seconds ago,
+     // it means this is an existing user (auto-confirm returned them instead of erroring)
++    console.log('🔍 TUCKER DEBUG: Analyzing user creation timestamp');
++    console.log('  authData.user:', JSON.stringify(authData.user, null, 2));
++    console.log('  created_at raw:', authData.user.created_at);
++    
+     const userCreatedAt = new Date(authData.user.created_at);
+     const now = new Date();
++    
++    console.log('  userCreatedAt (parsed):', userCreatedAt.toISOString());
++    console.log('  now:', now.toISOString());
++    console.log('  userCreatedAt.getTime():', userCreatedAt.getTime());
++    console.log('  now.getTime():', now.getTime());
++    
+     const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
++    console.log('  timeSinceCreation (ms):', timeSinceCreation);
++    console.log('  timeSinceCreation (seconds):', timeSinceCreation / 1000);
++    
+     const wasJustCreated = timeSinceCreation < 5000; // 5 seconds threshold
+-
++    console.log('  wasJustCreated (<5s):', wasJustCreated);
++    console.log('  email_confirmed_at:', authData.user.email_confirmed_at);
++    
+     if (!wasJustCreated) {
++      console.log('🚨 TUCKER: Detected DUPLICATE registration - rejecting!');
++      console.log('  User was created', Math.floor(timeSinceCreation / 1000), 'seconds ago');
++      console.log('  This is an existing user, not a new registration');
++      
+       logger.authEvent('registration_failed', requestId, {
+         email: data.email,
+         errorCode: 'USER_ALREADY_EXISTS',
+@@ -107,6 +125,8 @@
+         },
+       };
+     }
++    
++    console.log('✅ TUCKER: User is newly created - allowing registration');
+ 
+     // Check email confirmation status
+     const isConfirmed = authData.user.email_confirmed_at !== null;

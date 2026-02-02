@@ -1,0 +1,89 @@
+    if (!authData.user) {
+      // Log missing user in response
+      logger.error('Registration succeeded but no user in response', {
+        requestId,
+        email: data.email,
+      });
+
+      return {
+        success: false,
+        message: 'Registration failed',
+        error: {
+          code: AUTH_ERROR_CODES.REGISTRATION_ERROR,
+          message: 'No user returned from registration',
+        },
+      };
+    }
+
+    // Database-agnostic duplicate detection
+    // When auto-confirm is enabled, Supabase returns HTTP 200 with the existing user
+    // instead of an error. We detect this by checking if the user was created recently.
+    // If signUp returns a user that was created more than 5 seconds ago,
+    // it means this is an existing user (auto-confirm returned them instead of erroring)
+    console.log('🔍 TUCKER DEBUG: Analyzing user creation timestamp');
+    console.log('  authData.user:', JSON.stringify(authData.user, null, 2));
+    console.log('  created_at raw:', authData.user.created_at);
+    
+    const userCreatedAt = new Date(authData.user.created_at);
+    const now = new Date();
+    
+    console.log('  userCreatedAt (parsed):', userCreatedAt.toISOString());
+    console.log('  now:', now.toISOString());
+    console.log('  userCreatedAt.getTime():', userCreatedAt.getTime());
+    console.log('  now.getTime():', now.getTime());
+    
+    const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
+    console.log('  timeSinceCreation (ms):', timeSinceCreation);
+    console.log('  timeSinceCreation (seconds):', timeSinceCreation / 1000);
+    
+    const wasJustCreated = timeSinceCreation < 5000; // 5 seconds threshold
+    console.log('  wasJustCreated (<5s):', wasJustCreated);
+    console.log('  email_confirmed_at:', authData.user.email_confirmed_at);
+    
+    if (!wasJustCreated) {
+      console.log('🚨 TUCKER: Detected DUPLICATE registration - rejecting!');
+      console.log('  User was created', Math.floor(timeSinceCreation / 1000), 'seconds ago');
+      console.log('  This is an existing user, not a new registration');
+      
+      logger.authEvent('registration_failed', requestId, {
+        email: data.email,
+        errorCode: 'USER_ALREADY_EXISTS',
+        errorMessage: 'This email is already registered',
+        userCreatedAt: authData.user.created_at,
+        timeSinceCreation,
+      });
+
+      return {
+        success: false,
+        message: 'This email is already registered',
+        error: {
+          code: 'USER_ALREADY_EXISTS',
+          message: 'This email is already registered',
+        },
+      };
+    }
+    
+    console.log('✅ TUCKER: User is newly created - allowing registration');
+
+    // Check email confirmation status
+    const isConfirmed = authData.user.email_confirmed_at !== null;
+    const confirmationRequired = !isConfirmed;
+
+    // Log successful registration with confirmation state
+    logger.authEvent('registration_completed', requestId, {
+      userId: authData.user.id,
+      email: data.email,
+      emailConfirmed: isConfirmed,
+      confirmationRequired,
+      confirmationEmailSent: true,
+    });
+
+    // Log if user is unconfirmed (the bug we're fixing!)
+    if (confirmationRequired) {
+      logger.info('User created but email not confirmed yet', {
+        requestId,
+        userId: authData.user.id,
+        email: data.email,
+        message: 'User must click verification link in email before they can login',
+      });
+    }

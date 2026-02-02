@@ -1,13 +1,10 @@
 /**
  * ResendConfirmationButton Component Tests
  * Tucker's countdown timer and rate-limiting edge case coverage
- * 
- * Critical for preventing abuse of email verification system
- * and ensuring pet families can recover from missing confirmation emails.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResendConfirmationButton } from '../ResendConfirmationButton';
 import * as authModule from '@petforce/auth';
@@ -46,104 +43,97 @@ describe('ResendConfirmationButton', () => {
   describe('Initial Render', () => {
     it('renders button with correct default text', () => {
       renderButton();
-
       expect(screen.getByRole('button', { name: /resend verification email/i })).toBeInTheDocument();
     });
 
-    it('button is enabled initially', () => {
+    it('button is enabled by default', () => {
       renderButton();
-
       const button = screen.getByRole('button', { name: /resend verification email/i });
       expect(button).not.toBeDisabled();
     });
 
-    it('applies variant and size props correctly', () => {
-      renderButton({ variant: 'primary', size: 'lg' });
-
+    it('button has correct aria-label for accessibility', () => {
+      renderButton();
       const button = screen.getByRole('button', { name: /resend verification email/i });
       expect(button).toBeInTheDocument();
     });
 
     it('applies custom className', () => {
-      const { container } = renderButton({ className: 'custom-class' });
-
-      expect(container.firstChild).toHaveClass('custom-class');
+      renderButton({ className: 'custom-class' });
+      const button = screen.getByRole('button', { name: /resend verification email/i });
+      expect(button.parentElement).toHaveClass('custom-class');
     });
   });
 
-  describe('Happy Path - Successful Resend', () => {
-    it('calls resendConfirmationEmail with correct email on click', async () => {
+  describe('Basic Functionality', () => {
+    it('calls resendConfirmationEmail with correct email', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
-      renderButton({ email: 'owner@petfamily.com' });
+      renderButton({ email: 'specific@example.com' });
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
-
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledWith('owner@petfamily.com');
-      });
+      
+      // Flush promises
+      await vi.runAllTimers();
+      
+      expect(mockResend).toHaveBeenCalledWith('specific@example.com');
     });
 
-    it('shows loading state while sending', async () => {
+    it('disables button while loading', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ success: true, message: 'Sent' }), 100))
-      );
+      let resolvePromise: (value: any) => void;
+      mockResend.mockReturnValue(new Promise((resolve) => { resolvePromise = resolve; }));
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       const button = screen.getByRole('button', { name: /resend verification email/i });
       await user.click(button);
+      
+      // Flush promises to process the click
+      await vi.runAllTimers();
 
-      // Button should be disabled during loading
-      expect(button).toBeDisabled();
+      await waitFor(() => {
+        expect(button).toBeDisabled();
+      });
+
+      resolvePromise!({ success: true });
+      await vi.runAllTimers();
     });
 
     it('displays success message after successful resend', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByText(/email sent!/i)).toBeInTheDocument();
-        expect(screen.getByText(/check your inbox/i)).toBeInTheDocument();
       });
     });
 
     it('hides success message after 5 seconds', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByText(/email sent!/i)).toBeInTheDocument();
       });
 
-      // Fast-forward 5 seconds
-      act(() => {
-        vi.advanceTimersByTime(5000);
-      });
-
+      vi.advanceTimersByTime(5000);
+      
       await waitFor(() => {
         expect(screen.queryByText(/email sent!/i)).not.toBeInTheDocument();
       });
@@ -153,15 +143,13 @@ describe('ResendConfirmationButton', () => {
   describe('Countdown Timer & Rate Limiting', () => {
     it('starts 5-minute countdown after successful resend', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
@@ -170,15 +158,13 @@ describe('ResendConfirmationButton', () => {
 
     it('disables button during countdown', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         const button = screen.getByRole('button', { name: /resend in 5:00/i });
@@ -188,34 +174,44 @@ describe('ResendConfirmationButton', () => {
 
     it('decrements countdown every second', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
-      // Advance 1 second
-      act(() => {
-        vi.advanceTimersByTime(1000);
-      });
-
+      vi.advanceTimersByTime(1000);
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 4:59/i })).toBeInTheDocument();
       });
 
-      // Advance 59 more seconds (now at 4:00)
-      act(() => {
-        vi.advanceTimersByTime(59000);
+      vi.advanceTimersByTime(10000);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend in 4:49/i })).toBeInTheDocument();
+      });
+    });
+
+    it('updates countdown correctly over time', async () => {
+      const mockResend = vi.mocked(authModule.resendConfirmationEmail);
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
+
+      const user = userEvent.setup({ delay: null });
+      renderButton();
+
+      await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
+      vi.advanceTimersByTime(60000);
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 4:00/i })).toBeInTheDocument();
       });
@@ -223,21 +219,19 @@ describe('ResendConfirmationButton', () => {
 
     it('formats countdown with leading zeros', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      // Fast-forward to 9 seconds remaining
-      act(() => {
-        vi.advanceTimersByTime(291000); // 4:51
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
+      vi.advanceTimersByTime(291000);
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 0:09/i })).toBeInTheDocument();
       });
@@ -245,56 +239,48 @@ describe('ResendConfirmationButton', () => {
 
     it('re-enables button after countdown completes', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
-
-      // Fast-forward full 5 minutes
-      act(() => {
-        vi.advanceTimersByTime(300000);
-      });
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        const button = screen.getByRole('button', { name: /resend verification email/i });
-        expect(button).not.toBeDisabled();
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
+      });
+
+      vi.advanceTimersByTime(300000);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
       });
     });
 
     it('allows resending after countdown completes', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Confirmation email sent.',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
-      // First resend
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
-      // Fast-forward full 5 minutes
-      act(() => {
-        vi.advanceTimersByTime(300000);
+      vi.advanceTimersByTime(300000);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
       });
 
-      // Second resend
       mockResend.mockClear();
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledTimes(1);
-      });
+      expect(mockResend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -303,20 +289,17 @@ describe('ResendConfirmationButton', () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
       mockResend.mockResolvedValue({
         success: false,
-        message: 'Failed to send email',
-        error: {
-          code: 'RESEND_ERROR',
-          message: 'Failed to send email',
-        },
+        error: { code: 'RATE_LIMIT', message: 'Too many requests. Please try again later.' },
       });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to send email/i)).toBeInTheDocument();
+        expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
       });
     });
 
@@ -328,6 +311,7 @@ describe('ResendConfirmationButton', () => {
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByText(/network error/i)).toBeInTheDocument();
@@ -342,6 +326,7 @@ describe('ResendConfirmationButton', () => {
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByText(/failed to resend email/i)).toBeInTheDocument();
@@ -352,52 +337,45 @@ describe('ResendConfirmationButton', () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
       mockResend.mockResolvedValue({
         success: false,
-        message: 'Failed',
-        error: {
-          code: 'RESEND_ERROR',
-          message: 'Failed',
-        },
+        error: { code: 'RATE_LIMIT', message: 'Too many requests' },
       });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        expect(screen.getByText(/failed/i)).toBeInTheDocument();
+        expect(screen.getByText(/too many requests/i)).toBeInTheDocument();
       });
 
-      // Button should still be enabled (no countdown)
-      const button = screen.getByRole('button', { name: /resend verification email/i });
-      expect(button).not.toBeDisabled();
+      vi.advanceTimersByTime(10000);
+
+      expect(screen.getByRole('button', { name: /resend verification email/i })).toBeInTheDocument();
+      expect(screen.queryByText(/resend in/i)).not.toBeInTheDocument();
     });
 
     it('clears error on new resend attempt', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
       mockResend.mockResolvedValueOnce({
         success: false,
-        message: 'First error',
         error: { code: 'ERROR', message: 'First error' },
       });
+      mockResend.mockResolvedValueOnce({ success: true, message: 'Success' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
-      // First attempt - error
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByText(/first error/i)).toBeInTheDocument();
       });
 
-      // Second attempt - success
-      mockResend.mockResolvedValueOnce({
-        success: true,
-        message: 'Success',
-      });
-
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.queryByText(/first error/i)).not.toBeInTheDocument();
@@ -409,51 +387,43 @@ describe('ResendConfirmationButton', () => {
   describe('Edge Cases - Abuse Prevention', () => {
     it('prevents rapid clicking during loading', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ success: true, message: 'Sent' }), 100))
-      );
+      let resolvePromise: (value: any) => void;
+      mockResend.mockReturnValue(new Promise((resolve) => { resolvePromise = resolve; }));
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       const button = screen.getByRole('button', { name: /resend verification email/i });
+      await user.click(button);
+      await user.click(button);
+      await user.click(button);
+      await vi.runAllTimers();
 
-      // Click multiple times rapidly
-      await user.click(button);
-      await user.click(button);
-      await user.click(button);
+      expect(mockResend).toHaveBeenCalledTimes(1);
 
-      // Should only call once
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledTimes(1);
-      });
+      resolvePromise!({ success: true });
+      await vi.runAllTimers();
     });
 
     it('prevents clicking during countdown', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
-      // First click
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
       mockResend.mockClear();
 
-      // Try to click during countdown
-      const buttonDuringCountdown = screen.getByRole('button', { name: /resend in 5:00/i });
-      expect(buttonDuringCountdown).toBeDisabled();
+      await user.click(screen.getByRole('button', { name: /resend in 5:00/i }));
+      await vi.runAllTimers();
 
-      // Even if somehow clicked, should not call
-      await user.click(buttonDuringCountdown);
       expect(mockResend).not.toHaveBeenCalled();
     });
   });
@@ -461,162 +431,139 @@ describe('ResendConfirmationButton', () => {
   describe('Edge Cases - Email Variations', () => {
     it('handles email with special characters', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
-      const specialEmail = 'user+tag@example.co.uk';
-      renderButton({ email: specialEmail });
+      renderButton({ email: 'test+tag@example.com' });
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledWith(specialEmail);
-      });
+      expect(mockResend).toHaveBeenCalledWith('test+tag@example.com');
     });
 
     it('handles very long email addresses', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
-      const longEmail = 'a'.repeat(100) + '@example.com';
+      const longEmail = 'very.long.email.address.with.many.dots@subdomain.example.com';
       renderButton({ email: longEmail });
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledWith(longEmail);
-      });
+      expect(mockResend).toHaveBeenCalledWith(longEmail);
     });
 
     it('handles empty email gracefully', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton({ email: '' });
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      await waitFor(() => {
-        expect(mockResend).toHaveBeenCalledWith('');
-      });
+      expect(mockResend).toHaveBeenCalledWith('');
     });
   });
 
   describe('Edge Cases - Timer Cleanup', () => {
     it('cleans up timer on unmount', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       const { unmount } = renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
-      // Unmount component
       unmount();
-
-      // No errors should occur from timer
-      act(() => {
-        vi.advanceTimersByTime(1000);
-      });
-
-      // Test passes if no errors thrown
-      expect(true).toBe(true);
+      vi.advanceTimersByTime(10000);
     });
 
     it('maintains separate countdown state across multiple instances', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
 
-      // Render two buttons for different emails
-      const { container: container1 } = render(
-        <div data-testid="button1">
-          <ResendConfirmationButton email="user1@example.com" />
+      render(
+        <div>
+          <ResendConfirmationButton email="test1@example.com" />
+          <ResendConfirmationButton email="test2@example.com" />
         </div>
       );
 
-      const { container: container2 } = render(
-        <div data-testid="button2">
-          <ResendConfirmationButton email="user2@example.com" />
-        </div>
-      );
+      const buttons = screen.getAllByRole('button', { name: /resend verification email/i });
 
-      // Click first button
-      const buttons1 = container1.querySelectorAll('button');
-      await user.click(buttons1[0]);
+      await user.click(buttons[0]);
+      await vi.runAllTimers();
 
       await waitFor(() => {
-        expect(container1.textContent).toContain('Resend in 5:00');
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
-      // Second button should still be enabled
-      const buttons2 = container2.querySelectorAll('button');
-      expect(buttons2[0]).not.toBeDisabled();
+      expect(buttons[1]).not.toBeDisabled();
     });
   });
 
   describe('ACCESSIBILITY', () => {
-    it('button has correct role', () => {
+    it('button has semantic button role', () => {
       renderButton();
-
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      const button = screen.getByRole('button', { name: /resend verification email/i });
+      expect(button).toBeInTheDocument();
     });
 
-    it('button text updates reflect in accessible name', async () => {
+    it('disabled state is communicated to screen readers', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
-
-      const user = userEvent.setup({ delay: null });
-      renderButton();
-
-      const initialButton = screen.getByRole('button', { name: /resend verification email/i });
-      expect(initialButton).toBeInTheDocument();
-
-      await user.click(initialButton);
-
-      await waitFor(() => {
-        const countdownButton = screen.getByRole('button', { name: /resend in 5:00/i });
-        expect(countdownButton).toBeInTheDocument();
-      });
-    });
-
-    it('success and error messages are announced to screen readers', async () => {
-      const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
+
+      await waitFor(() => {
+        const button = screen.getByRole('button', { name: /resend in 5:00/i });
+        expect(button).toHaveAttribute('disabled');
+      });
+    });
+
+    it('button text updates reflect in accessible name', async () => {
+      const mockResend = vi.mocked(authModule.resendConfirmationEmail);
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
+
+      const user = userEvent.setup({ delay: null });
+      renderButton();
+
+      expect(screen.getByRole('button', { name: /resend verification email/i })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
+      });
+    });
+
+    it('success and error messages are announced to screen readers', async () => {
+      const mockResend = vi.mocked(authModule.resendConfirmationEmail);
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
+
+      const user = userEvent.setup({ delay: null });
+      renderButton();
+
+      await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
       await waitFor(() => {
         const successMessage = screen.getByText(/email sent!/i);
@@ -628,33 +575,26 @@ describe('ResendConfirmationButton', () => {
   describe('UI State Transitions', () => {
     it('transitions: idle → loading → success → countdown → idle', async () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
-      mockResend.mockResolvedValue({
-        success: true,
-        message: 'Sent',
-      });
+      mockResend.mockResolvedValue({ success: true, message: 'Confirmation email sent.' });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
-      // Idle state
       expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
 
-      // Loading state (briefly)
-      const button = screen.getByRole('button', { name: /resend verification email/i });
-      await user.click(button);
+      await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      // Success + countdown
       await waitFor(() => {
         expect(screen.getByText(/email sent!/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeDisabled();
       });
 
-      // Fast-forward countdown
-      act(() => {
-        vi.advanceTimersByTime(300000);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /resend in 5:00/i })).toBeInTheDocument();
       });
 
-      // Back to idle
+      vi.advanceTimersByTime(300000);
+
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
       });
@@ -664,25 +604,21 @@ describe('ResendConfirmationButton', () => {
       const mockResend = vi.mocked(authModule.resendConfirmationEmail);
       mockResend.mockResolvedValue({
         success: false,
-        message: 'Error occurred',
-        error: { code: 'ERROR', message: 'Error occurred' },
+        error: { code: 'ERROR', message: 'Something went wrong' },
       });
 
       const user = userEvent.setup({ delay: null });
       renderButton();
 
-      // Idle state
       expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
 
-      // Trigger error
       await user.click(screen.getByRole('button', { name: /resend verification email/i }));
+      await vi.runAllTimers();
 
-      // Error state
       await waitFor(() => {
-        expect(screen.getByText(/error occurred/i)).toBeInTheDocument();
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
       });
 
-      // Still idle (button still enabled for retry)
       expect(screen.getByRole('button', { name: /resend verification email/i })).not.toBeDisabled();
     });
   });

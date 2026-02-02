@@ -22,7 +22,7 @@ export const ApiMocking = {
       console.log(`🔍 Mock intercepted ${method} ${url}`);
 
       // Extract endpoint from URL
-      const urlObj = new window.URL(url);
+      const urlObj = new URL(url);
       const pathname = urlObj.pathname;
 
       // Mock GET /auth/v1/user - Check current user session
@@ -158,9 +158,48 @@ export const ApiMocking = {
       }
     });
 
-    // Also mock the base Supabase REST API (for potential future queries)
-    await page.route('**/rest/v1/**', async (route: Route) => {
-      console.log(`🔍 Mock intercepted REST API: ${route.request().method()} ${route.request().url()}`);
+    // Mock the user_registrations table for duplicate detection
+    await page.route('**/rest/v1/user_registrations*', async (route: Route) => {
+      const url = route.request().url();
+      const method = route.request().method();
+      
+      console.log(`🔍 Mock intercepted REST API: ${method} ${url}`);
+
+      // GET request - duplicate check
+      if (method === 'GET' && url.includes('select=')) {
+        // Check if it's querying for 'existing@petforce.test'
+        if (url.includes('existing%40petforce.test')) {
+          // Return existing registration
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify([{
+              email: 'existing@petforce.test',
+              registered_at: new Date().toISOString()
+            }]),
+          });
+        } else {
+          // No duplicate found
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify([]),
+          });
+        }
+        return;
+      }
+
+      // POST request - record registration
+      if (method === 'POST') {
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify([{ id: 'mock-reg-id' }]),
+        });
+        return;
+      }
+
+      // Default fallback
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
