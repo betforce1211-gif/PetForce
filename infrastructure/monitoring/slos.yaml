@@ -1,0 +1,152 @@
+# Service Level Objectives for Household API
+
+slos:
+  - name: API Availability
+    description: Percentage of successful requests
+    target: 99.9%  # 43 minutes downtime per month
+    measurement_window: 30d
+    error_budget: 0.1%
+
+    indicators:
+      success_rate:
+        query: "sum(rate(household_api_requests_total{status!~'5..'}[5m])) / sum(rate(household_api_requests_total[5m]))"
+        threshold: 0.999
+
+    alerting:
+      burn_rate_fast: 14.4  # 1 hour window
+      burn_rate_slow: 6     # 6 hour window
+      notification_channels: [pagerduty, slack]
+
+  - name: API Latency (P95)
+    description: 95th percentile response time
+    target: 500ms
+    measurement_window: 7d
+
+    indicators:
+      p95_latency:
+        query: "histogram_quantile(0.95, household_api_request_duration_seconds_bucket)"
+        threshold: 0.5
+
+    alerting:
+      notification_channels: [slack]
+
+  - name: Join Request Processing
+    description: Join requests processed within 24 hours
+    target: 95%
+    measurement_window: 7d
+
+    indicators:
+      processing_time:
+        query: "sum(household_join_requests_processed_24h) / sum(household_join_requests_total)"
+        threshold: 0.95
+
+  - name: Database Query Performance
+    description: Database queries complete within acceptable time
+    target: 99%
+    measurement_window: 24h
+
+    indicators:
+      query_performance:
+        query: "sum(rate(household_db_query_duration_seconds{le='0.1'}[5m])) / sum(rate(household_db_query_duration_seconds[5m]))"
+        threshold: 0.99
+
+  - name: Rate Limit Effectiveness
+    description: Rate limit blocks malicious traffic without affecting legitimate users
+    target: 99%
+    measurement_window: 24h
+
+    indicators:
+      false_positive_rate:
+        query: "sum(rate(household_rate_limit_false_positives[5m])) / sum(rate(household_rate_limit_total[5m]))"
+        threshold: 0.01  # Less than 1% false positives
+
+# Error Budget Policy
+error_budget_policy:
+  - budget_remaining: "> 50%"
+    action: "Normal operations - continue feature development"
+
+  - budget_remaining: "25% - 50%"
+    action: "Caution - focus on reliability improvements"
+
+  - budget_remaining: "10% - 25%"
+    action: "Freeze feature development - fix reliability issues"
+
+  - budget_remaining: "< 10%"
+    action: "Full incident response - no new features"
+
+# Alerting Rules
+alerting_rules:
+  - name: High Error Rate
+    condition: "error_rate > 1%"
+    duration: 5m
+    severity: critical
+    channels: [pagerduty, slack]
+    message: "Household API error rate is {{ $value }}%"
+
+  - name: High Latency
+    condition: "p95_latency > 1000ms"
+    duration: 10m
+    severity: warning
+    channels: [slack]
+    message: "Household API P95 latency is {{ $value }}ms"
+
+  - name: Database Connection Pool Exhaustion
+    condition: "db_connections_active / db_connections_max > 0.8"
+    duration: 5m
+    severity: warning
+    channels: [slack]
+    message: "Database connection pool is {{ $value }}% full"
+
+  - name: Rate Limit Violations Spike
+    condition: "rate_limit_violations > 100/min"
+    duration: 2m
+    severity: warning
+    channels: [slack, security_team]
+    message: "High rate of rate limit violations: {{ $value }}/min"
+
+# Dashboards
+dashboards:
+  - name: Household API Overview
+    widgets:
+      - type: timeseries
+        title: Request Rate
+        query: "sum(rate(household_api_requests_total[5m]))"
+
+      - type: timeseries
+        title: Error Rate
+        query: "sum(rate(household_api_requests_total{status=~'5..'}[5m])) / sum(rate(household_api_requests_total[5m]))"
+
+      - type: timeseries
+        title: P95 Latency
+        query: "histogram_quantile(0.95, household_api_request_duration_seconds_bucket)"
+
+      - type: heatmap
+        title: Latency Distribution
+        query: "household_api_request_duration_seconds_bucket"
+
+  - name: SLO Compliance
+    widgets:
+      - type: gauge
+        title: Availability SLO
+        query: "slo_availability"
+        target: 99.9
+
+      - type: gauge
+        title: Latency SLO
+        query: "slo_latency"
+        target: 500
+
+      - type: timeseries
+        title: Error Budget Burn Rate
+        query: "error_budget_burn_rate"
+
+# Runbook Links
+runbooks:
+  - name: High Error Rate
+    url: /docs/runbooks/high-error-rate.md
+
+  - name: Database Performance Issues
+    url: /docs/runbooks/database-performance.md
+
+  - name: Rate Limit Tuning
+    url: /docs/runbooks/rate-limit-tuning.md

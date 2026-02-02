@@ -1,0 +1,241 @@
+# Log Aggregation Configuration (Datadog, ELK, Splunk)
+
+log_pipelines:
+  - name: household_api_logs
+    source: household-api
+
+    processors:
+      - type: grok_parser
+        pattern: '%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{DATA:message}'
+
+      - type: json_parser
+        field: message
+
+      - type: attribute_remapper
+        sources: [correlationId, correlation_id]
+        target: trace.correlation_id
+
+      - type: status_remapper
+        sources: [level, severity]
+
+      - type: category_processor
+        categories:
+          - filter:
+              query: "@event_type:security_event"
+            name: security
+          - filter:
+              query: "@event_type:analytics"
+            name: analytics
+          - filter:
+              query: "@operation:(create OR join OR approve)"
+            name: business_logic
+
+    filters:
+      - query: "source:household-api"
+      - query: "NOT @http.status_code:2**"  # Errors only for error index
+
+    indexes:
+      - name: household_errors
+        retention: 90d
+        query: "@level:(ERROR OR FATAL)"
+
+      - name: household_security
+        retention: 365d
+        query: "@event_type:security_event"
+
+      - name: household_analytics
+        retention: 30d
+        query: "@event_type:analytics"
+
+      - name: household_general
+        retention: 30d
+        query: "*"
+
+# Saved Views
+saved_views:
+  - name: "High Error Rate Households"
+    description: "Households experiencing multiple errors"
+    query: "@error_type:* @household_id:* | timeseries count by household_id"
+    visualization: timeseries
+
+  - name: "Rate Limit Violations"
+    description: "Users hitting rate limits"
+    query: "@error_code:RATE_LIMIT_EXCEEDED | stats count by user_id"
+    visualization: table
+
+  - name: "GDPR Operations"
+    description: "All GDPR-related operations (audit trail)"
+    query: "@operation:(export OR delete) @compliance:GDPR"
+    visualization: list
+
+  - name: "Failed Authorization Attempts"
+    description: "Potential security threats"
+    query: "@event_type:security_event @action:authorization_failed"
+    visualization: timeseries
+
+  - name: "Slow Queries"
+    description: "Database queries taking >1 second"
+    query: "@query_duration_ms:>1000"
+    visualization: table
+
+  - name: "Concurrent Operation Conflicts"
+    description: "Lock contentions and race conditions"
+    query: "@error_type:(lock_timeout OR race_condition)"
+    visualization: timeseries
+
+  - name: "Join Request Funnel"
+    description: "Track join request lifecycle"
+    query: "@event_type:analytics @metric:(join_request_created OR join_request_approved OR join_request_rejected)"
+    visualization: funnel
+
+# Metrics from Logs
+log_metrics:
+  - name: household.create.duration
+    description: "Time to create household"
+    query: "@operation:household_create"
+    measure: "@duration_ms"
+    aggregation: p95
+
+  - name: household.join.rate
+    description: "Join requests per minute"
+    query: "@operation:join_request"
+    aggregation: count
+
+  - name: household.errors.by_type
+    description: "Error distribution by type"
+    query: "@level:ERROR"
+    group_by: "@error_type"
+
+  - name: household.rate_limits.hit
+    description: "Rate limit violations"
+    query: "@error_code:RATE_LIMIT_EXCEEDED"
+    aggregation: count
+
+# Anomaly Detection
+anomaly_detection:
+  - name: "Unusual Error Spike"
+    metric: "household.errors.total"
+    algorithm: agile
+    threshold: 3_sigma
+    notification_channels: [slack, pagerduty]
+
+  - name: "Suspicious Rate Limit Pattern"
+    metric: "household.rate_limits.hit"
+    algorithm: agile
+    threshold: 2_sigma
+    notification_channels: [slack, security_team]
+
+  - name: "Join Request Surge"
+    metric: "household.join.rate"
+    algorithm: basic
+    threshold: 2x_baseline
+    notification_channels: [slack]
+
+# Dashboards
+dashboards:
+  - name: "Household API - Operations"
+    widgets:
+      - title: "Request Volume"
+        type: timeseries
+        query: "*"
+        group_by: "@operation"
+
+      - title: "Error Rate"
+        type: query_value
+        query: "@level:ERROR | stats count / total_count"
+
+      - title: "Top Errors"
+        type: top_list
+        query: "@level:ERROR"
+        group_by: "@error_type"
+        limit: 10
+
+      - title: "P95 Latency by Operation"
+        type: timeseries
+        query: "*"
+        measure: "@duration_ms"
+        aggregation: p95
+        group_by: "@operation"
+
+  - name: "Household API - Security"
+    widgets:
+      - title: "Authorization Failures"
+        type: timeseries
+        query: "@event_type:security_event @action:authorization_failed"
+
+      - title: "Rate Limit Violations"
+        type: timeseries
+        query: "@error_code:RATE_LIMIT_EXCEEDED"
+        group_by: "@user_id"
+
+      - title: "GDPR Operations"
+        type: list
+        query: "@compliance:GDPR"
+        columns: [timestamp, user_id, operation, status]
+
+      - title: "Suspicious Activity"
+        type: list
+        query: "@event_type:security_event @severity:high"
+
+  - name: "Household API - Performance"
+    widgets:
+      - title: "Database Query Performance"
+        type: histogram
+        query: "@query_duration_ms:*"
+
+      - title: "Cache Hit Rate"
+        type: query_value
+        query: "cache_hits / (cache_hits + cache_misses)"
+
+      - title: "Slow Endpoints"
+        type: top_list
+        query: "@duration_ms:>500"
+        group_by: "@endpoint"
+
+      - title: "Concurrent Operations"
+        type: timeseries
+        query: "@operation:(lock_acquired OR lock_failed)"
+
+# Alerting from Logs
+log_alerts:
+  - name: "Critical Error Spike"
+    query: "@level:FATAL"
+    threshold: count > 5
+    window: 5m
+    notification_channels: [pagerduty, slack]
+
+  - name: "Database Connection Errors"
+    query: "@error_type:database_connection_error"
+    threshold: count > 10
+    window: 5m
+    notification_channels: [pagerduty, slack]
+
+  - name: "GDPR Operation Failure"
+    query: "@compliance:GDPR @status:failed"
+    threshold: count > 0
+    window: 5m
+    notification_channels: [pagerduty, compliance_team]
+
+  - name: "Sustained Rate Limit Violations"
+    query: "@error_code:RATE_LIMIT_EXCEEDED"
+    threshold: count > 100
+    window: 5m
+    notification_channels: [slack, security_team]
+
+# Sampling Rules
+sampling:
+  - name: "Sample successful requests"
+    query: "@http.status_code:2**"
+    sample_rate: 10%  # Keep 10% of successful requests
+
+  - name: "Keep all errors"
+    query: "@level:(ERROR OR FATAL)"
+    sample_rate: 100%  # Keep all errors
+
+  - name: "Keep all security events"
+    query: "@event_type:security_event"
+    sample_rate: 100%  # Keep all security events
+
+  - name: "Sample high-volume operations"
+    query: "@operation:validate_code"
+    sample_rate: 5%  # Only 5% of code validations
