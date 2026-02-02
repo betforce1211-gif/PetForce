@@ -6,3 +6,4 @@
 
 export { CreateHouseholdForm } from './CreateHouseholdForm';
 export { JoinHouseholdForm } from './JoinHouseholdForm';
+export { MemberList } from './MemberList';

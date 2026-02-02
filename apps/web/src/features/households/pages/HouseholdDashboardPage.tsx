@@ -18,6 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useHouseholdStore, selectIsLeader, selectPendingRequestCount } from '@petforce/auth';
 import { useAuthStore } from '@petforce/auth';
+import { MemberList } from '../components/MemberList';
 import { motion } from 'framer-motion';
 
 export default function HouseholdDashboardPage() {
@@ -219,12 +220,7 @@ export default function HouseholdDashboardPage() {
                 </span>
               </h2>
             </div>
-            {/* Member list component will go here (Task 4.5) */}
-            <div className="text-center py-6 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">
-                Member list component coming in Task 4.5
-              </p>
-            </div>
+            <MemberList />
           </Card>
 
           {/* Quick Actions */}
