@@ -26,6 +26,15 @@ import {
   sanitizeDescription,
   sanitizeEmail,
 } from '../utils/security';
+import { generateHouseholdQRCode } from '../utils/qr-codes';
+import {
+  sendJoinRequestNotification,
+  sendApprovalNotification,
+  sendRejectionNotification,
+  sendRemovalNotification,
+  sendLeadershipTransferNotification,
+} from '../notifications/household-notifications';
+import { sendHouseholdEmailInvite } from '../email/household-invites';
 import {
   checkHouseholdCreationRateLimit,
   checkInviteCodeRegenerationRateLimit,
@@ -713,6 +722,22 @@ export async function requestJoinHousehold(
       inviteCode: '[REDACTED]',
     });
 
+    // Get requester name for notification
+    const { data: requesterProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('user_id', userId)
+      .single();
+
+    // Send push notification to household leader (Maya's P1 Requirement)
+    await sendJoinRequestNotification(
+      householdData.leader_id,
+      requesterProfile?.name || requesterProfile?.email || 'Someone',
+      householdData.name
+    ).catch((error) => {
+      logger.error('Failed to send join request notification', { error, correlationId: requestId });
+    });
+
     // Track analytics event (Ana's P0 Requirement)
     trackJoinRequestSubmitted(householdData.id, userId, normalizedCode, {
       codeEntryMethod: 'manual',
@@ -872,6 +897,23 @@ export async function respondToJoinRequest(
         newMemberId: joinRequestData.user_id,
       });
 
+      // Get household name for notification
+      const { data: householdForNotification } = await supabase
+        .from('households')
+        .select('name')
+        .eq('id', joinRequestData.household_id)
+        .single();
+
+      // Send push notification to approved user (Maya's P1 Requirement)
+      if (householdForNotification) {
+        await sendApprovalNotification(
+          joinRequestData.user_id,
+          householdForNotification.name
+        ).catch((error) => {
+          logger.error('Failed to send approval notification', { error, correlationId: requestId });
+        });
+      }
+
       // Track analytics event (Ana's P0 Requirement)
       const requestAge = Date.now() - new Date(joinRequestData.requested_at).getTime();
       trackJoinRequestApproved(
@@ -897,6 +939,23 @@ export async function respondToJoinRequest(
         householdId: joinRequestData.household_id,
         userId: joinRequestData.user_id,
       });
+
+      // Get household name for notification
+      const { data: householdForNotification } = await supabase
+        .from('households')
+        .select('name')
+        .eq('id', joinRequestData.household_id)
+        .single();
+
+      // Send push notification to rejected user (Maya's P1 Requirement)
+      if (householdForNotification) {
+        await sendRejectionNotification(
+          joinRequestData.user_id,
+          householdForNotification.name
+        ).catch((error) => {
+          logger.error('Failed to send rejection notification', { error, correlationId: requestId });
+        });
+      }
 
       // Track analytics event (Ana's P0 Requirement)
       const requestAge = Date.now() - new Date(joinRequestData.requested_at).getTime();
@@ -1082,6 +1141,23 @@ export async function removeMember(
       removedMemberId: request.memberId,
       memberRole: memberData.role,
     });
+
+    // Get household name for notification
+    const { data: householdForNotification } = await supabase
+      .from('households')
+      .select('name')
+      .eq('id', request.householdId)
+      .single();
+
+    // Send push notification to removed member (Maya's P1 Requirement)
+    if (householdForNotification) {
+      await sendRemovalNotification(
+        request.memberId,
+        householdForNotification.name
+      ).catch((error) => {
+        logger.error('Failed to send removal notification', { error, correlationId: requestId });
+      });
+    }
 
     // Track analytics event (Ana's P0 Requirement)
     const membershipDuration = Date.now() - new Date(memberData.joined_at).getTime();
@@ -1682,21 +1758,50 @@ export async function sendEmailInvite(
     }
 
     // TODO: Implement rate limiting for email invites (20 per hour)
-    // TODO: Implement actual email sending via email service
-    // For now, just log the intent
 
-    logger.info('household_email_invite_queued', {
+    // Get leader name for personalization
+    const { data: leaderProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('user_id', leaderId)
+      .single();
+
+    // Send email invite (Peter's P1 Requirement)
+    const emailResult = await sendHouseholdEmailInvite({
+      toEmail: sanitizedEmail,
+      fromName: leaderProfile?.name || leaderProfile?.email || 'A PetForce user',
+      householdName: householdData.name,
+      householdDescription: householdData.description || undefined,
+      inviteCode: householdData.invite_code,
+      invitedBy: leaderId,
+    });
+
+    if (!emailResult.success) {
+      logger.error('Failed to send email invite', {
+        correlationId: requestId,
+        error: emailResult.error,
+      });
+      return {
+        success: false,
+        error: createHouseholdError(
+          HouseholdErrorCode.DATABASE_ERROR,
+          emailResult.error || 'Failed to send email invite'
+        ),
+      };
+    }
+
+    logger.info('household_email_invite_sent', {
       correlationId: requestId,
       leaderId,
       householdId: request.householdId,
-      recipientEmail: request.email,
+      recipientEmail: sanitizedEmail,
       inviteCode: '[REDACTED]',
       hasPersonalMessage: !!request.personalMessage,
     });
 
     return {
       success: true,
-      message: 'Email invite sent successfully. (Note: Email sending not yet implemented)',
+      message: 'Email invite sent successfully.',
     };
   } catch (error) {
     logger.error('Unexpected error sending email invite', {
@@ -1711,6 +1816,231 @@ export async function sendEmailInvite(
       error: createHouseholdError(
         HouseholdErrorCode.DATABASE_ERROR,
         'Failed to send email invite. Please try again.',
+        error
+      ),
+    };
+  }
+}
+
+/**
+ * Generate a QR code for household invite.
+ *
+ * Only the household leader can generate QR codes.
+ * Returns a data URL that can be displayed in an <img> tag or downloaded.
+ *
+ * @param householdId - ID of the household
+ * @param userId - ID of the user requesting the QR code (must be leader)
+ * @returns Data URL of the QR code image or error
+ */
+export async function generateHouseholdQRCodeDataURL(
+  householdId: string,
+  userId: string
+): Promise<{ success: true; qrCodeDataURL: string } | { success: false; error: HouseholdError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    logger.info('household_qr_code_generation_started', {
+      correlationId: requestId,
+      householdId,
+      userId,
+    });
+
+    const supabase = getSupabaseClient();
+
+    // Get household and verify user is leader
+    const { data: householdData, error: householdError } = await supabase
+      .from('households')
+      .select('*')
+      .eq('id', householdId)
+      .single();
+
+    if (householdError) {
+      if (householdError.code === 'PGRST116') {
+        return {
+          success: false,
+          error: createHouseholdError(
+            HouseholdErrorCode.HOUSEHOLD_NOT_FOUND,
+            'Household not found'
+          ),
+        };
+      }
+      throw householdError;
+    }
+
+    if (householdData.leader_id !== userId) {
+      return {
+        success: false,
+        error: createHouseholdError(
+          HouseholdErrorCode.NOT_HOUSEHOLD_LEADER,
+          'Only the household leader can generate QR codes'
+        ),
+      };
+    }
+
+    // Generate QR code
+    const qrCodeDataURL = await generateHouseholdQRCode({
+      inviteCode: householdData.invite_code,
+      householdName: householdData.name,
+      size: 400,
+    });
+
+    logger.info('household_qr_code_generated', {
+      correlationId: requestId,
+      householdId,
+      userId,
+      householdName: householdData.name,
+    });
+
+    return {
+      success: true,
+      qrCodeDataURL,
+    };
+  } catch (error) {
+    logger.error('Unexpected error generating QR code', {
+      correlationId: requestId,
+      householdId,
+      userId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      error: createHouseholdError(
+        HouseholdErrorCode.DATABASE_ERROR,
+        'Failed to generate QR code. Please try again.',
+        error
+      ),
+    };
+  }
+}
+
+/**
+ * Extend temporary member access expiration date.
+ *
+ * Only the household leader can extend temporary member access.
+ * The new expiration date must be in the future.
+ *
+ * @param householdId - ID of the household
+ * @param memberId - ID of the member to extend
+ * @param newExpirationDate - New expiration date
+ * @param extendedBy - ID of the user extending access (must be leader)
+ * @returns Success result or error
+ */
+export async function extendTemporaryMemberAccess(
+  householdId: string,
+  memberId: string,
+  newExpirationDate: Date,
+  extendedBy: string
+): Promise<{ success: true; member: HouseholdMember } | { success: false; error: HouseholdError }> {
+  const requestId = logger.generateRequestId();
+
+  try {
+    logger.info('temporary_member_extension_started', {
+      correlationId: requestId,
+      householdId,
+      memberId,
+      newExpirationDate: newExpirationDate.toISOString(),
+      extendedBy,
+    });
+
+    const supabase = getSupabaseClient();
+
+    // Verify extender is household leader
+    const { data: householdData, error: householdError } = await supabase
+      .from('households')
+      .select('leader_id')
+      .eq('id', householdId)
+      .single();
+
+    if (householdError) {
+      if (householdError.code === 'PGRST116') {
+        return {
+          success: false,
+          error: createHouseholdError(
+            HouseholdErrorCode.HOUSEHOLD_NOT_FOUND,
+            'Household not found'
+          ),
+        };
+      }
+      throw householdError;
+    }
+
+    if (householdData.leader_id !== extendedBy) {
+      return {
+        success: false,
+        error: createHouseholdError(
+          HouseholdErrorCode.NOT_HOUSEHOLD_LEADER,
+          'Only the household leader can extend temporary member access'
+        ),
+      };
+    }
+
+    // Verify new expiration is in the future
+    if (newExpirationDate <= new Date()) {
+      return {
+        success: false,
+        error: createHouseholdError(
+          HouseholdErrorCode.INVALID_INPUT,
+          'New expiration date must be in the future'
+        ),
+      };
+    }
+
+    // Update member's expiration date
+    const { data, error } = await supabase
+      .from('household_members')
+      .update({ temporary_expires_at: newExpirationDate.toISOString() })
+      .eq('household_id', householdId)
+      .eq('user_id', memberId)
+      .eq('is_temporary', true)
+      .eq('status', 'active')
+      .select()
+      .single();
+
+    if (error || !data) {
+      if (error?.code === 'PGRST116') {
+        return {
+          success: false,
+          error: createHouseholdError(
+            HouseholdErrorCode.MEMBER_NOT_FOUND,
+            'Temporary member not found in this household'
+          ),
+        };
+      }
+      throw error;
+    }
+
+    logger.info('temporary_member_access_extended', {
+      correlationId: requestId,
+      householdId,
+      memberId,
+      newExpirationDate: newExpirationDate.toISOString(),
+      extendedBy,
+    });
+
+    // TODO: Track analytics event
+    // trackTemporaryMemberExtended(householdId, memberId, extendedBy, {
+    //   newExpirationDate,
+    //   correlationId: requestId,
+    // });
+
+    return {
+      success: true,
+      member: memberRowToMember(data),
+    };
+  } catch (error) {
+    logger.error('Unexpected error extending temporary member', {
+      correlationId: requestId,
+      householdId,
+      memberId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      error: createHouseholdError(
+        HouseholdErrorCode.DATABASE_ERROR,
+        'Failed to extend temporary member access. Please try again.',
         error
       ),
     };
