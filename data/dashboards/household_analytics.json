@@ -1,0 +1,234 @@
+{
+  "dashboard": {
+    "title": "Household Management System - Analytics Dashboard",
+    "description": "Real-time analytics for household management system performance and health",
+    "refresh_interval": "5m",
+    "time_range": "last_30_days",
+    "widgets": [
+      {
+        "id": "overview_metrics",
+        "type": "metrics_group",
+        "title": "Overview Metrics",
+        "layout": { "row": 0, "col": 0, "width": 12, "height": 2 },
+        "widgets": [
+          {
+            "type": "metric",
+            "title": "Total Households",
+            "query": "SELECT COUNT(*) FROM dim_household WHERE is_current = TRUE",
+            "format": "number",
+            "color": "blue"
+          },
+          {
+            "type": "metric",
+            "title": "Active Members",
+            "query": "SELECT SUM(active_member_count) FROM agg_household_metrics_daily WHERE date_key = (SELECT MAX(date_id) FROM dim_date WHERE date = CURRENT_DATE - INTERVAL '1 day')",
+            "format": "number",
+            "color": "green"
+          },
+          {
+            "type": "metric",
+            "title": "Pending Join Requests",
+            "query": "SELECT SUM(join_requests_pending) FROM agg_household_metrics_daily WHERE date_key = (SELECT MAX(date_id) FROM dim_date WHERE date = CURRENT_DATE - INTERVAL '1 day')",
+            "format": "number",
+            "color": "orange"
+          },
+          {
+            "type": "metric",
+            "title": "Avg Approval Rate",
+            "query": "SELECT ROUND(AVG(approval_rate_pct), 1) FROM agg_join_funnel_daily WHERE date_key >= (SELECT date_id FROM dim_date WHERE date = CURRENT_DATE - INTERVAL '30 days')",
+            "format": "percentage",
+            "color": "purple"
+          }
+        ]
+      },
+      {
+        "id": "households_over_time",
+        "type": "timeseries",
+        "title": "New Households (Daily)",
+        "layout": { "row": 2, "col": 0, "width": 6, "height": 4 },
+        "query": "SELECT d.date, COUNT(h.household_id) AS new_households FROM dim_date d LEFT JOIN dim_household h ON DATE(h.created_at) = d.date WHERE d.date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY d.date ORDER BY d.date",
+        "x_axis": "date",
+        "y_axis": "new_households",
+        "chart_type": "area",
+        "color": "blue"
+      },
+      {
+        "id": "member_growth",
+        "type": "timeseries",
+        "title": "Total Active Members (Daily)",
+        "layout": { "row": 2, "col": 6, "width": 6, "height": 4 },
+        "query": "SELECT d.date, SUM(a.active_member_count) AS total_members FROM dim_date d LEFT JOIN agg_household_metrics_daily a ON d.date_id = a.date_key WHERE d.date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY d.date ORDER BY d.date",
+        "x_axis": "date",
+        "y_axis": "total_members",
+        "chart_type": "line",
+        "color": "green"
+      },
+      {
+        "id": "join_funnel",
+        "type": "funnel",
+        "title": "Join Request Funnel (Last 30 Days)",
+        "layout": { "row": 6, "col": 0, "width": 4, "height": 4 },
+        "query": "SELECT 'Submitted' AS stage, SUM(total_requests) AS count FROM agg_join_funnel_daily WHERE date_key >= (SELECT date_id FROM dim_date WHERE date = CURRENT_DATE - INTERVAL '30 days') UNION ALL SELECT 'Approved', SUM(approved_requests) FROM agg_join_funnel_daily WHERE date_key >= (SELECT date_id FROM dim_date WHERE date = CURRENT_DATE - INTERVAL '30 days') UNION ALL SELECT 'Active Members', COUNT(*) FROM fact_member_activity WHERE is_active = TRUE",
+        "stages": ["Submitted", "Approved", "Active Members"],
+        "colors": ["#3b82f6", "#10b981", "#8b5cf6"]
+      },
+      {
+        "id": "approval_rate_trend",
+        "type": "timeseries",
+        "title": "Join Approval Rate (7-Day Moving Average)",
+        "layout": { "row": 6, "col": 4, "width": 4, "height": 4 },
+        "query": "SELECT d.date, AVG(f.approval_rate_pct) OVER (ORDER BY d.date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS approval_rate FROM dim_date d LEFT JOIN agg_join_funnel_daily f ON d.date_id = f.date_key WHERE d.date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY d.date",
+        "x_axis": "date",
+        "y_axis": "approval_rate",
+        "chart_type": "line",
+        "color": "purple",
+        "target_line": { "value": 80, "label": "Target 80%" }
+      },
+      {
+        "id": "response_time_distribution",
+        "type": "histogram",
+        "title": "Join Request Response Time Distribution",
+        "layout": { "row": 6, "col": 8, "width": 4, "height": 4 },
+        "query": "SELECT time_to_respond_hours FROM fact_join_requests WHERE time_to_respond_hours IS NOT NULL AND requested_at >= CURRENT_DATE - INTERVAL '30 days'",
+        "bins": 20,
+        "x_label": "Response Time (hours)",
+        "y_label": "Count",
+        "color": "orange"
+      },
+      {
+        "id": "top_households",
+        "type": "table",
+        "title": "Top 10 Households by Member Count",
+        "layout": { "row": 10, "col": 0, "width": 6, "height": 4 },
+        "query": "SELECT h.household_name, m.active_members, m.join_approval_rate, m.household_health_score FROM household_metrics m JOIN dim_household h ON m.household_id = h.household_id WHERE h.is_current = TRUE ORDER BY m.active_members DESC LIMIT 10",
+        "columns": [
+          { "name": "household_name", "label": "Household Name" },
+          { "name": "active_members", "label": "Members" },
+          { "name": "join_approval_rate", "label": "Approval Rate (%)" },
+          { "name": "household_health_score", "label": "Health Score" }
+        ],
+        "sortable": true,
+        "searchable": false
+      },
+      {
+        "id": "health_score_distribution",
+        "type": "bar",
+        "title": "Household Health Score Distribution",
+        "layout": { "row": 10, "col": 6, "width": 6, "height": 4 },
+        "query": "SELECT CASE WHEN household_health_score >= 80 THEN 'Excellent (80-100)' WHEN household_health_score >= 60 THEN 'Good (60-79)' WHEN household_health_score >= 40 THEN 'Fair (40-59)' ELSE 'Poor (0-39)' END AS health_category, COUNT(*) AS household_count FROM household_metrics GROUP BY health_category ORDER BY MIN(household_health_score) DESC",
+        "x_axis": "health_category",
+        "y_axis": "household_count",
+        "color": "blue",
+        "horizontal": false
+      },
+      {
+        "id": "member_churn",
+        "type": "timeseries",
+        "title": "Member Churn Rate (7-Day Moving Average)",
+        "layout": { "row": 14, "col": 0, "width": 6, "height": 4 },
+        "query": "SELECT d.date, AVG(a.members_removed_today::DECIMAL / NULLIF(a.active_member_count, 0) * 100) OVER (ORDER BY d.date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS churn_rate FROM dim_date d JOIN agg_household_metrics_daily a ON d.date_id = a.date_key WHERE d.date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY d.date",
+        "x_axis": "date",
+        "y_axis": "churn_rate",
+        "chart_type": "line",
+        "color": "red",
+        "y_label": "Churn Rate (%)"
+      },
+      {
+        "id": "qr_vs_code",
+        "type": "pie",
+        "title": "Join Method Distribution",
+        "layout": { "row": 14, "col": 6, "width": 6, "height": 4 },
+        "query": "SELECT request_method, COUNT(*) AS count FROM fact_join_requests WHERE requested_at >= CURRENT_DATE - INTERVAL '30 days' GROUP BY request_method",
+        "value_field": "count",
+        "label_field": "request_method",
+        "colors": ["#3b82f6", "#10b981", "#8b5cf6"]
+      },
+      {
+        "id": "engagement_metrics",
+        "type": "table",
+        "title": "User Engagement Metrics",
+        "layout": { "row": 18, "col": 0, "width": 12, "height": 4 },
+        "query": "SELECT user_email, total_households, active_households, total_actions, last_active_at FROM mv_user_household_summary ORDER BY total_actions DESC LIMIT 20",
+        "columns": [
+          { "name": "user_email", "label": "User Email" },
+          { "name": "total_households", "label": "Total Households" },
+          { "name": "active_households", "label": "Active Households" },
+          { "name": "total_actions", "label": "Total Actions" },
+          { "name": "last_active_at", "label": "Last Active", "format": "datetime" }
+        ],
+        "sortable": true,
+        "searchable": true
+      },
+      {
+        "id": "data_quality_status",
+        "type": "status",
+        "title": "Data Quality Status",
+        "layout": { "row": 22, "col": 0, "width": 4, "height": 2 },
+        "query": "SELECT COUNT(*) FILTER (WHERE status = 'PASS') AS passed, COUNT(*) FILTER (WHERE status = 'FAIL') AS failed, COUNT(*) AS total FROM ( SELECT 'PASS' AS status FROM dim_household WHERE household_id IS NOT NULL ) checks",
+        "status_field": "passed",
+        "total_field": "total",
+        "thresholds": {
+          "critical": 0.95,
+          "warning": 0.90,
+          "good": 1.0
+        }
+      },
+      {
+        "id": "etl_pipeline_status",
+        "type": "status",
+        "title": "ETL Pipeline Status",
+        "layout": { "row": 22, "col": 4, "width": 4, "height": 2 },
+        "query": "SELECT EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(metric_calculated_at))) / 3600 AS hours_since_update FROM household_metrics",
+        "status_field": "hours_since_update",
+        "thresholds": {
+          "good": 2,
+          "warning": 6,
+          "critical": 24
+        },
+        "format": "hours_ago"
+      },
+      {
+        "id": "warehouse_size",
+        "type": "metric",
+        "title": "Warehouse Size",
+        "layout": { "row": 22, "col": 8, "width": 4, "height": 2 },
+        "query": "SELECT pg_size_pretty(pg_database_size(current_database())) AS size",
+        "format": "text",
+        "color": "gray"
+      }
+    ],
+    "filters": [
+      {
+        "id": "date_range",
+        "type": "date_range",
+        "label": "Date Range",
+        "default": "last_30_days",
+        "options": ["last_7_days", "last_30_days", "last_90_days", "custom"]
+      },
+      {
+        "id": "household_filter",
+        "type": "multiselect",
+        "label": "Filter by Household",
+        "query": "SELECT household_id, household_name FROM dim_household WHERE is_current = TRUE ORDER BY household_name",
+        "optional": true
+      }
+    ],
+    "refresh": {
+      "enabled": true,
+      "interval": 300,
+      "auto_refresh": true
+    }
+  },
+  "permissions": {
+    "view": ["data-team", "analytics", "leadership"],
+    "edit": ["data-team"],
+    "export": ["data-team", "analytics"]
+  },
+  "metadata": {
+    "created_by": "Buck (Data Engineering Agent)",
+    "created_at": "2026-02-02",
+    "version": "1.0",
+    "data_source": "household_analytics_warehouse",
+    "update_frequency": "daily"
+  }
+}

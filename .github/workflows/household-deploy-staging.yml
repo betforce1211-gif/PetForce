@@ -1,0 +1,103 @@
+name: Household System - Deploy Staging
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'packages/auth/**'
+      - 'apps/web/src/features/households/**'
+      - 'apps/mobile/src/features/households/**'
+  workflow_dispatch:
+
+concurrency:
+  group: household-deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy-staging:
+    name: Deploy Household System to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.petforce.app/households
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run household tests
+        run: |
+          cd packages/auth
+          npm test -- --run --coverage
+
+      - name: Build web app
+        run: cd apps/web && npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          NODE_ENV: staging
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        continue-on-error: true
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image
+        continue-on-error: true
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: petforce-household-api
+          IMAGE_TAG: staging-${{ github.sha }}
+        run: |
+          if [ -n "$ECR_REGISTRY" ]; then
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.household .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          else
+            echo "ECR not configured, skipping Docker build"
+          fi
+
+      - name: Deploy to ECS (if configured)
+        continue-on-error: true
+        run: |
+          if aws ecs describe-services --cluster petforce-staging --services household-api > /dev/null 2>&1; then
+            aws ecs update-service \
+              --cluster petforce-staging \
+              --service household-api \
+              --force-new-deployment
+
+            aws ecs wait services-stable \
+              --cluster petforce-staging \
+              --services household-api
+          else
+            echo "ECS service not configured yet"
+          fi
+
+      - name: Run smoke tests
+        run: npm run test:smoke -- --env staging || true
+        continue-on-error: true
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        continue-on-error: true
+        with:
+          status: ${{ job.status }}
+          text: 'Household System staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

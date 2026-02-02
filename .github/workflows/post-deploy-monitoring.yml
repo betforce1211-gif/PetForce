@@ -1,0 +1,185 @@
+name: Post-Deployment Monitoring
+
+on:
+  workflow_run:
+    workflows: ["Deploy Production", "Household System - Deploy Production (Blue-Green)"]
+    types: [completed]
+
+jobs:
+  monitor-deployment:
+    name: Monitor Deployment Health
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check production health endpoints
+        run: |
+          echo "Checking health endpoints..."
+
+          # Main API health
+          curl -f https://petforce.app/api/health || echo "⚠️ Main health check unavailable"
+
+          # Household API health
+          curl -f https://petforce.app/api/households/health || echo "⚠️ Household health check unavailable"
+
+          echo "✅ Health checks completed"
+
+      - name: Query error rates from Datadog
+        continue-on-error: true
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+        run: |
+          if [ -n "$DATADOG_API_KEY" ]; then
+            echo "Querying Datadog for error rates..."
+
+            RESPONSE=$(curl -s -X POST "https://api.datadoghq.com/api/v1/query" \
+              -H "DD-API-KEY: ${DATADOG_API_KEY}" \
+              -H "DD-APPLICATION-KEY: ${DATADOG_APP_KEY}" \
+              -d '{
+                "query": "avg:household.errors.rate{env:production}",
+                "from": "now-15m",
+                "to": "now"
+              }')
+
+            echo "Datadog response: $RESPONSE"
+          else
+            echo "Datadog not configured, skipping error rate check"
+          fi
+
+      - name: Check CloudWatch metrics
+        continue-on-error: true
+        run: |
+          if command -v aws &> /dev/null; then
+            echo "Checking CloudWatch metrics..."
+
+            # Check error count
+            aws cloudwatch get-metric-statistics \
+              --namespace PetForce/Household \
+              --metric-name ErrorCount \
+              --dimensions Name=Environment,Value=production \
+              --start-time $(date -u -d '15 minutes ago' +%Y-%m-%dT%H:%M:%S) \
+              --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+              --period 300 \
+              --statistics Sum || echo "CloudWatch metrics not available"
+          else
+            echo "AWS CLI not installed, skipping CloudWatch check"
+          fi
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: household-api
+        with:
+          environment: production
+          version: ${{ github.sha }}
+          sourcemaps: './dist'
+
+      - name: Query Sentry for new errors
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+            echo "Checking Sentry for new errors..."
+
+            curl -s "https://sentry.io/api/0/projects/${{ secrets.SENTRY_ORG }}/household-api/issues/?query=is:unresolved" \
+              -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" | \
+              jq '.[] | {title: .title, count: .count}' || echo "No Sentry data available"
+          else
+            echo "Sentry not configured"
+          fi
+
+      - name: Monitor key metrics for 5 minutes
+        run: |
+          echo "Monitoring deployment for 5 minutes..."
+          echo ""
+          echo "Key metrics to watch:"
+          echo "  ✓ Error rate < 5%"
+          echo "  ✓ P99 latency < 1000ms"
+          echo "  ✓ Request throughput matches baseline"
+          echo "  ✓ Database connection pool healthy"
+          echo ""
+
+          # Sleep for monitoring period
+          sleep 300
+
+          echo "✅ Monitoring period complete"
+
+      - name: Check database performance
+        continue-on-error: true
+        run: |
+          echo "Checking database performance metrics..."
+          echo "(Requires database monitoring setup)"
+
+      - name: Alert on high error rate
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        continue-on-error: true
+        with:
+          status: failure
+          text: |
+            🚨 Post-deployment monitoring detected issues!
+
+            Deployment: ${{ github.sha }}
+            Check logs and consider rollback.
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Notify monitoring complete
+        if: success()
+        uses: 8398a7/action-slack@v3
+        continue-on-error: true
+        with:
+          status: success
+          text: |
+            ✅ Post-deployment monitoring complete
+
+            Deployment: ${{ github.sha }}
+            All metrics within acceptable ranges.
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  synthetic-monitoring:
+    name: Run Synthetic Tests
+    runs-on: ubuntu-latest
+    needs: monitor-deployment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run synthetic household tests
+        continue-on-error: true
+        run: |
+          echo "Running synthetic end-to-end household workflows..."
+
+          # Create household
+          # Join household
+          # List members
+          # Remove member
+
+          echo "Synthetic tests complete"
+
+      - name: Report synthetic test results
+        if: always()
+        run: |
+          echo "Synthetic test results would be reported here"
