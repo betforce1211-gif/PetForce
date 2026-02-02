@@ -1,0 +1,47 @@
+erDiagram
+    households ||--o{ household_members : "has"
+    households ||--o{ household_join_requests : "receives"
+    users ||--o{ household_members : "belongs_to"
+    users ||--o{ household_join_requests : "submits"
+    users ||--|| households : "leads"
+
+    households {
+        uuid id PK "Primary key"
+        text name "Household name (2-50 chars)"
+        text description "Optional description (200 chars)"
+        text invite_code UK "Unique invite code (PREFIX-WORD1-WORD2)"
+        timestamptz invite_code_expires_at "Code expiration (30 days default)"
+        uuid leader_id FK "References users.id"
+        timestamptz created_at "Creation timestamp"
+        timestamptz updated_at "Last update timestamp"
+    }
+
+    household_members {
+        uuid id PK "Primary key"
+        uuid household_id FK "References households.id"
+        uuid user_id FK "References users.id"
+        text role "leader or member"
+        text status "active or removed"
+        boolean is_temporary "Is temporary member"
+        timestamptz temporary_expires_at "Expiration for temporary members"
+        uuid invited_by FK "References users.id (who invited)"
+        timestamptz joined_at "Join timestamp"
+    }
+
+    household_join_requests {
+        uuid id PK "Primary key"
+        uuid household_id FK "References households.id"
+        uuid user_id FK "References users.id"
+        text invite_code "Code used to request join"
+        text status "pending, approved, rejected, withdrawn"
+        timestamptz requested_at "Request timestamp"
+        timestamptz responded_at "Response timestamp"
+        uuid responded_by FK "References users.id (leader who responded)"
+    }
+
+    users {
+        uuid id PK "Primary key"
+        text email "User email"
+        text name "User name"
+        timestamptz created_at "Creation timestamp"
+    }

@@ -1,0 +1,690 @@
+openapi: 3.0.0
+info:
+  title: PetForce Household Management API
+  version: 1.0.0
+  description: |
+    API for managing households, members, and invitations in PetForce.
+
+    **Features:**
+    - Create and manage households
+    - Invite and approve members
+    - Generate QR codes for easy joining
+    - Send email invites
+    - Manage temporary member access
+
+    **Authentication:**
+    All endpoints require authentication via Bearer token in the Authorization header.
+
+servers:
+  - url: https://api.petforce.app/v1
+    description: Production
+  - url: http://localhost:3000/api
+    description: Development
+
+security:
+  - BearerAuth: []
+
+paths:
+  /households:
+    post:
+      summary: Create a new household
+      operationId: createHousehold
+      tags:
+        - Households
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHouseholdRequest'
+      responses:
+        '200':
+          description: Household created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateHouseholdResponse'
+        '400':
+          description: Invalid input or user already in a household
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Get current user's household
+      operationId: getHousehold
+      tags:
+        - Households
+      responses:
+        '200':
+          description: Household data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetHouseholdResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/{householdId}/qr-code:
+    get:
+      summary: Generate QR code for household invite
+      operationId: generateHouseholdQRCode
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: QR code generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  qrCodeDataURL:
+                    type: string
+                    description: Data URL of QR code image (data:image/png;base64,...)
+                    example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..."
+        '403':
+          description: Only household leader can generate QR codes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/join:
+    post:
+      summary: Request to join a household using invite code
+      operationId: requestJoinHousehold
+      tags:
+        - Households
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinHouseholdRequest'
+      responses:
+        '200':
+          description: Join request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinHouseholdResponse'
+        '400':
+          description: Invalid invite code or user already in household
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded (5 requests per hour)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/join-requests/{requestId}/respond:
+    post:
+      summary: Approve or reject a join request
+      operationId: respondToJoinRequest
+      tags:
+        - Households
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RespondToJoinRequestRequest'
+      responses:
+        '200':
+          description: Join request processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespondToJoinRequestResponse'
+        '403':
+          description: Only household leader can respond to requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/{householdId}/members/{memberId}:
+    delete:
+      summary: Remove a member from the household
+      operationId: removeMember
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Member removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveMemberResponse'
+        '403':
+          description: Only household leader can remove members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/{householdId}/invite-code:
+    post:
+      summary: Regenerate household invite code
+      operationId: regenerateInviteCode
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegenerateInviteCodeRequest'
+      responses:
+        '200':
+          description: Invite code regenerated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegenerateInviteCodeResponse'
+        '403':
+          description: Only household leader can regenerate invite codes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/{householdId}/leave:
+    post:
+      summary: Leave a household
+      operationId: leaveHousehold
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveHouseholdRequest'
+      responses:
+        '200':
+          description: Successfully left household
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveHouseholdResponse'
+
+  /households/{householdId}/email-invite:
+    post:
+      summary: Send an email invite to join household
+      operationId: sendEmailInvite
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailInviteRequest'
+      responses:
+        '200':
+          description: Email invite sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailInviteResponse'
+        '403':
+          description: Only household leader can send email invites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /households/{householdId}/members/{memberId}/extend:
+    post:
+      summary: Extend temporary member access
+      operationId: extendTemporaryMemberAccess
+      tags:
+        - Households
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newExpirationDate
+              properties:
+                newExpirationDate:
+                  type: string
+                  format: date-time
+                  description: New expiration date (must be in the future)
+      responses:
+        '200':
+          description: Temporary member access extended successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  member:
+                    $ref: '#/components/schemas/HouseholdMember'
+        '403':
+          description: Only household leader can extend member access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateHouseholdRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          pattern: '^[A-Za-z0-9 ]+$'
+          description: Household name (alphanumeric and spaces only)
+          example: "The Zeder House"
+        description:
+          type: string
+          maxLength: 200
+          description: Optional household description
+          example: "2 dogs, 3 cats, 1 bird"
+
+    CreateHouseholdResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        household:
+          $ref: '#/components/schemas/Household'
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    GetHouseholdResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        household:
+          $ref: '#/components/schemas/Household'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/HouseholdMember'
+        pendingRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/HouseholdJoinRequest'
+        memberCount:
+          type: integer
+          example: 3
+        userRole:
+          type: string
+          enum: [leader, member]
+          example: "leader"
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    JoinHouseholdRequest:
+      type: object
+      required:
+        - inviteCode
+      properties:
+        inviteCode:
+          type: string
+          pattern: '^[A-Z]+-[A-Z]+-[A-Z]+$'
+          description: Household invite code (FORMAT: PREFIX-WORD1-WORD2)
+          example: "ZEDER-ALPHA-BRAVO"
+
+    JoinHouseholdResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        requestId:
+          type: string
+          format: uuid
+        message:
+          type: string
+          example: "Join request sent! Waiting for approval from the household leader."
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    RespondToJoinRequestRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+          example: "approve"
+
+    RespondToJoinRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Join request approved. User has been added to the household."
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    RemoveMemberResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Member removed from household successfully."
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    RegenerateInviteCodeRequest:
+      type: object
+      properties:
+        expirationDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 30
+          description: Number of days until new invite code expires
+          example: 30
+
+    RegenerateInviteCodeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        inviteCode:
+          type: string
+          example: "ZEDER-DELTA-ECHO"
+        expiresAt:
+          type: string
+          format: date-time
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    LeaveHouseholdRequest:
+      type: object
+      properties:
+        successorId:
+          type: string
+          format: uuid
+          description: Optional - designate a successor if you're the leader
+
+    LeaveHouseholdResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "You have left the household. Leadership has been transferred."
+        newLeaderId:
+          type: string
+          format: uuid
+          description: Present if leadership was transferred
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    SendEmailInviteRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: "friend@example.com"
+        personalMessage:
+          type: string
+          maxLength: 500
+          example: "Hey! Join our household to help manage our pets!"
+
+    SendEmailInviteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Email invite sent successfully."
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+    Household:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "The Zeder House"
+        description:
+          type: string
+          example: "2 dogs, 3 cats, 1 bird"
+        inviteCode:
+          type: string
+          example: "ZEDER-ALPHA-BRAVO"
+        inviteCodeExpiresAt:
+          type: string
+          format: date-time
+        leaderId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    HouseholdMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        householdId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [leader, member]
+          example: "member"
+        status:
+          type: string
+          enum: [active, removed]
+          example: "active"
+        isTemporary:
+          type: boolean
+          example: false
+        temporaryExpiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        invitedBy:
+          type: string
+          format: uuid
+          nullable: true
+        joinedAt:
+          type: string
+          format: date-time
+
+    HouseholdJoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        householdId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        inviteCode:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, withdrawn]
+          example: "pending"
+        requestedAt:
+          type: string
+          format: date-time
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+        respondedBy:
+          type: string
+          format: uuid
+          nullable: true
+
+    HouseholdError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - HOUSEHOLD_NOT_FOUND
+            - INVALID_HOUSEHOLD_NAME
+            - ALREADY_IN_HOUSEHOLD
+            - NOT_HOUSEHOLD_LEADER
+            - INVALID_INVITE_CODE
+            - EXPIRED_INVITE_CODE
+            - HOUSEHOLD_AT_CAPACITY
+            - DUPLICATE_REQUEST
+            - RATE_LIMIT_EXCEEDED
+            - MEMBER_NOT_FOUND
+            - REQUEST_NOT_FOUND
+            - CANNOT_REMOVE_SELF
+            - NOT_HOUSEHOLD_MEMBER
+            - INVALID_EMAIL
+            - DATABASE_ERROR
+            - INVALID_INPUT
+          example: "INVALID_INVITE_CODE"
+        message:
+          type: string
+          example: "Invalid invite code. Please check the code and try again."
+        details:
+          type: object
+          description: Additional error details (optional)
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          $ref: '#/components/schemas/HouseholdError'
+
+tags:
+  - name: Households
+    description: Household management endpoints
