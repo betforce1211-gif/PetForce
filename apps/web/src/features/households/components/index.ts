@@ -7,3 +7,4 @@
 export { CreateHouseholdForm } from './CreateHouseholdForm';
 export { JoinHouseholdForm } from './JoinHouseholdForm';
 export { MemberList } from './MemberList';
+export { PendingRequests } from './PendingRequests';

@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { useHouseholdStore, selectIsLeader, selectPendingRequestCount } from '@petforce/auth';
 import { useAuthStore } from '@petforce/auth';
 import { MemberList } from '../components/MemberList';
+import { PendingRequests } from '../components/PendingRequests';
 import { motion } from 'framer-motion';
 
 export default function HouseholdDashboardPage() {
@@ -188,25 +189,24 @@ export default function HouseholdDashboardPage() {
           </Card>
 
           {/* Pending Requests (Leader only) */}
-          {isLeader && pendingCount > 0 && (
+          {isLeader && (
             <Card padding="lg">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900 font-heading">
                   Pending Join Requests
-                  <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-700 text-sm rounded-full">
-                    {pendingCount}
-                  </span>
+                  {pendingCount > 0 && (
+                    <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-700 text-sm rounded-full">
+                      {pendingCount}
+                    </span>
+                  )}
                 </h2>
               </div>
-              <p className="text-gray-600 mb-4">
-                Review and approve or reject requests from people who want to join your household
-              </p>
-              {/* Pending requests component will go here (Task 4.6) */}
-              <div className="text-center py-6 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">
-                  Pending requests component coming in Task 4.6
+              {pendingCount > 0 && (
+                <p className="text-gray-600 mb-4">
+                  Review and approve or reject requests from people who want to join your household
                 </p>
-              </div>
+              )}
+              <PendingRequests />
             </Card>
           )}
 
