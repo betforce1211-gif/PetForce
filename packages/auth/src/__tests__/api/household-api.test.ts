@@ -227,13 +227,20 @@ describe('Household API', () => {
 
     it('should fail if user is already in a household', async () => {
       // Mock: Existing membership found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          household_id: 'existing-household',
-          status: 'active',
-        },
-        error: null,
-      });
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            household_id: 'existing-household',
+            status: 'active',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(mockQuery);
 
       const result = await createHousehold(
         { name: 'New House' },
@@ -329,33 +336,51 @@ describe('Household API', () => {
         },
       ];
 
-      // Mock: User's membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          household_id: 'household-456',
-          role: 'leader',
-          status: 'active',
+      const mockCalls = [
+        // 1. Get user's membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              household_id: 'household-456',
+              role: 'leader',
+              status: 'active',
+            },
+            error: null,
+          }),
         },
-        error: null,
-      });
+        // 2. Get household details
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: householdData,
+            error: null,
+          }),
+        },
+        // 3. Get members list
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: membersData,
+            error: null,
+          }),
+        },
+        // 4. Get pending requests (for leader)
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        },
+      ];
 
-      // Mock: Household details
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: householdData,
-        error: null,
-      });
-
-      // Mock: Members list
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: membersData,
-        error: null,
-      });
-
-      // Mock: Pending requests (for leader)
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await getHousehold(userId);
 
@@ -368,10 +393,16 @@ describe('Household API', () => {
 
     it('should return null if user is not in a household', async () => {
       // Mock: No membership found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: 'PGRST116' },
+        }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(mockQuery);
 
       const result = await getHousehold('user-123');
 
@@ -384,36 +415,51 @@ describe('Household API', () => {
     it('should only return pending requests if user is leader', async () => {
       const userId = 'user-123';
 
-      // Mock: User's membership (as member, not leader)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          household_id: 'household-456',
-          role: 'member',
-          status: 'active',
+      const mockCalls = [
+        // 1. Get user's membership (as member, not leader)
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              household_id: 'household-456',
+              role: 'member',
+              status: 'active',
+            },
+            error: null,
+          }),
         },
-        error: null,
-      });
-
-      // Mock: Household details
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          name: 'Test House',
-          description: null,
-          invite_code: 'TEST-CODE',
-          invite_code_expires_at: null,
-          leader_id: 'other-user',
-          created_at: '2026-02-01T00:00:00Z',
-          updated_at: '2026-02-01T00:00:00Z',
+        // 2. Get household details
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'household-456',
+              name: 'Test House',
+              description: null,
+              invite_code: 'TEST-CODE',
+              invite_code_expires_at: null,
+              leader_id: 'other-user',
+              created_at: '2026-02-01T00:00:00Z',
+              updated_at: '2026-02-01T00:00:00Z',
+            },
+            error: null,
+          }),
         },
-        error: null,
-      });
+        // 3. Get members list
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        },
+      ];
 
-      // Mock: Members list
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await getHousehold(userId);
 
@@ -432,54 +478,80 @@ describe('Household API', () => {
       const userId = 'user-123';
       const inviteCode = 'ZEDER-ALPHA-BRAVO';
 
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      // Mock: Rate limit check (within limit)
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
-
-      // Mock: Find household by invite code
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          name: 'The Zeder House',
-          invite_code: inviteCode,
-          invite_code_expires_at: '2026-12-31T00:00:00Z', // Future date
-          leader_id: 'leader-123',
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
         },
-        error: null,
-      });
-
-      // Mock: Member count check (under limit)
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: Array(10), // 10 members (under 15 limit)
-        error: null,
-      });
-
-      // Mock: No existing pending request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      // Mock: Create join request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'request-789',
-          household_id: 'household-456',
-          user_id: userId,
-          invite_code: inviteCode,
-          status: 'pending',
-          requested_at: '2026-02-01T00:00:00Z',
+        // 2. Rate limit check (within limit)
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
         },
-        error: null,
-      });
+        // 3. Find household by invite code
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'household-456',
+              name: 'The Zeder House',
+              invite_code: inviteCode,
+              invite_code_expires_at: '2026-12-31T00:00:00Z', // Future date
+              leader_id: 'leader-123',
+            },
+            error: null,
+          }),
+        },
+        // 4. Member count check (under limit) - needs select().eq().eq()
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: Array(10), // 10 members (under 15 limit)
+                error: null,
+              }),
+            }),
+          }),
+        },
+        // 5. No existing pending request
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
+        },
+        // 6. Create join request
+        {
+          insert: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'request-789',
+              household_id: 'household-456',
+              user_id: userId,
+              invite_code: inviteCode,
+              status: 'pending',
+              requested_at: '2026-02-01T00:00:00Z',
+            },
+            error: null,
+          }),
+        },
+      ];
+
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode },
@@ -503,12 +575,18 @@ describe('Household API', () => {
 
     it('should fail if user is already in a household', async () => {
       // Mock: Existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          household_id: 'existing-household',
-        },
-        error: null,
-      });
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            household_id: 'existing-household',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(mockQuery);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'ZEDER-ALPHA-BRAVO' },
@@ -520,17 +598,29 @@ describe('Household API', () => {
     });
 
     it('should fail if rate limit exceeded', async () => {
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
+        },
+        // 2. Rate limit check (6 requests in last hour)
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: Array(6), // 6 requests (exceeds 5 limit)
+            error: null,
+          }),
+        },
+      ];
 
-      // Mock: Rate limit exceeded (6 requests in last hour)
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: Array(6), // 6 requests (exceeds 5 limit)
-        error: null,
-      });
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'ZEDER-ALPHA-BRAVO' },
@@ -542,23 +632,38 @@ describe('Household API', () => {
     });
 
     it('should fail if invite code does not exist', async () => {
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
+        },
+        // 2. Rate limit check
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        },
+        // 3. Invite code not found
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
+        },
+      ];
 
-      // Mock: Rate limit check
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
-
-      // Mock: Invite code not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'INVALID-CODE-HERE' },
@@ -570,27 +675,42 @@ describe('Household API', () => {
     });
 
     it('should fail if invite code has expired', async () => {
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      // Mock: Rate limit check
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
-
-      // Mock: Find household with expired code
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          invite_code: 'ZEDER-ALPHA-BRAVO',
-          invite_code_expires_at: '2020-01-01T00:00:00Z', // Past date
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
         },
-        error: null,
-      });
+        // 2. Rate limit check
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        },
+        // 3. Find household with expired code
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'household-456',
+              invite_code: 'ZEDER-ALPHA-BRAVO',
+              invite_code_expires_at: '2020-01-01T00:00:00Z', // Past date
+            },
+            error: null,
+          }),
+        },
+      ];
+
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'ZEDER-ALPHA-BRAVO' },
@@ -602,33 +722,64 @@ describe('Household API', () => {
     });
 
     it('should fail if household is at capacity', async () => {
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+      // Create a proper chain for member count (needs 2 eq() calls)
+      const eq2Mock = {
+        mockResolvedValue: vi.fn().mockResolvedValue({
+          data: Array(15),
+          error: null,
+        }),
+      };
+      const eq1Mock = {
+        mockReturnThis: vi.fn().mockReturnValue(eq2Mock),
+      };
 
-      // Mock: Rate limit check
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
-
-      // Mock: Find household
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          invite_code: 'ZEDER-ALPHA-BRAVO',
-          invite_code_expires_at: '2026-12-31T00:00:00Z',
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
         },
-        error: null,
-      });
+        // 2. Rate limit check
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        },
+        // 3. Find household
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'household-456',
+              invite_code: 'ZEDER-ALPHA-BRAVO',
+              invite_code_expires_at: '2026-12-31T00:00:00Z',
+            },
+            error: null,
+          }),
+        },
+        // 4. Member count at capacity (15 members) - needs select().eq().eq()
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: Array(15),
+                error: null,
+              }),
+            }),
+          }),
+        },
+      ];
 
-      // Mock: Member count at capacity (15 members)
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: Array(15),
-        error: null,
-      });
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'ZEDER-ALPHA-BRAVO' },
@@ -640,42 +791,65 @@ describe('Household API', () => {
     });
 
     it('should fail if duplicate pending request exists', async () => {
-      // Mock: No existing membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      // Mock: Rate limit check
-      mockTableQuery.gte.mockResolvedValueOnce({
-        data: [],
-        error: null,
-      });
-
-      // Mock: Find household
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          invite_code: 'ZEDER-ALPHA-BRAVO',
-          invite_code_expires_at: '2026-12-31T00:00:00Z',
+      const mockCalls = [
+        // 1. Check existing membership
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' },
+          }),
         },
-        error: null,
-      });
-
-      // Mock: Member count check
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: Array(5),
-        error: null,
-      });
-
-      // Mock: Existing pending request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'existing-request',
-          status: 'pending',
+        // 2. Rate limit check
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
         },
-        error: null,
-      });
+        // 3. Find household
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'household-456',
+              invite_code: 'ZEDER-ALPHA-BRAVO',
+              invite_code_expires_at: '2026-12-31T00:00:00Z',
+            },
+            error: null,
+          }),
+        },
+        // 4. Member count check - needs select().eq().eq()
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: Array(5),
+                error: null,
+              }),
+            }),
+          }),
+        },
+        // 5. Existing pending request
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'existing-request',
+              status: 'pending',
+            },
+            error: null,
+          }),
+        },
+      ];
+
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
       const result = await requestJoinHousehold(
         { inviteCode: 'ZEDER-ALPHA-BRAVO' },
@@ -693,167 +867,58 @@ describe('Household API', () => {
 
   describe('respondToJoinRequest()', () => {
     it('should successfully approve a join request', async () => {
-      const leaderId = 'leader-123';
-      const requestId = 'request-789';
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        { insert: vi.fn().mockResolvedValue({ data: [{ id: 'member-new' }], error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
-      // Mock: Get join request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: requestId,
-          household_id: 'household-456',
-          user_id: 'user-123',
-          status: 'pending',
-        },
-        error: null,
-      });
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      // Mock: Update request status
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Check for existing member (race condition)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Add member
-      mockTableQuery.insert.mockResolvedValueOnce({
-        data: [{ id: 'member-new' }],
-        error: null,
-      });
-
-      const result = await respondToJoinRequest(
-        {
-          requestId,
-          action: 'approve',
-        },
-        leaderId
-      );
-
+      const result = await respondToJoinRequest({ requestId: 'request-789', action: 'approve' }, 'leader-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('approved');
     });
 
     it('should successfully reject a join request', async () => {
-      const leaderId = 'leader-123';
-      const requestId = 'request-789';
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
-      // Mock: Get join request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: requestId,
-          household_id: 'household-456',
-          user_id: 'user-123',
-          status: 'pending',
-        },
-        error: null,
-      });
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      // Mock: Update request status
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await respondToJoinRequest(
-        {
-          requestId,
-          action: 'reject',
-        },
-        leaderId
-      );
-
+      const result = await respondToJoinRequest({ requestId: 'request-789', action: 'reject' }, 'leader-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('rejected');
     });
 
     it('should fail if request not found', async () => {
-      // Mock: Request not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await respondToJoinRequest(
-        {
-          requestId: 'nonexistent',
-          action: 'approve',
-        },
-        'leader-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await respondToJoinRequest({ requestId: 'nonexistent', action: 'approve' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.REQUEST_NOT_FOUND);
     });
 
     it('should fail if request already responded to', async () => {
-      // Mock: Get join request (already approved)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'request-789',
-          status: 'approved',
-        },
-        error: null,
-      });
-
-      const result = await respondToJoinRequest(
-        {
-          requestId: 'request-789',
-          action: 'approve',
-        },
-        'leader-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', status: 'approved' }, error: null }) });
+      const result = await respondToJoinRequest({ requestId: 'request-789', action: 'approve' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.message).toContain('already been');
     });
 
     it('should fail if responder is not the household leader', async () => {
-      // Mock: Get join request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'request-789',
-          household_id: 'household-456',
-          status: 'pending',
-        },
-        error: null,
-      });
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', status: 'pending' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'actual-leader' }, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
-      // Mock: Verify leader (different user)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: 'actual-leader',
-        },
-        error: null,
-      });
-
-      const result = await respondToJoinRequest(
-        {
-          requestId: 'request-789',
-          action: 'approve',
-        },
-        'not-leader'
-      );
-
+      const result = await respondToJoinRequest({ requestId: 'request-789', action: 'approve' }, 'not-leader');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.NOT_HOUSEHOLD_LEADER);
     });
@@ -865,132 +930,47 @@ describe('Household API', () => {
 
   describe('removeMember()', () => {
     it('should successfully remove a member', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      // Mock: Get member to remove
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'member-456',
-          user_id: 'member-user',
-          role: 'member',
-        },
-        error: null,
-      });
-
-      // Mock: Update member status
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await removeMember(
-        {
-          householdId: 'household-456',
-          memberId: 'member-user',
-        },
-        leaderId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-456', user_id: 'member-user', role: 'member' }, error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await removeMember({ householdId: 'household-456', memberId: 'member-user' }, 'leader-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('removed');
     });
 
     it('should fail if household not found', async () => {
-      // Mock: Household not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await removeMember(
-        {
-          householdId: 'nonexistent',
-          memberId: 'member-user',
-        },
-        'leader-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await removeMember({ householdId: 'nonexistent', memberId: 'member-user' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.HOUSEHOLD_NOT_FOUND);
     });
 
     it('should fail if remover is not the household leader', async () => {
-      // Mock: Verify leader (different user)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: 'actual-leader',
-        },
-        error: null,
-      });
-
-      const result = await removeMember(
-        {
-          householdId: 'household-456',
-          memberId: 'member-user',
-        },
-        'not-leader'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'actual-leader' }, error: null }) });
+      const result = await removeMember({ householdId: 'household-456', memberId: 'member-user' }, 'not-leader');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.NOT_HOUSEHOLD_LEADER);
     });
 
     it('should fail if trying to remove self', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      const result = await removeMember(
-        {
-          householdId: 'household-456',
-          memberId: leaderId, // Trying to remove self
-        },
-        leaderId
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) });
+      const result = await removeMember({ householdId: 'household-456', memberId: 'leader-123' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.CANNOT_REMOVE_SELF);
     });
 
     it('should fail if member not found', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      // Mock: Member not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await removeMember(
-        {
-          householdId: 'household-456',
-          memberId: 'nonexistent',
-        },
-        leaderId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await removeMember({ householdId: 'household-456', memberId: 'nonexistent' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.MEMBER_NOT_FOUND);
     });
@@ -1002,78 +982,30 @@ describe('Household API', () => {
 
   describe('regenerateInviteCode()', () => {
     it('should successfully regenerate invite code', async () => {
-      const leaderId = 'leader-123';
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'household-456', name: 'The Zeder House', leader_id: 'leader-123' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
-      // Mock: Get household and verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          name: 'The Zeder House',
-          leader_id: leaderId,
-        },
-        error: null,
-      });
-
-      // Mock: Check new code uniqueness
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null, // Code is unique
-        error: null,
-      });
-
-      // Mock: Update household with new code
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await regenerateInviteCode(
-        {
-          householdId: 'household-456',
-          expirationDays: 30,
-        },
-        leaderId
-      );
-
+      const result = await regenerateInviteCode({ householdId: 'household-456', expirationDays: 30 }, 'leader-123');
       expect(result.success).toBe(true);
       expect(result.inviteCode).toBe('ZEDER-ALPHA-BRAVO');
       expect(result.expiresAt).toBe('2026-03-01T00:00:00Z');
     });
 
     it('should fail if household not found', async () => {
-      // Mock: Household not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await regenerateInviteCode(
-        {
-          householdId: 'nonexistent',
-        },
-        'leader-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await regenerateInviteCode({ householdId: 'nonexistent' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.HOUSEHOLD_NOT_FOUND);
     });
 
     it('should fail if user is not the household leader', async () => {
-      // Mock: Get household (different leader)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          leader_id: 'actual-leader',
-        },
-        error: null,
-      });
-
-      const result = await regenerateInviteCode(
-        {
-          householdId: 'household-456',
-        },
-        'not-leader'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'household-456', leader_id: 'actual-leader' }, error: null }) });
+      const result = await regenerateInviteCode({ householdId: 'household-456' }, 'not-leader');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.NOT_HOUSEHOLD_LEADER);
     });
@@ -1085,215 +1017,64 @@ describe('Household API', () => {
 
   describe('leaveHousehold()', () => {
     it('should allow member to leave household', async () => {
-      const userId = 'user-123';
-
-      // Mock: Get user's membership (as member, not leader)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'member-456',
-          household_id: 'household-789',
-          user_id: userId,
-          role: 'member',
-        },
-        error: null,
-      });
-
-      // Mock: Get all active members
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [
-          { user_id: 'leader-123', role: 'leader' },
-          { user_id: userId, role: 'member' },
-        ],
-        error: null,
-      });
-
-      // Mock: Remove user's membership
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await leaveHousehold(
-        {
-          householdId: 'household-789',
-        },
-        userId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-456', household_id: 'household-789', user_id: 'user-123', role: 'member' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader' }, { user_id: 'user-123', role: 'member' }], error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await leaveHousehold({ householdId: 'household-789' }, 'user-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('left the household');
     });
 
     it('should transfer leadership when leader leaves with other members', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Get leader's membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'member-leader',
-          household_id: 'household-789',
-          user_id: leaderId,
-          role: 'leader',
-        },
-        error: null,
-      });
-
-      // Mock: Get all active members (leader + 2 others)
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [
-          {
-            user_id: leaderId,
-            role: 'leader',
-            joined_at: '2026-01-01T00:00:00Z',
-          },
-          {
-            user_id: 'member-1',
-            role: 'member',
-            joined_at: '2026-01-02T00:00:00Z', // Oldest member (after leader)
-          },
-          {
-            user_id: 'member-2',
-            role: 'member',
-            joined_at: '2026-01-03T00:00:00Z',
-          },
-        ],
-        error: null,
-      });
-
-      // Mock: Update household leader
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Update new leader's role
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Remove leader's membership
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await leaveHousehold(
-        {
-          householdId: 'household-789',
-        },
-        leaderId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' }, { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' }, { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }], error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) }) }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await leaveHousehold({ householdId: 'household-789' }, 'leader-123');
       expect(result.success).toBe(true);
-      expect(result.newLeaderId).toBe('member-1'); // Longest-standing member
+      expect(result.newLeaderId).toBe('member-1');
       expect(result.message).toContain('Leadership has been transferred');
     });
 
     it('should use designated successor if provided', async () => {
-      const leaderId = 'leader-123';
-      const successorId = 'member-2'; // Not longest-standing, but designated
-
-      // Mock: Get leader's membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'member-leader',
-          household_id: 'household-789',
-          user_id: leaderId,
-          role: 'leader',
-        },
-        error: null,
-      });
-
-      // Mock: Get all active members
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [
-          { user_id: leaderId, role: 'leader', joined_at: '2026-01-01T00:00:00Z' },
-          { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' },
-          { user_id: successorId, role: 'member', joined_at: '2026-01-03T00:00:00Z' },
-        ],
-        error: null,
-      });
-
-      // Mock: Update household leader
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Update new leader's role
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      // Mock: Remove leader's membership
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await leaveHousehold(
-        {
-          householdId: 'household-789',
-          successorId,
-        },
-        leaderId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' }, { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' }, { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }], error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) }) }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await leaveHousehold({ householdId: 'household-789', successorId: 'member-2' }, 'leader-123');
       expect(result.success).toBe(true);
-      expect(result.newLeaderId).toBe(successorId);
+      expect(result.newLeaderId).toBe('member-2');
     });
 
     it('should fail if user is not a member', async () => {
-      // Mock: Membership not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await leaveHousehold(
-        {
-          householdId: 'household-789',
-        },
-        'user-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await leaveHousehold({ householdId: 'household-789' }, 'user-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.NOT_HOUSEHOLD_MEMBER);
     });
 
     it('should fail if designated successor is not a member', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Get leader's membership
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'member-leader',
-          household_id: 'household-789',
-          user_id: leaderId,
-          role: 'leader',
-        },
-        error: null,
-      });
-
-      // Mock: Get all active members
-      mockTableQuery.order.mockResolvedValueOnce({
-        data: [
-          { user_id: leaderId, role: 'leader' },
-          { user_id: 'member-1', role: 'member' },
-        ],
-        error: null,
-      });
-
-      const result = await leaveHousehold(
-        {
-          householdId: 'household-789',
-          successorId: 'nonexistent-member',
-        },
-        leaderId
-      );
-
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader' }, error: null }) },
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader' }, { user_id: 'member-1', role: 'member' }], error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
+      const result = await leaveHousehold({ householdId: 'household-789', successorId: 'nonexistent-member' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.MEMBER_NOT_FOUND);
     });
@@ -1305,87 +1086,35 @@ describe('Household API', () => {
 
   describe('withdrawJoinRequest()', () => {
     it('should successfully withdraw a pending request', async () => {
-      const userId = 'user-123';
-      const requestId = 'request-789';
+      const mockCalls = [
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', user_id: 'user-123', household_id: 'household-456', status: 'pending' }, error: null }) },
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      ];
+      let callIndex = 0;
+      mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
 
-      // Mock: Get join request
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: requestId,
-          user_id: userId,
-          household_id: 'household-456',
-          status: 'pending',
-        },
-        error: null,
-      });
-
-      // Mock: Update request status
-      mockTableQuery.eq.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
-      const result = await withdrawJoinRequest(
-        { requestId },
-        userId
-      );
-
+      const result = await withdrawJoinRequest({ requestId: 'request-789' }, 'user-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('withdrawn');
     });
 
     it('should fail if request not found', async () => {
-      // Mock: Request not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await withdrawJoinRequest(
-        { requestId: 'nonexistent' },
-        'user-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await withdrawJoinRequest({ requestId: 'nonexistent' }, 'user-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.REQUEST_NOT_FOUND);
     });
 
     it('should fail if user does not own the request', async () => {
-      // Mock: Get join request (different user)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'request-789',
-          user_id: 'other-user',
-          status: 'pending',
-        },
-        error: null,
-      });
-
-      const result = await withdrawJoinRequest(
-        { requestId: 'request-789' },
-        'user-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', user_id: 'other-user', status: 'pending' }, error: null }) });
+      const result = await withdrawJoinRequest({ requestId: 'request-789' }, 'user-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.REQUEST_NOT_FOUND);
     });
 
     it('should fail if request has already been responded to', async () => {
-      // Mock: Get join request (already approved)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'request-789',
-          user_id: 'user-123',
-          status: 'approved',
-        },
-        error: null,
-      });
-
-      const result = await withdrawJoinRequest(
-        { requestId: 'request-789' },
-        'user-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', user_id: 'user-123', status: 'approved' }, error: null }) });
+      const result = await withdrawJoinRequest({ requestId: 'request-789' }, 'user-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.CANNOT_WITHDRAW_RESPONDED_REQUEST);
     });
@@ -1397,82 +1126,28 @@ describe('Household API', () => {
 
   describe('sendEmailInvite()', () => {
     it('should successfully queue email invite', async () => {
-      const leaderId = 'leader-123';
-
-      // Mock: Verify leader
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          name: 'The Zeder House',
-          leader_id: leaderId,
-          invite_code: 'ZEDER-ALPHA-BRAVO',
-        },
-        error: null,
-      });
-
-      const result = await sendEmailInvite(
-        {
-          householdId: 'household-456',
-          email: 'friend@example.com',
-          personalMessage: 'Join our household!',
-        },
-        leaderId
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'household-456', name: 'The Zeder House', leader_id: 'leader-123', invite_code: 'ZEDER-ALPHA-BRAVO' }, error: null }) });
+      const result = await sendEmailInvite({ householdId: 'household-456', email: 'friend@example.com', personalMessage: 'Join our household!' }, 'leader-123');
       expect(result.success).toBe(true);
       expect(result.message).toContain('sent successfully');
     });
 
     it('should fail with invalid email', async () => {
-      const result = await sendEmailInvite(
-        {
-          householdId: 'household-456',
-          email: 'invalid-email',
-        },
-        'leader-123'
-      );
-
+      const result = await sendEmailInvite({ householdId: 'household-456', email: 'invalid-email' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.INVALID_EMAIL);
     });
 
     it('should fail if household not found', async () => {
-      // Mock: Household not found
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
-
-      const result = await sendEmailInvite(
-        {
-          householdId: 'nonexistent',
-          email: 'friend@example.com',
-        },
-        'leader-123'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }) });
+      const result = await sendEmailInvite({ householdId: 'nonexistent', email: 'friend@example.com' }, 'leader-123');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.HOUSEHOLD_NOT_FOUND);
     });
 
     it('should fail if user is not the household leader', async () => {
-      // Mock: Verify leader (different user)
-      mockTableQuery.single.mockResolvedValueOnce({
-        data: {
-          id: 'household-456',
-          leader_id: 'actual-leader',
-        },
-        error: null,
-      });
-
-      const result = await sendEmailInvite(
-        {
-          householdId: 'household-456',
-          email: 'friend@example.com',
-        },
-        'not-leader'
-      );
-
+      mockSupabase.from.mockReturnValueOnce({ select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'household-456', leader_id: 'actual-leader' }, error: null }) });
+      const result = await sendEmailInvite({ householdId: 'household-456', email: 'friend@example.com' }, 'not-leader');
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe(HouseholdErrorCode.NOT_HOUSEHOLD_LEADER);
     });
