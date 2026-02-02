@@ -94,13 +94,13 @@ export function CreateHouseholdForm({ onSuccess, onCancel }: CreateHouseholdForm
   const displayError = validationError || error?.message;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Create household form">
       {/* Form Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900 font-heading">
+        <h2 className="text-2xl font-bold text-gray-900 font-heading" id="form-title">
           Create Your Household
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600" id="form-description">
           Give your household a name and description. You'll become the household leader and can
           invite family members to join.
         </p>
@@ -245,6 +245,7 @@ export function CreateHouseholdForm({ onSuccess, onCancel }: CreateHouseholdForm
             onClick={onCancel}
             disabled={loading}
             className="w-full sm:w-auto"
+            aria-label="Cancel household creation"
           >
             Cancel
           </Button>
@@ -256,6 +257,8 @@ export function CreateHouseholdForm({ onSuccess, onCancel }: CreateHouseholdForm
           isLoading={loading}
           disabled={loading || !name.trim()}
           className="w-full sm:flex-1"
+          aria-label={loading ? 'Creating household, please wait' : 'Create household'}
+          aria-describedby="form-title form-description"
         >
           {loading ? 'Creating Household...' : 'Create Household'}
         </Button>
