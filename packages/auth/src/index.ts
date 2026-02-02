@@ -7,6 +7,8 @@ export * from './api/auth-api';
 export * from './api/magic-link';
 export * from './api/oauth';
 export * from './api/biometrics';
+export * from './api/household-api';
+export * from './api/household-analytics-api';
 
 // Types
 export * from './types/auth';

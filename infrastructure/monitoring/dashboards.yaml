@@ -1,0 +1,369 @@
+# Monitoring Dashboards Configuration
+# For Datadog/CloudWatch/Grafana
+
+version: "1.0"
+dashboards:
+  # ===========================================================================
+  # MAIN DASHBOARD - Household API Overview
+  # ===========================================================================
+  - name: "Household API - Production"
+    description: "Primary dashboard for household management system health"
+    refresh_interval: 30s
+    widgets:
+      # Request Metrics
+      - type: timeseries
+        title: "Request Rate (req/s)"
+        position: { x: 0, y: 0, width: 6, height: 4 }
+        metrics:
+          - metric: household.requests.count
+            aggregation: rate
+            tags:
+              - environment:production
+              - service:household-api
+        visualization:
+          type: line
+          color: "#2D9B87"
+
+      - type: timeseries
+        title: "Error Rate (%)"
+        position: { x: 6, y: 0, width: 6, height: 4 }
+        metrics:
+          - metric: household.errors.count
+            formula: "(errors / total_requests) * 100"
+        visualization:
+          type: line
+          color: "#EF4444"
+        alerts:
+          - threshold: 5
+            comparison: above
+            severity: critical
+
+      # Latency Metrics
+      - type: timeseries
+        title: "Response Time (ms)"
+        position: { x: 0, y: 4, width: 12, height: 4 }
+        metrics:
+          - metric: household.latency.p50
+            label: "p50"
+            color: "#3B82F6"
+          - metric: household.latency.p90
+            label: "p90"
+            color: "#F59E0B"
+          - metric: household.latency.p99
+            label: "p99"
+            color: "#EF4444"
+        visualization:
+          type: line
+          yaxis:
+            max: 1000
+            label: "Milliseconds"
+
+      # Business Metrics
+      - type: query_value
+        title: "Active Households"
+        position: { x: 0, y: 8, width: 3, height: 2 }
+        metric: household.active.count
+        aggregation: last
+        precision: 0
+
+      - type: query_value
+        title: "Join Requests (24h)"
+        position: { x: 3, y: 8, width: 3, height: 2 }
+        metric: household.join_requests.count
+        timeframe: 24h
+        aggregation: sum
+
+      - type: query_value
+        title: "Success Rate (%)"
+        position: { x: 6, y: 8, width: 3, height: 2 }
+        formula: "((total_requests - errors) / total_requests) * 100"
+        precision: 2
+        color_thresholds:
+          - value: 99.9
+            color: green
+          - value: 99.0
+            color: yellow
+          - value: 0
+            color: red
+
+      - type: query_value
+        title: "Avg Response Time (ms)"
+        position: { x: 9, y: 8, width: 3, height: 2 }
+        metric: household.latency.avg
+        aggregation: avg
+        precision: 0
+
+      # Endpoint Performance
+      - type: toplist
+        title: "Slowest Endpoints (p99)"
+        position: { x: 0, y: 10, width: 6, height: 4 }
+        metric: household.latency.p99
+        group_by: endpoint
+        limit: 10
+        sort: desc
+
+      - type: toplist
+        title: "Most Errored Endpoints"
+        position: { x: 6, y: 10, width: 6, height: 4 }
+        metric: household.errors.count
+        group_by: endpoint
+        limit: 10
+        sort: desc
+
+      # Infrastructure
+      - type: timeseries
+        title: "CPU Utilization (%)"
+        position: { x: 0, y: 14, width: 6, height: 4 }
+        metrics:
+          - metric: system.cpu.usage
+            tags:
+              - service:household-api
+              - environment:production
+        visualization:
+          type: line
+          yaxis:
+            max: 100
+        alerts:
+          - threshold: 80
+            comparison: above
+            severity: warning
+
+      - type: timeseries
+        title: "Memory Utilization (%)"
+        position: { x: 6, y: 14, width: 6, height: 4 }
+        metrics:
+          - metric: system.memory.usage
+            tags:
+              - service:household-api
+              - environment:production
+        visualization:
+          type: line
+          yaxis:
+            max: 100
+        alerts:
+          - threshold: 90
+            comparison: above
+            severity: critical
+
+  # ===========================================================================
+  # DATABASE DASHBOARD
+  # ===========================================================================
+  - name: "Household Database - Production"
+    description: "PostgreSQL database health and performance"
+    refresh_interval: 30s
+    widgets:
+      # Connection Pool
+      - type: timeseries
+        title: "Database Connections"
+        position: { x: 0, y: 0, width: 6, height: 4 }
+        metrics:
+          - metric: postgresql.connections.active
+            label: "Active"
+          - metric: postgresql.connections.idle
+            label: "Idle"
+          - metric: postgresql.connections.max
+            label: "Max"
+        visualization:
+          type: area
+        alerts:
+          - threshold: 90
+            comparison: above
+            metric: postgresql.connections.used_percentage
+            severity: warning
+
+      # Query Performance
+      - type: timeseries
+        title: "Query Latency (ms)"
+        position: { x: 6, y: 0, width: 6, height: 4 }
+        metrics:
+          - metric: postgresql.query.duration.p50
+          - metric: postgresql.query.duration.p90
+          - metric: postgresql.query.duration.p99
+
+      # Slow Queries
+      - type: toplist
+        title: "Slowest Queries (p99)"
+        position: { x: 0, y: 4, width: 12, height: 4 }
+        metric: postgresql.query.duration.p99
+        group_by: query_signature
+        limit: 20
+
+      # Table Stats
+      - type: query_value
+        title: "Total Households"
+        position: { x: 0, y: 8, width: 3, height: 2 }
+        query: "SELECT count(*) FROM households"
+
+      - type: query_value
+        title: "Active Members"
+        position: { x: 3, y: 8, width: 3, height: 2 }
+        query: "SELECT count(*) FROM household_members WHERE status = 'active'"
+
+      - type: query_value
+        title: "Pending Requests"
+        position: { x: 6, y: 8, width: 3, height: 2 }
+        query: "SELECT count(*) FROM household_join_requests WHERE status = 'pending'"
+
+      - type: query_value
+        title: "Database Size"
+        position: { x: 9, y: 8, width: 3, height: 2 }
+        query: "SELECT pg_size_pretty(pg_database_size(current_database()))"
+
+  # ===========================================================================
+  # BUSINESS METRICS DASHBOARD
+  # ===========================================================================
+  - name: "Household Business Metrics"
+    description: "Product and user engagement metrics"
+    refresh_interval: 60s
+    widgets:
+      # Growth Metrics
+      - type: timeseries
+        title: "New Households (Daily)"
+        position: { x: 0, y: 0, width: 6, height: 4 }
+        metric: household.created.count
+        aggregation: sum
+        rollup: 1d
+
+      - type: timeseries
+        title: "Join Requests (Daily)"
+        position: { x: 6, y: 0, width: 6, height: 4 }
+        metric: household.join_requests.submitted.count
+        aggregation: sum
+        rollup: 1d
+
+      # Conversion Funnel
+      - type: funnel
+        title: "Join Funnel (Last 7 Days)"
+        position: { x: 0, y: 4, width: 6, height: 4 }
+        stages:
+          - name: "Requests Submitted"
+            metric: household.join_requests.submitted.count
+          - name: "Requests Approved"
+            metric: household.join_requests.approved.count
+          - name: "Members Active"
+            metric: household.members.active.count
+
+      # Retention
+      - type: timeseries
+        title: "Retention Rate (%)"
+        position: { x: 6, y: 4, width: 6, height: 4 }
+        formula: "(active_members / total_members) * 100"
+        rollup: 1d
+
+      # Top Households
+      - type: toplist
+        title: "Largest Households"
+        position: { x: 0, y: 8, width: 6, height: 4 }
+        query: |
+          SELECT name, member_count
+          FROM households
+          ORDER BY member_count DESC
+          LIMIT 20
+
+      # Activity Heatmap
+      - type: heatmap
+        title: "Join Request Activity (Hour of Day)"
+        position: { x: 6, y: 8, width: 6, height: 4 }
+        metric: household.join_requests.submitted.count
+        group_by:
+          - hour_of_day
+          - day_of_week
+
+  # ===========================================================================
+  # SLO DASHBOARD
+  # ===========================================================================
+  - name: "Household API - SLOs"
+    description: "Service Level Objectives tracking"
+    refresh_interval: 60s
+    widgets:
+      # Availability SLO (99.9%)
+      - type: slo_widget
+        title: "API Availability SLO"
+        position: { x: 0, y: 0, width: 6, height: 4 }
+        slo:
+          target: 99.9
+          metric: household.requests.success_rate
+          timeframe: 30d
+        visualization:
+          show_error_budget: true
+
+      # Latency SLO (p99 < 500ms)
+      - type: slo_widget
+        title: "Latency SLO (p99 < 500ms)"
+        position: { x: 6, y: 0, width: 6, height: 4 }
+        slo:
+          target: 99.0
+          metric: household.latency.p99
+          threshold: 500
+          timeframe: 30d
+
+      # Error Rate SLO (< 0.1%)
+      - type: slo_widget
+        title: "Error Rate SLO (< 0.1%)"
+        position: { x: 0, y: 4, width: 6, height: 4 }
+        slo:
+          target: 99.9
+          metric: household.error_rate
+          threshold: 0.1
+          timeframe: 30d
+
+      # Monthly SLO Summary
+      - type: table
+        title: "Monthly SLO Summary"
+        position: { x: 6, y: 4, width: 6, height: 4 }
+        columns:
+          - SLO
+          - Target
+          - Actual
+          - Error Budget
+          - Status
+
+# Metric Definitions
+metrics:
+  - name: household.requests.count
+    type: counter
+    description: "Total number of API requests"
+    tags: [endpoint, method, status_code]
+
+  - name: household.errors.count
+    type: counter
+    description: "Total number of error responses"
+    tags: [endpoint, error_type]
+
+  - name: household.latency.p50
+    type: gauge
+    description: "50th percentile latency"
+    unit: milliseconds
+
+  - name: household.latency.p90
+    type: gauge
+    description: "90th percentile latency"
+    unit: milliseconds
+
+  - name: household.latency.p99
+    type: gauge
+    description: "99th percentile latency"
+    unit: milliseconds
+
+  - name: household.active.count
+    type: gauge
+    description: "Number of active households"
+
+  - name: household.join_requests.count
+    type: counter
+    description: "Number of join requests"
+    tags: [status]
+
+  - name: postgresql.connections.active
+    type: gauge
+    description: "Active database connections"
+
+  - name: system.cpu.usage
+    type: gauge
+    description: "CPU utilization percentage"
+    unit: percent
+
+  - name: system.memory.usage
+    type: gauge
+    description: "Memory utilization percentage"
+    unit: percent

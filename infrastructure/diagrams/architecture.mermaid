@@ -1,0 +1,181 @@
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize':'16px'}}}%%
+
+graph TB
+    subgraph "Client Layer"
+        WebApp[Web App<br/>React + TypeScript]
+        MobileApp[Mobile App<br/>React Native + Expo]
+    end
+
+    subgraph "CDN Layer"
+        CloudFront[CloudFront CDN<br/>Static Assets + Cache]
+    end
+
+    subgraph "Load Balancing"
+        ALB[Application Load Balancer<br/>HTTPS + WAF]
+    end
+
+    subgraph "Application Layer - ECS Fargate"
+        subgraph "Production Cluster"
+            API1[API Instance 1<br/>Node.js + TypeScript]
+            API2[API Instance 2<br/>Node.js + TypeScript]
+            API3[API Instance N<br/>Auto-scaling 2-10]
+        end
+    end
+
+    subgraph "Data Layer"
+        subgraph "PostgreSQL RDS"
+            Primary[(Primary DB<br/>us-east-1a)]
+            Replica[(Read Replica<br/>us-east-1b)]
+        end
+
+        Redis[(Redis ElastiCache<br/>Session + Rate Limit)]
+    end
+
+    subgraph "External Services"
+        Supabase[Supabase Auth<br/>User Management]
+        SendGrid[SendGrid<br/>Email Service]
+        Sentry[Sentry<br/>Error Tracking]
+    end
+
+    subgraph "Monitoring & Observability"
+        CloudWatch[CloudWatch<br/>Logs + Metrics]
+        Datadog[Datadog<br/>APM + Dashboards]
+        PagerDuty[PagerDuty<br/>Incident Management]
+    end
+
+    %% Client connections
+    WebApp -->|HTTPS| CloudFront
+    MobileApp -->|HTTPS| CloudFront
+    CloudFront -->|Cache Miss| ALB
+
+    %% Load balancing
+    ALB -->|Round Robin| API1
+    ALB -->|Round Robin| API2
+    ALB -->|Round Robin| API3
+
+    %% Application to data
+    API1 -->|Connection Pool| Primary
+    API2 -->|Connection Pool| Primary
+    API3 -->|Connection Pool| Primary
+
+    API1 -->|Read Queries| Replica
+    API2 -->|Read Queries| Replica
+    API3 -->|Read Queries| Replica
+
+    API1 -->|Cache/Rate Limit| Redis
+    API2 -->|Cache/Rate Limit| Redis
+    API3 -->|Cache/Rate Limit| Redis
+
+    %% Database replication
+    Primary -.->|Async Replication| Replica
+
+    %% External services
+    API1 -->|Auth| Supabase
+    API2 -->|Emails| SendGrid
+    API3 -->|Errors| Sentry
+
+    %% Monitoring
+    API1 -->|Metrics/Logs| CloudWatch
+    API2 -->|Metrics/Logs| CloudWatch
+    API3 -->|Metrics/Logs| CloudWatch
+
+    CloudWatch -->|Aggregation| Datadog
+    Datadog -->|Alerts| PagerDuty
+
+    %% Styling
+    classDef client fill:#3B82F6,stroke:#1E40AF,color:#FFF
+    classDef cdn fill:#10B981,stroke:#047857,color:#FFF
+    classDef lb fill:#8B5CF6,stroke:#6D28D9,color:#FFF
+    classDef app fill:#2D9B87,stroke:#1E6F63,color:#FFF
+    classDef data fill:#F59E0B,stroke:#D97706,color:#FFF
+    classDef external fill:#EC4899,stroke:#BE185D,color:#FFF
+    classDef monitoring fill:#6B7280,stroke:#374151,color:#FFF
+
+    class WebApp,MobileApp client
+    class CloudFront cdn
+    class ALB lb
+    class API1,API2,API3 app
+    class Primary,Replica,Redis data
+    class Supabase,SendGrid,Sentry external
+    class CloudWatch,Datadog,PagerDuty monitoring
+```
+
+## Architecture Components
+
+### Client Layer
+- **Web App**: React 19 + TypeScript, served via CloudFront
+- **Mobile App**: React Native + Expo, API calls via CloudFront
+
+### CDN Layer
+- **CloudFront**: Global CDN for static assets, edge caching, DDoS protection
+- **WAF**: Web Application Firewall for security rules
+
+### Load Balancing
+- **ALB**: Application Load Balancer
+  - HTTPS termination
+  - Health checks
+  - Sticky sessions
+  - WAF integration
+
+### Application Layer
+- **ECS Fargate**: Container orchestration
+  - Auto-scaling (2-10 instances)
+  - Blue-green deployments
+  - Health checks
+  - Service discovery
+
+### Data Layer
+- **PostgreSQL RDS**:
+  - Primary: Write operations
+  - Read Replica: Read operations (analytics, reports)
+  - Automated backups
+  - Multi-AZ deployment
+
+- **Redis ElastiCache**:
+  - Session storage
+  - Rate limiting
+  - Cache layer
+  - Real-time features
+
+### External Services
+- **Supabase**: Authentication and user management
+- **SendGrid**: Transactional emails (invites, notifications)
+- **Sentry**: Error tracking and performance monitoring
+
+### Monitoring
+- **CloudWatch**: AWS native metrics and logs
+- **Datadog**: APM, dashboards, custom metrics
+- **PagerDuty**: Incident management and on-call rotation
+
+## Data Flow
+
+1. **User Request**:
+   - Client → CloudFront (cache check)
+   - CloudFront → ALB (if cache miss)
+   - ALB → API instance (round robin)
+
+2. **API Processing**:
+   - Check Redis cache
+   - Query PostgreSQL (Primary for writes, Replica for reads)
+   - Call external services as needed
+   - Return response
+
+3. **Monitoring**:
+   - Send metrics to CloudWatch
+   - CloudWatch aggregates to Datadog
+   - Alerts trigger PagerDuty
+
+## Scaling Strategy
+
+- **Horizontal**: Auto-scale ECS tasks (2-10)
+- **Vertical**: Increase task CPU/memory
+- **Database**: Read replicas + connection pooling
+- **Cache**: Redis cluster mode for high load
+
+## High Availability
+
+- **Multi-AZ**: Database and application in multiple availability zones
+- **Auto-scaling**: Automatic replacement of failed instances
+- **Health checks**: Automatic failover for unhealthy instances
+- **Backup**: Automated daily backups with 30-day retention

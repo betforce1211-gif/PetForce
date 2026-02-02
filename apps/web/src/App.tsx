@@ -18,6 +18,7 @@ import {
   JoinHouseholdPage,
   HouseholdDashboardPage,
   HouseholdSettingsPage,
+  HouseholdAnalyticsDashboard,
 } from './features/households/pages';
 
 // Initialize Supabase client
@@ -118,6 +119,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HouseholdSettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/household/analytics"
+          element={
+            <ProtectedRoute>
+              <HouseholdAnalyticsDashboard />
             </ProtectedRoute>
           }
         />

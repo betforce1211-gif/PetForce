@@ -9,3 +9,4 @@ export { default as CreateHouseholdPage } from './CreateHouseholdPage';
 export { default as JoinHouseholdPage } from './JoinHouseholdPage';
 export { default as HouseholdDashboardPage } from './HouseholdDashboardPage';
 export { default as HouseholdSettingsPage } from './HouseholdSettingsPage';
+export { HouseholdAnalyticsDashboard } from './HouseholdAnalyticsDashboard';
