@@ -6,3 +6,4 @@
 
 export { default as HouseholdOnboardingPage } from './HouseholdOnboardingPage';
 export { default as CreateHouseholdPage } from './CreateHouseholdPage';
+export { default as JoinHouseholdPage } from './JoinHouseholdPage';

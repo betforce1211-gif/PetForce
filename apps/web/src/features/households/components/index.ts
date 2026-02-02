@@ -5,3 +5,4 @@
  */
 
 export { CreateHouseholdForm } from './CreateHouseholdForm';
+export { JoinHouseholdForm } from './JoinHouseholdForm';
