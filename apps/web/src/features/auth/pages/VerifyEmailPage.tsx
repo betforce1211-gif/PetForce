@@ -111,7 +111,7 @@ export function VerifyEmailPage() {
             </div>
 
             <div className="space-y-3 pt-4">
-              <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/dashboard')}>
+              <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/onboarding/household')}>
                 Let's get started
               </Button>
 

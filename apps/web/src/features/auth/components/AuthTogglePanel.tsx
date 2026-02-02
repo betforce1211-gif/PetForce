@@ -32,9 +32,10 @@ export function AuthTogglePanel() {
   };
 
   const handleRegisterSuccess = () => {
-    // Show success message and redirect to dashboard
+    // After registration, redirect to household onboarding
     // Note: If email confirmation is required, EmailPasswordForm redirects to verify-pending instead
-    navigate('/dashboard');
+    // After email verification, user will still go to household onboarding
+    navigate('/onboarding/household');
   };
 
   const handleForgotPassword = () => {
