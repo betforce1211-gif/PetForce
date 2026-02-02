@@ -5,3 +5,4 @@
  */
 
 export { default as HouseholdOnboardingPage } from './HouseholdOnboardingPage';
+export { default as CreateHouseholdPage } from './CreateHouseholdPage';
