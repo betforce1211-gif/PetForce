@@ -248,14 +248,9 @@ export async function createHousehold(
       throw error;
     }
 
-    // Sanitize inputs first (Samantha's P0 Security Requirement)
-    const sanitizedName = sanitizeHouseholdName(request.name);
-    const sanitizedDescription = request.description
-      ? sanitizeDescription(request.description)
-      : null;
-
-    // Validate household name
-    const nameError = validateHouseholdName(sanitizedName);
+    // Validate household name BEFORE sanitization (correct order)
+    // This ensures we reject invalid input rather than silently fixing it
+    const nameError = validateHouseholdName(request.name);
     if (nameError) {
       logger.authEvent('household_creation_failed', requestId, {
         userId,
@@ -265,14 +260,20 @@ export async function createHousehold(
       return { success: false, household: null as any, error: nameError };
     }
 
-    // Validate description length (200 chars max per Peter's requirement)
-    if (sanitizedDescription && sanitizedDescription.length > 200) {
+    // Validate description length BEFORE sanitization (200 chars max per Peter's requirement)
+    if (request.description && request.description.length > 200) {
       const error = createHouseholdError(
         HouseholdErrorCode.INVALID_INPUT,
         'Household description must be 200 characters or less'
       );
       return { success: false, household: null as any, error };
     }
+
+    // After validation passes, sanitize inputs for security (Samantha's P0 Security Requirement)
+    const sanitizedName = sanitizeHouseholdName(request.name);
+    const sanitizedDescription = request.description
+      ? sanitizeDescription(request.description)
+      : null;
 
     const supabase = getSupabaseClient();
 

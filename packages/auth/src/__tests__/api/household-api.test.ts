@@ -85,12 +85,11 @@ vi.mock('../../email/household-invites', () => ({
 
 // Mock notifications (for household operations)
 vi.mock('../../notifications/household-notifications', () => ({
-  sendJoinRequestNotification: vi.fn().mockResolvedValue({ success: true }),
-  sendJoinApprovedNotification: vi.fn().mockResolvedValue({ success: true }),
-  sendJoinRejectedNotification: vi.fn().mockResolvedValue({ success: true }),
-  sendMemberRemovedNotification: vi.fn().mockResolvedValue({ success: true }),
-  sendLeadershipTransferredNotification: vi.fn().mockResolvedValue({ success: true }),
-  sendEmailInviteNotification: vi.fn().mockResolvedValue({ success: true }),
+  sendJoinRequestNotification: vi.fn().mockResolvedValue(undefined),
+  sendApprovalNotification: vi.fn().mockResolvedValue(undefined),
+  sendRejectionNotification: vi.fn().mockResolvedValue(undefined),
+  sendRemovalNotification: vi.fn().mockResolvedValue(undefined),
+  sendLeadershipTransferNotification: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock security/sanitization utilities (for validation tests)
@@ -101,6 +100,18 @@ vi.mock('../../utils/security', async () => {
     // Keep the actual implementations for proper validation
   };
 });
+
+// Mock analytics tracking functions
+vi.mock('../../analytics/household-events', () => ({
+  trackHouseholdCreated: vi.fn(),
+  trackJoinRequestSubmitted: vi.fn(),
+  trackJoinRequestApproved: vi.fn(),
+  trackJoinRequestRejected: vi.fn(),
+  trackMemberRemoved: vi.fn(),
+  trackMemberLeft: vi.fn(),
+  trackLeadershipTransferred: vi.fn(),
+  trackInviteCodeRegenerated: vi.fn(),
+}));
 
 describe('Household API', () => {
   let mockSupabase: any;
@@ -600,6 +611,18 @@ describe('Household API', () => {
             error: null,
           }),
         },
+        // 7. Get requester profile (for notification)
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              name: 'Test User',
+              email: 'test@example.com',
+            },
+            error: null,
+          }),
+        },
       ];
 
       let callIndex = 0;
@@ -920,11 +943,31 @@ describe('Household API', () => {
   describe('respondToJoinRequest()', () => {
     it('should successfully approve a join request', async () => {
       const mockCalls = [
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending' }, error: null }) },
+        // 1. Get join request
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending', requested_at: '2026-02-01T00:00:00Z' }, error: null }) },
+        // 2. Get household (verify leader)
         { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        // 3. Update join request status
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        // 4. Check if user is already member (household_id, user_id, status)
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: null,
+                    error: null
+                  })
+                })
+              })
+            })
+          })
+        },
+        // 5. Insert new member
         { insert: vi.fn().mockResolvedValue({ data: [{ id: 'member-new' }], error: null }) },
+        // 6. Get household name for notification
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { name: 'The Zeder House' }, error: null }) },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
@@ -936,9 +979,14 @@ describe('Household API', () => {
 
     it('should successfully reject a join request', async () => {
       const mockCalls = [
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending' }, error: null }) },
+        // 1. Get join request
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'request-789', household_id: 'household-456', user_id: 'user-123', status: 'pending', requested_at: '2026-02-01T00:00:00Z' }, error: null }) },
+        // 2. Get household (verify leader)
         { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { leader_id: 'leader-123' }, error: null }) },
+        // 3. Update join request status
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        // 4. Get household name for notification
+        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { name: 'The Zeder House' }, error: null }) },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
@@ -983,7 +1031,7 @@ describe('Household API', () => {
   describe('removeMember()', () => {
     it('should successfully remove a member', async () => {
       const mockCalls = [
-        // First call: Get household
+        // 1. Get household (verify leader)
         {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
@@ -992,20 +1040,35 @@ describe('Household API', () => {
             error: null
           })
         },
-        // Second call: Get member with multiple eq() calls
+        // 2. Get member with multiple eq() calls (household_id, user_id, status)
         {
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(), // household_id
-          single: vi.fn().mockResolvedValue({
-            data: { id: 'member-456', user_id: 'member-user', role: 'member' },
-            error: null
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { id: 'member-456', user_id: 'member-user', role: 'member', joined_at: '2026-01-01T00:00:00Z' },
+                    error: null
+                  })
+                })
+              })
+            })
           })
         },
-        // Third call: Update member status
+        // 3. Update member status
         {
           update: vi.fn().mockReturnThis(),
           eq: vi.fn().mockResolvedValue({
             data: null,
+            error: null
+          })
+        },
+        // 4. Get household name for notification
+        {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { name: 'The Zeder House' },
             error: null
           })
         },
@@ -1135,8 +1198,35 @@ describe('Household API', () => {
   describe('leaveHousehold()', () => {
     it('should allow member to leave household', async () => {
       const mockCalls = [
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-456', household_id: 'household-789', user_id: 'user-123', role: 'member' }, error: null }) },
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader' }, { user_id: 'user-123', role: 'member' }], error: null }) },
+        // 1. Get user's membership (household_id, user_id, status)
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { id: 'member-456', household_id: 'household-789', user_id: 'user-123', role: 'member', joined_at: '2026-01-01T00:00:00Z' },
+                    error: null
+                  })
+                })
+              })
+            })
+          })
+        },
+        // 2. Get all active members
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: [{ user_id: 'leader-123', role: 'leader' }, { user_id: 'user-123', role: 'member' }],
+                  error: null
+                })
+              })
+            })
+          })
+        },
+        // 3. Update member status
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
       ];
       let callIndex = 0;
@@ -1148,11 +1238,53 @@ describe('Household API', () => {
 
     it('should transfer leadership when leader leaves with other members', async () => {
       const mockCalls = [
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader' }, error: null }) },
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' }, { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' }, { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }], error: null }) },
+        // 1. Get user's membership (household_id, user_id, status)
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' },
+                    error: null
+                  })
+                })
+              })
+            })
+          })
+        },
+        // 2. Get all active members
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: [
+                    { user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' },
+                    { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' },
+                    { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }
+                  ],
+                  error: null
+                })
+              })
+            })
+          })
+        },
+        // 3. Update member status (leaving member)
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) }) }) },
+        // 4. Update household leader_id
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        // 5. Update new leader role (household_id, user_id)
+        {
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: null,
+                error: null
+              })
+            })
+          })
+        },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
@@ -1164,11 +1296,53 @@ describe('Household API', () => {
 
     it('should use designated successor if provided', async () => {
       const mockCalls = [
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader' }, error: null }) },
-        { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [{ user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' }, { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' }, { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }], error: null }) },
+        // 1. Get user's membership (household_id, user_id, status)
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { id: 'member-leader', household_id: 'household-789', user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' },
+                    error: null
+                  })
+                })
+              })
+            })
+          })
+        },
+        // 2. Get all active members
+        {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: [
+                    { user_id: 'leader-123', role: 'leader', joined_at: '2026-01-01T00:00:00Z' },
+                    { user_id: 'member-1', role: 'member', joined_at: '2026-01-02T00:00:00Z' },
+                    { user_id: 'member-2', role: 'member', joined_at: '2026-01-03T00:00:00Z' }
+                  ],
+                  error: null
+                })
+              })
+            })
+          })
+        },
+        // 3. Update member status (leaving member)
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) }) }) },
+        // 4. Update household leader_id
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
+        // 5. Update new leader role (household_id, user_id)
+        {
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: null,
+                error: null
+              })
+            })
+          })
+        },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
