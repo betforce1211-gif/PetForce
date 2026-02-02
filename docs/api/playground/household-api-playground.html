@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Household API Playground</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f7fa;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #2d3748;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .intro {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #667eea;
+    }
+
+    .endpoint {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .method {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: white;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-right: 10px;
+    }
+
+    .method.post { background: #49cc90; }
+    .method.get { background: #61affe; }
+    .method.delete { background: #f93e3e; }
+
+    .endpoint-path {
+      font-family: 'Monaco', 'Courier New', monospace;
+      color: #2d3748;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    h4 {
+      color: #4a5568;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    pre {
+      background: #2d3748;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .success {
+      color: #48bb78;
+    }
+
+    .error {
+      color: #f56565;
+    }
+
+    .warning {
+      background: #fef5e7;
+      border-left: 4px solid #f39c12;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Household API Playground</h1>
+
+  <div class="intro">
+    <p>Try out the Household Management API in your browser! This interactive playground lets you test API endpoints without writing any code.</p>
+    <p><strong>Note:</strong> You need a valid JWT token to make authenticated requests. Get one by logging into PetForce.</p>
+  </div>
+
+  <!-- Auth Setup -->
+  <div class="endpoint">
+    <h3>Authentication</h3>
+    <p>Enter your JWT token to authenticate API requests</p>
+
+    <label>JWT Token:</label>
+    <input type="password" id="apiToken" placeholder="Paste your JWT token here">
+
+    <button onclick="saveToken()">Save Token</button>
+
+    <div class="warning">
+      <strong>Security Note:</strong> Never share your JWT token. This playground runs entirely in your browser - no data is sent to external servers.
+    </div>
+  </div>
+
+  <!-- Create Household -->
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/households</span>
+    <p>Create a new household</p>
+
+    <label>Household Name:</label>
+    <input type="text" id="householdName" placeholder="The Smith House">
+
+    <label>Description (optional):</label>
+    <textarea id="householdDesc" rows="2" placeholder="2 dogs, 1 cat"></textarea>
+
+    <button onclick="createHousehold()">Create Household</button>
+
+    <h4>Response:</h4>
+    <pre id="createResponse">Waiting for request...</pre>
+  </div>
+
+  <!-- Get Household -->
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/households/me</span>
+    <p>Get your household details</p>
+
+    <button onclick="getHousehold()">Get Household</button>
+
+    <h4>Response:</h4>
+    <pre id="getResponse">Waiting for request...</pre>
+  </div>
+
+  <!-- Join Household -->
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/households/join</span>
+    <p>Request to join a household</p>
+
+    <label>Invite Code:</label>
+    <input type="text" id="inviteCode" placeholder="ZEDER-ALPHA-BRAVO" style="text-transform: uppercase;">
+
+    <button onclick="joinHousehold()">Join Household</button>
+
+    <h4>Response:</h4>
+    <pre id="joinResponse">Waiting for request...</pre>
+  </div>
+
+  <!-- List Members -->
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/households/me/members</span>
+    <p>List all members in your household</p>
+
+    <button onclick="listMembers()">List Members</button>
+
+    <h4>Response:</h4>
+    <pre id="membersResponse">Waiting for request...</pre>
+  </div>
+
+  <!-- Regenerate Invite Code -->
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/households/me/regenerate-code</span>
+    <p>Regenerate invite code (leader only)</p>
+
+    <div class="warning">
+      <strong>Warning:</strong> This will invalidate the current invite code. Only household leaders can perform this action.
+    </div>
+
+    <button onclick="regenerateCode()">Regenerate Code</button>
+
+    <h4>Response:</h4>
+    <pre id="regenerateResponse">Waiting for request...</pre>
+  </div>
+
+  <script>
+    let token = '';
+    const API_BASE = 'https://api.petforce.app';  // Change to your API URL
+
+    function saveToken() {
+      token = document.getElementById('apiToken').value;
+      if (token) {
+        alert('Token saved! You can now make API calls.');
+      } else {
+        alert('Please enter a valid token.');
+      }
+    }
+
+    async function makeRequest(endpoint, options = {}) {
+      if (!token) {
+        return { error: 'Please save your JWT token first.' };
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options.headers
+          }
+        });
+
+        const data = await response.json();
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        };
+      } catch (error) {
+        return {
+          error: error.message
+        };
+      }
+    }
+
+    function formatResponse(response) {
+      return JSON.stringify(response, null, 2);
+    }
+
+    async function createHousehold() {
+      const name = document.getElementById('householdName').value;
+      const description = document.getElementById('householdDesc').value;
+
+      if (!name) {
+        document.getElementById('createResponse').textContent = 'Error: Household name is required';
+        return;
+      }
+
+      const response = await makeRequest('/households', {
+        method: 'POST',
+        body: JSON.stringify({ name, description })
+      });
+
+      document.getElementById('createResponse').textContent = formatResponse(response);
+    }
+
+    async function getHousehold() {
+      const response = await makeRequest('/households/me');
+      document.getElementById('getResponse').textContent = formatResponse(response);
+    }
+
+    async function joinHousehold() {
+      const inviteCode = document.getElementById('inviteCode').value.toUpperCase();
+
+      if (!inviteCode) {
+        document.getElementById('joinResponse').textContent = 'Error: Invite code is required';
+        return;
+      }
+
+      const response = await makeRequest('/households/join', {
+        method: 'POST',
+        body: JSON.stringify({ inviteCode })
+      });
+
+      document.getElementById('joinResponse').textContent = formatResponse(response);
+    }
+
+    async function listMembers() {
+      const response = await makeRequest('/households/me/members');
+      document.getElementById('membersResponse').textContent = formatResponse(response);
+    }
+
+    async function regenerateCode() {
+      if (!confirm('Are you sure? This will invalidate the current invite code.')) {
+        return;
+      }
+
+      const response = await makeRequest('/households/me/regenerate-code', {
+        method: 'POST'
+      });
+
+      document.getElementById('regenerateResponse').textContent = formatResponse(response);
+    }
+
+    // Auto-uppercase invite code input
+    document.getElementById('inviteCode').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+  </script>
+</body>
+</html>
