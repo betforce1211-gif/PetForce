@@ -1,7 +1,9 @@
 // Dashboard page - placeholder for authenticated users
 
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@petforce/auth';
+import { useHouseholdStore, selectHasHousehold } from '@petforce/auth';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
@@ -9,6 +11,15 @@ import { motion } from 'framer-motion';
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const { household, memberCount, fetchHousehold } = useHouseholdStore();
+  const hasHousehold = useHouseholdStore(selectHasHousehold);
+
+  // Fetch household data on mount
+  useEffect(() => {
+    if (user?.id) {
+      fetchHousehold(user.id);
+    }
+  }, [user?.id, fetchHousehold]);
 
   const handleLogout = async () => {
     await logout();
@@ -41,6 +52,51 @@ export default function DashboardPage() {
 
           {/* Main content */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Household Card */}
+            {hasHousehold ? (
+              <Card padding="lg" className="md:col-span-2 lg:col-span-3">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-3xl">🏠</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 font-heading mb-1">
+                        {household?.name || 'Your Household'}
+                      </h2>
+                      <p className="text-gray-600 text-sm">
+                        {memberCount} {memberCount === 1 ? 'member' : 'members'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="primary" onClick={() => navigate('/dashboard/household')}>
+                    View Household
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <Card padding="lg" className="md:col-span-2 lg:col-span-3 border-2 border-dashed border-primary-300 bg-primary-50">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4 text-center sm:text-left">
+                    <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-3xl">🏠</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 font-heading mb-1">
+                        Set Up Your Household
+                      </h2>
+                      <p className="text-gray-600 text-sm">
+                        Create or join a household to collaborate on pet care with your family
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="primary" onClick={() => navigate('/onboarding/household')} className="flex-shrink-0">
+                    Get Started
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             <Card padding="lg">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto">
