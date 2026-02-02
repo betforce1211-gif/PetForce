@@ -5,3 +5,4 @@
  */
 
 export { HouseholdOnboardingScreen } from './HouseholdOnboardingScreen';
+export { CreateHouseholdScreen } from './CreateHouseholdScreen';
