@@ -6,3 +6,4 @@
 
 export { HouseholdOnboardingScreen } from './HouseholdOnboardingScreen';
 export { CreateHouseholdScreen } from './CreateHouseholdScreen';
+export { JoinHouseholdScreen } from './JoinHouseholdScreen';
