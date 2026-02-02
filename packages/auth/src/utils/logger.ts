@@ -1,9 +1,17 @@
 // Structured logging utility for authentication events
 // Provides request ID tracking and correlation
 
-import { v4 as uuidv4 } from 'uuid';
 import { metrics } from './metrics';
 import { monitoring } from './monitoring';
+
+// Simple UUID v4 generator (no external dependency needed)
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
@@ -33,7 +41,7 @@ class Logger {
    * Generate a unique request ID for correlation
    */
   generateRequestId(): string {
-    return uuidv4();
+    return generateUUID();
   }
 
   /**
@@ -134,6 +142,24 @@ class Logger {
       requestId,
       ...context,
     });
+  }
+
+  /**
+   * Log security event with standardized format
+   * Used for tracking potential security threats and attack patterns
+   */
+  securityEvent(
+    eventType: string,
+    context: LogContext
+  ): void {
+    this.warn('Security event: ' + eventType, {
+      ...context,
+      eventType,
+      securityAlert: true,
+    });
+
+    // Record security metric for monitoring
+    metrics.record('security_' + eventType, context);
   }
 }
 
