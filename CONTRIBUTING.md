@@ -1,18 +1,58 @@
 # Contributing to PetForce
 
-Thank you for your interest in contributing to PetForce! This guide will help you get started with our development process.
+Thank you for your interest in contributing to PetForce! We're excited to have you join our community of contributors who are passionate about making pet care easier for families everywhere.
 
 ## Table of Contents
 
+- [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
-- [Chuck's CI/CD Best Practices](#chucks-cicd-best-practices)
-- [Branch Strategy](#branch-strategy)
-- [Commit Messages](#commit-messages)
-- [Pull Requests](#pull-requests)
-- [Testing](#testing)
-- [OpenSpec Workflow](#openspec-workflow)
-- [Agent Checklists](#agent-checklists)
+- [Coding Standards](#coding-standards)
+- [Commit Guidelines](#commit-guidelines)
+- [Pull Request Process](#pull-request-process)
+- [Testing Requirements](#testing-requirements)
+- [Documentation](#documentation)
+- [Community](#community)
+
+---
+
+## Code of Conduct
+
+### Our Pledge
+
+We are committed to providing a welcoming and inclusive environment for all contributors, regardless of:
+
+- Experience level
+- Gender identity and expression
+- Sexual orientation
+- Disability
+- Personal appearance
+- Body size
+- Race or ethnicity
+- Age
+- Religion or lack thereof
+- Nationality
+
+### Our Standards
+
+**Positive behaviors include:**
+
+- Being respectful and considerate
+- Accepting constructive criticism gracefully
+- Focusing on what's best for the community
+- Showing empathy toward other contributors
+- Celebrating successes together
+
+**Unacceptable behaviors include:**
+
+- Harassment or discriminatory language
+- Personal attacks or trolling
+- Publishing others' private information
+- Any conduct inappropriate in a professional setting
+
+### Enforcement
+
+Violations of the Code of Conduct can be reported to the project maintainers. All reports will be reviewed confidentially and appropriate action will be taken.
 
 ---
 
@@ -20,195 +60,327 @@ Thank you for your interest in contributing to PetForce! This guide will help yo
 
 ### Prerequisites
 
-- **Node.js**: 20.19.0+ (use nvm: `nvm use`)
-- **npm**: 10.8.2+
-- **Git**: Latest version
-- **Supabase CLI**: For database migrations
+Before you begin, ensure you have:
 
-### Initial Setup
+- **Node.js** 20.19.0 or higher
+- **npm** 10.2.4 or higher
+- **Git** 2.30 or higher
+- A **GitHub account**
+- **Supabase account** (for authentication testing)
 
-1. **Clone the repository**
+### Environment Setup
+
+1. **Fork the repository**
+
    ```bash
-   git clone https://github.com/your-org/petforce.git
-   cd petforce
+   # Go to https://github.com/betforce1211-gif/PetForce
+   # Click "Fork" button
    ```
 
-2. **Install Node.js (with nvm)**
+2. **Clone your fork**
+
    ```bash
-   nvm use  # Uses version from .nvmrc
+   git clone https://github.com/YOUR_USERNAME/PetForce.git
+   cd PetForce
    ```
 
-3. **Install dependencies**
+3. **Add upstream remote**
+
+   ```bash
+   git remote add upstream https://github.com/betforce1211-gif/PetForce.git
+   ```
+
+4. **Install dependencies**
+
    ```bash
    npm install
    ```
 
-4. **Set up environment variables**
+5. **Set up environment variables**
+
    ```bash
-   cp .env.example .env
-   # Edit .env with your Supabase credentials
+   # Web app
+   cp apps/web/.env.example apps/web/.env
+   # Edit apps/web/.env with your Supabase credentials
+
+   # Mobile app
+   cp apps/mobile/.env.example apps/mobile/.env
+   # Edit apps/mobile/.env with your Supabase credentials
    ```
 
-5. **Run tests to verify setup**
+6. **Verify setup**
    ```bash
-   cd packages/auth
+   ./scripts/verify-git-setup
    npm test
    ```
 
-6. **Start development server**
-   ```bash
-   cd apps/web
-   npm run dev
-   ```
+### Understanding the Codebase
+
+Take time to familiarize yourself with:
+
+- [Architecture Documentation](./docs/ARCHITECTURE.md)
+- [Git Workflow Guide](./docs/GIT_WORKFLOW.md)
+- [Testing Guide](./TESTING.md)
+- [Code Structure](#project-structure)
 
 ---
 
 ## Development Workflow
 
-### 1. Create a Branch
+### 1. Choose an Issue
 
-Always create a feature branch from `develop`:
+- Browse [open issues](https://github.com/betforce1211-gif/PetForce/issues)
+- Look for issues labeled `good first issue` or `help wanted`
+- Comment on the issue to express interest
+- Wait for assignment or approval from maintainers
+
+### 2. Create a Feature Branch
+
+Use Chuck CLI for proper branch naming:
 
 ```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/your-feature-name
+# For new features
+./scripts/chuck create-branch feature PET-123 "add medication reminders"
+# Creates: feature/PET-123-add-medication-reminders
+
+# For bug fixes
+./scripts/chuck create-branch bugfix PET-124 "fix login redirect"
+# Creates: bugfix/PET-124-fix-login-redirect
+
+# For hotfixes
+./scripts/chuck create-branch hotfix PET-125 "critical auth vulnerability"
+# Creates: hotfix/PET-125-critical-auth-vulnerability
 ```
 
-**Branch Naming Conventions**:
-- `feature/description` - New features
-- `fix/description` - Bug fixes
-- `refactor/description` - Code refactoring
-- `docs/description` - Documentation updates
-- `test/description` - Test additions/updates
-- `chore/description` - Build, CI/CD, or tooling changes
+**Branch Naming Conventions:**
 
-### 2. Make Changes
+- `feature/` - New features
+- `bugfix/` - Bug fixes
+- `hotfix/` - Critical production fixes
+- `docs/` - Documentation updates
+- `refactor/` - Code refactoring
+- `test/` - Test improvements
+- `chore/` - Build/tooling updates
 
-- Write clean, maintainable code
-- Follow existing code style and conventions
-- Add tests for new functionality
-- Update documentation as needed
-- Run linters and type checkers locally
+### 3. Make Your Changes
 
-### 3. Test Your Changes
+- Write clean, readable code
+- Follow our [Coding Standards](#coding-standards)
+- Write or update tests
+- Update documentation
+- Keep commits atomic and focused
+
+### 4. Test Your Changes
 
 ```bash
-# Run unit tests
-cd packages/auth
+# Run all tests
 npm test
+
+# Run linting
+npm run lint
 
 # Run type checking
 npm run typecheck
 
-# Run linting
-npm run lint
+# Run all checks
+npm run check:all
 ```
 
-### 4. Commit Your Changes
+### 5. Commit Your Changes
 
-Follow our [commit message conventions](#commit-messages):
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
-git add .
-git commit -m "feat(auth): add email verification auto-detection
+# Format: <type>(<scope>): <subject>
 
-- Polls every 10 seconds to check verification status
-- Auto-redirects to success page when verified
-- Addresses issue #123
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+git commit -m "feat(auth): add email verification reminder"
+git commit -m "fix(households): correct invite code validation"
+git commit -m "docs(api): update household endpoints"
 ```
 
-### 5. Push and Create PR
+**Commit Types:**
+
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation only
+- `style` - Code style (formatting, no logic change)
+- `refactor` - Code refactoring
+- `test` - Adding or updating tests
+- `chore` - Build process, dependencies, etc.
+- `perf` - Performance improvement
+
+### 6. Push and Create Pull Request
 
 ```bash
-git push origin feature/your-feature-name
-```
+# Push to your fork
+git push origin feature/PET-123-add-medication-reminders
 
-Then create a Pull Request on GitHub.
+# Create PR using GitHub CLI
+gh pr create --fill
+
+# Or manually create PR on GitHub
+```
 
 ---
 
-## Chuck's CI/CD Best Practices
+## Coding Standards
 
-### ✅ Required Checks (Must Pass Before Merge)
+### TypeScript
 
-1. **Linting**: Code must pass ESLint checks
-2. **Type Checking**: TypeScript must compile without errors
-3. **Unit Tests**: All tests must pass
-4. **Build**: Application must build successfully
-5. **OpenSpec Validation**: Specs must be valid (if applicable)
-6. **Security Audit**: No high/critical vulnerabilities
+- Use **TypeScript** for all new code
+- Avoid `any` types - use specific types or `unknown`
+- Define interfaces for complex objects
+- Use type inference where appropriate
 
-### 🚀 Deployment Pipeline
+**Example:**
 
+```typescript
+// ✅ Good
+interface CreateHouseholdInput {
+  name: string;
+  description?: string;
+}
+
+async function createHousehold(
+  input: CreateHouseholdInput,
+): Promise<Household> {
+  // Implementation
+}
+
+// ❌ Bad
+async function createHousehold(input: any): Promise<any> {
+  // Implementation
+}
 ```
-develop → Staging (auto-deploy) → main → Production (manual approval)
+
+### React
+
+- Use **functional components** with hooks
+- Use **custom hooks** for reusable logic
+- Keep components small and focused
+- Use proper prop types
+
+**Example:**
+
+```typescript
+// ✅ Good
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+}
+
+export function Button({ label, onClick, variant = 'primary', disabled = false }: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`btn btn-${variant}`}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ❌ Bad
+export function Button(props: any) {
+  return <button onClick={props.onClick}>{props.label}</button>;
+}
 ```
 
-**Staging Deployment**:
-- Triggered on push to `develop`
-- Runs smoke tests automatically
-- Accessible at `https://staging.petforce.app`
+### Code Style
 
-**Production Deployment**:
-- Triggered on push to `main` or version tags
-- Requires manual approval via GitHub Environments
-- Runs full test suite before deployment
-- Creates Sentry release for error tracking
-- Performs post-deployment health checks
+- Use **2 spaces** for indentation
+- Use **single quotes** for strings (except JSX attributes)
+- Use **semicolons**
+- Max line length: **100 characters**
+- Use **Prettier** for formatting (runs automatically on commit)
 
-### 📊 Metrics and Monitoring
+### Naming Conventions
 
-After deployment, check:
-- **Auth Metrics Dashboard**: `/admin/auth-metrics`
-- **Sentry**: Error rates and user feedback
-- **Logs**: CloudWatch or structured logs
-- **Alerts**: Slack notifications for issues
+- **Components**: PascalCase (`HouseholdCard.tsx`)
+- **Functions**: camelCase (`createHousehold()`)
+- **Constants**: UPPER_SNAKE_CASE (`MAX_HOUSEHOLD_SIZE`)
+- **Interfaces**: PascalCase with `I` prefix optional (`HouseholdInput` or `IHouseholdInput`)
+- **Types**: PascalCase (`HouseholdRole`)
+
+### File Organization
+
+```typescript
+// Component file structure
+import React from 'react';
+import { externalDependencies } from 'external-package';
+import { internalDependencies } from '@petforce/auth';
+import { localDependencies } from '../utils';
+
+// Types/Interfaces
+interface ComponentProps {
+  // ...
+}
+
+// Component
+export function Component({ props }: ComponentProps) {
+  // Hooks
+  const [state, setState] = useState();
+
+  // Effects
+  useEffect(() => {
+    // ...
+  }, []);
+
+  // Event handlers
+  const handleClick = () => {
+    // ...
+  };
+
+  // Render
+  return (
+    <div>
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+### Comments
+
+- Write **self-documenting code** first
+- Use comments for **why**, not **what**
+- Use JSDoc for public APIs
+
+```typescript
+// ❌ Bad comment (obvious)
+// Increment counter by 1
+counter++;
+
+// ✅ Good comment (explains why)
+// Use exponential backoff to avoid overwhelming the API
+await retry(apiCall, { maxAttempts: 3, backoff: "exponential" });
+
+// ✅ JSDoc for public API
+/**
+ * Creates a new household for the user
+ *
+ * @param input - Household creation data
+ * @param userId - ID of the user creating the household
+ * @returns Created household with generated invite code
+ * @throws {ValidationError} If household name is invalid
+ * @throws {DatabaseError} If database operation fails
+ */
+export async function createHousehold(
+  input: CreateHouseholdInput,
+  userId: string,
+): Promise<Household> {
+  // Implementation
+}
+```
 
 ---
 
-## Branch Strategy
+## Commit Guidelines
 
-We follow **Git Flow**:
-
-```
-main (production)
-  ↑
-develop (staging)
-  ↑
-feature/* (development)
-```
-
-### Branch Protection Rules
-
-**`main` branch**:
-- ✅ Require pull request reviews (2 approvals)
-- ✅ Require status checks to pass
-- ✅ Require branches to be up to date
-- ✅ Require conversation resolution
-- ❌ No direct pushes allowed
-- ✅ Require linear history
-
-**`develop` branch**:
-- ✅ Require pull request reviews (1 approval)
-- ✅ Require status checks to pass
-- ✅ Require branches to be up to date
-- ❌ No direct pushes allowed
-
-### Merging Strategy
-
-- **Feature → Develop**: Squash and merge
-- **Develop → Main**: Merge commit (preserves history)
-
----
-
-## Commit Messages
-
-Follow **Conventional Commits** specification:
-
-### Format
+### Commit Message Format
 
 ```
 <type>(<scope>): <subject>
@@ -218,340 +390,302 @@ Follow **Conventional Commits** specification:
 <footer>
 ```
 
-### Types
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, no logic change)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Build process, CI/CD, dependencies
-- `perf`: Performance improvements
-- `revert`: Reverting previous changes
-
-### Examples
-
-**Good**:
-```
-feat(auth): add email verification pending page
-
-- Created EmailVerificationPendingPage component
-- Auto-detects verification with 10s polling
-- Includes resend button with 5min cooldown
-
-Closes #456
-```
-
-**Good**:
-```
-fix(auth): reject login for unconfirmed users
-
-Previously, unconfirmed users could sometimes login before
-verifying their email. This adds explicit check for
-email_confirmed_at field and returns EMAIL_NOT_CONFIRMED error.
-
-Fixes #123
-```
-
-**Bad**:
-```
-updated stuff
-```
-
-**Bad**:
-```
-WIP
-```
-
-### Co-Authoring with AI
-
-When working with Claude or other AI assistants:
+**Examples:**
 
 ```
-fix(auth): improve error logging
+feat(auth): add email verification reminder
 
-Added request ID tracking and structured logging.
+Users who haven't verified their email within 24 hours will now receive
+a reminder notification. This improves the email verification rate.
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Closes #123
 ```
+
+```
+fix(households): correct invite code expiration check
+
+Previously, expired invite codes were still accepted due to incorrect
+date comparison. This fix ensures expired codes are properly rejected.
+
+Fixes #456
+```
+
+### Commit Types
+
+| Type       | Description      | Example                                    |
+| ---------- | ---------------- | ------------------------------------------ |
+| `feat`     | New feature      | `feat(pets): add medication tracking`      |
+| `fix`      | Bug fix          | `fix(auth): resolve logout redirect issue` |
+| `docs`     | Documentation    | `docs(api): update household endpoints`    |
+| `style`    | Code style       | `style(ui): format button components`      |
+| `refactor` | Code refactoring | `refactor(db): extract connection logic`   |
+| `test`     | Tests            | `test(auth): add email verification tests` |
+| `chore`    | Build/tools      | `chore(deps): upgrade React to 18.3`       |
+| `perf`     | Performance      | `perf(api): cache household queries`       |
+
+### Commit Scope
+
+Common scopes:
+
+- `auth` - Authentication
+- `households` - Household management
+- `pets` - Pet profiles
+- `api` - API layer
+- `ui` - UI components
+- `mobile` - Mobile app
+- `web` - Web app
+- `docs` - Documentation
+- `ci` - CI/CD
+
+### Commit Best Practices
+
+- **One logical change per commit**
+- **Write in imperative mood** ("add" not "added")
+- **Keep subject under 72 characters**
+- **Separate subject from body** with blank line
+- **Explain what and why**, not how
+- **Reference issues** in footer
 
 ---
 
-## Pull Requests
+## Pull Request Process
 
-### PR Checklist
+### Before Creating PR
 
-Before submitting a PR, ensure:
+1. **Sync with upstream**
 
-- [ ] Code follows project style guidelines
-- [ ] All tests pass locally
-- [ ] New tests added for new functionality
-- [ ] Documentation updated (if applicable)
-- [ ] OpenSpec proposal created (if needed)
-- [ ] Agent checklists reviewed
-- [ ] No console.log or debugging code
-- [ ] Environment variables documented in `.env.example`
-- [ ] Breaking changes documented
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
 
-### PR Template
+2. **Run all checks**
 
-We provide a PR template that includes:
-- Description of changes
-- Type of change
-- Agent checklists
-- Testing performed
-- Deployment notes
+   ```bash
+   npm run check:all
+   ```
 
-**Fill out the template completely!** This helps reviewers understand your changes.
+3. **Validate PR readiness**
+   ```bash
+   ./scripts/chuck pr validate
+   ```
+
+### Creating the PR
+
+1. **Use the PR template** (auto-populated)
+2. **Write a clear title** (use conventional commit format)
+3. **Fill out all sections** of the template
+4. **Link related issues** (`Closes #123`)
+5. **Add screenshots** for UI changes
+6. **Request reviewers** (auto-assigned by CODEOWNERS)
+
+### PR Template Sections
+
+- **Description**: What does this PR do?
+- **Motivation**: Why is this change needed?
+- **Changes**: List of specific changes
+- **Testing**: How was this tested?
+- **Screenshots**: For visual changes
+- **Checklist**: Pre-submission checklist
 
 ### Review Process
 
-1. **Automated Checks**: CI must pass (linting, tests, build)
-2. **Code Review**: At least 1-2 approvals required
-3. **Agent Review**: Verify relevant agent checklists
-4. **OpenSpec Review**: If specs changed
-5. **Final Approval**: Maintainer approval for merge
+1. **Wait for CI checks** to pass
+2. **Address reviewer feedback** promptly
+3. **Push updates** to your branch
+4. **Request re-review** after changes
+5. **Celebrate** when approved! 🎉
+
+### After Merge
+
+1. **Delete your branch** (GitHub does this automatically)
+2. **Sync your fork**
+   ```bash
+   git checkout main
+   git fetch upstream
+   git merge upstream/main
+   git push origin main
+   ```
 
 ---
 
-## Testing
+## Testing Requirements
 
-### Test Pyramid
+### Coverage Requirements
 
-```
-        E2E
-       /   \
-      /     \
-  Integration
-    /       \
-   /         \
-  Unit Tests
-```
-
-### Running Tests
-
-```bash
-# All tests
-npm test
-
-# Specific package
-cd packages/auth
-npm test
-
-# Watch mode
-npm test -- --watch
-
-# Coverage
-npm run test:coverage
-
-# E2E tests
-npm run test:e2e
-```
+- **Unit tests**: Required for all new features
+- **Integration tests**: Required for API endpoints
+- **E2E tests**: Required for critical user flows
+- **Coverage target**: 80%+ for new code
 
 ### Writing Tests
 
-**Unit Tests** (Required):
 ```typescript
-describe('register()', () => {
-  it('should detect unconfirmed user state', async () => {
-    // Test implementation
+// Example unit test
+describe("createHousehold", () => {
+  it("should create household with valid input", async () => {
+    const input = { name: "Test Household" };
+    const result = await createHousehold(input, "user-123");
+
+    expect(result).toHaveProperty("id");
+    expect(result.name).toBe("Test Household");
+    expect(result.leaderId).toBe("user-123");
+  });
+
+  it("should reject invalid household name", async () => {
+    const input = { name: "" };
+
+    await expect(createHousehold(input, "user-123")).rejects.toThrow(
+      ValidationError,
+    );
   });
 });
 ```
 
-**Integration Tests** (Recommended):
-```typescript
-describe('Registration Flow', () => {
-  it('should create user and send verification email', async () => {
-    // Test full flow
-  });
-});
-```
-
-**E2E Tests** (For critical flows):
-```typescript
-test('User can register and verify email', async ({ page }) => {
-  // Playwright test
-});
-```
-
-### Test Coverage Goals
-
-- **Packages**: ≥80% coverage
-- **Critical Paths**: 100% coverage (auth, payments)
-- **New Code**: Must have tests
-
----
-
-## OpenSpec Workflow
-
-For features requiring planning:
-
-### 1. Create Proposal
-
-```bash
-openspec proposal "Feature description"
-```
-
-This creates:
-- `openspec/changes/<change-id>/proposal.md`
-- `openspec/changes/<change-id>/tasks.md`
-- `openspec/changes/<change-id>/specs/*/spec.md`
-
-### 2. Fill Out Agent Research
-
-Use the multi-agent research process:
-- Peter: Requirements and competitor research
-- Tucker: Test requirements
-- Larry: Logging requirements
-- Dexter: UX requirements
-- Samantha: Security requirements
-
-### 3. Validate
-
-```bash
-openspec validate <change-id> --strict
-```
-
-### 4. Get Approval
-
-- Create PR with proposal
-- Team reviews and approves
-- Agent checklists verified
-
-### 5. Implement
-
-Follow the Ralph Method:
-- Implement iteratively
-- Verify against each agent's checklist
-- Update tests and docs
-- Validate continuously
-
-### 6. Archive
-
-```bash
-openspec archive <change-id>
-```
-
----
-
-## Agent Checklists
-
-Each agent has specific responsibilities. Verify these before submitting PR:
-
-### Peter (Product Management)
-- [ ] Requirements clearly defined
-- [ ] Acceptance criteria specified
-- [ ] Competitor research completed
-- [ ] User stories documented
-
-### Engrid (Engineering)
-- [ ] Code follows best practices
-- [ ] Defensive programming applied
-- [ ] Error handling comprehensive
-- [ ] State validation implemented
-
-### Tucker (QA/Testing)
-- [ ] Unit tests written
-- [ ] Integration tests added
-- [ ] Edge cases tested
-- [ ] Database state validated
-
-### Larry (Logging/Observability)
-- [ ] Request ID tracking added
-- [ ] Auth events logged
-- [ ] Metrics emitted
-- [ ] Error logging comprehensive
-
-### Dexter (UX/Design)
-- [ ] User flow designed
-- [ ] Error messages clear
-- [ ] Accessibility considered
-- [ ] Mobile responsive
-
-### Samantha (Security)
-- [ ] Authentication secure
-- [ ] Authorization implemented
-- [ ] Data validation added
-- [ ] Security implications reviewed
-
-### Chuck (CI/CD)
-- [ ] CI checks pass
-- [ ] Build succeeds
-- [ ] Deployment tested
-- [ ] Environment vars documented
-
----
-
-## Code Style
-
-### TypeScript
-
-- Use TypeScript for all new code
-- Avoid `any` types (use `unknown` if needed)
-- Export types and interfaces
-- Use strict mode
-
-### React
-
-- Use functional components with hooks
-- Extract complex logic into custom hooks
-- Keep components small and focused
-- Use proper TypeScript types for props
-
-### Naming Conventions
-
-- **Files**: `kebab-case.ts`
-- **Components**: `PascalCase.tsx`
-- **Functions**: `camelCase`
-- **Constants**: `UPPER_SNAKE_CASE`
-- **Types/Interfaces**: `PascalCase`
-
-### File Organization
+### Test Organization
 
 ```
 src/
-├── api/          # API functions
-├── components/   # React components
-├── hooks/        # Custom hooks
-├── pages/        # Page components
-├── types/        # TypeScript types
-├── utils/        # Utility functions
-└── __tests__/    # Test files
+├── features/
+│   └── households/
+│       ├── HouseholdCard.tsx
+│       └── __tests__/
+│           └── HouseholdCard.test.tsx
+└── api/
+    ├── households.ts
+    └── __tests__/
+        └── households.test.ts
 ```
 
----
-
-## Environment Variables
-
-### Never Commit Secrets!
-
-- Add secrets to `.env` (gitignored)
-- Document in `.env.example` (committed)
-- Use GitHub Secrets for CI/CD
-
-### Required Variables
-
-See `.env.example` for the full list of required environment variables.
+See [Testing Guide](./TESTING.md) for comprehensive testing documentation.
 
 ---
 
-## Getting Help
+## Documentation
 
-- **Issues**: Check existing issues or create a new one
-- **Discussions**: Use GitHub Discussions for questions
-- **Slack**: Join our Slack workspace (if applicable)
+### When to Update Documentation
+
+Update docs when you:
+
+- Add new features
+- Change existing behavior
+- Add or modify APIs
+- Update configuration
+- Change deployment process
+- Fix bugs that affect documented behavior
+
+### Documentation Types
+
+1. **Code Comments** - Inline documentation
+2. **JSDoc** - API documentation
+3. **README files** - Package/feature documentation
+4. **Guides** - How-to documentation in `/docs`
+5. **Architecture docs** - System design in `/docs`
+
+### Documentation Standards
+
+- **Be clear and concise**
+- **Use examples**
+- **Keep it up-to-date**
+- **Include code snippets**
+- **Add diagrams** for complex flows (use Mermaid)
+
+---
+
+## Community
+
+### Getting Help
+
+- **GitHub Discussions**: [Ask questions](https://github.com/betforce1211-gif/PetForce/discussions)
+- **GitHub Issues**: [Report bugs](https://github.com/betforce1211-gif/PetForce/issues)
 - **Documentation**: Check `/docs` folder
 
+### Recognition
+
+Contributors are recognized in:
+
+- [CONTRIBUTORS.md](./CONTRIBUTORS.md) file
+- Release notes for significant contributions
+- Special shout-outs in our community channels
+
+### Types of Contributions
+
+We appreciate all contributions:
+
+- 🐛 **Bug reports**
+- ✨ **Feature requests**
+- 💻 **Code contributions**
+- 📝 **Documentation improvements**
+- 🧪 **Test improvements**
+- 🎨 **UI/UX enhancements**
+- 🌍 **Translations**
+- 💬 **Community support**
+
 ---
 
-## License
+## Quick Reference
 
-By contributing to PetForce, you agree that your contributions will be licensed under the project's license.
+### Common Commands
+
+```bash
+# Setup
+npm install
+./scripts/verify-git-setup
+
+# Development
+npm run dev --workspace @petforce/web
+npm start --workspace @petforce/mobile
+
+# Testing
+npm test
+npm run test:coverage
+npm run test:watch
+
+# Code Quality
+npm run lint
+npm run typecheck
+npm run format
+npm run check:all
+
+# Git Workflow
+./scripts/chuck create-branch feature PET-123 "description"
+git add .
+git commit -m "feat(scope): description"
+./scripts/chuck pr validate
+git push origin branch-name
+gh pr create --fill
+
+# Chuck CLI
+./scripts/chuck help
+./scripts/chuck validate-branch
+./scripts/chuck check commits
+./scripts/chuck check all
+```
+
+### Checklist Before PR
+
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Type checking passes (`npm run typecheck`)
+- [ ] Documentation updated
+- [ ] Commit messages follow convention
+- [ ] Branch name follows convention
+- [ ] Changes are atomic and focused
+- [ ] Code is self-documenting
+- [ ] No console.log statements
+- [ ] No commented-out code
+- [ ] PR template filled out completely
 
 ---
 
-## Thank You! 🎉
+## Thank You!
 
-Your contributions make PetForce better for everyone. We appreciate your time and effort!
+Your contributions help make pet care easier for families everywhere. We're grateful for your time and effort! 🐾
+
+**Questions?** Open a [discussion](https://github.com/betforce1211-gif/PetForce/discussions) or check our [documentation](./docs/).
+
+---
+
+**Made with 🐾 by the PetForce Community**
+
+_Every contribution matters. Every pet deserves the best care._

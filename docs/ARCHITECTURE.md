@@ -1,588 +1,909 @@
 # PetForce Architecture
 
-This document describes the high-level architecture and design decisions for the PetForce application.
+Comprehensive guide to PetForce's system architecture, design decisions, and technical implementation.
+
+## Table of Contents
+
+- [System Overview](#system-overview)
+- [Architecture Principles](#architecture-principles)
+- [High-Level Architecture](#high-level-architecture)
+- [Frontend Architecture](#frontend-architecture)
+- [Backend Architecture](#backend-architecture)
+- [Database Design](#database-design)
+- [Authentication Flow](#authentication-flow)
+- [Household Management](#household-management)
+- [State Management](#state-management)
+- [Caching Strategy](#caching-strategy)
+- [Security Architecture](#security-architecture)
+- [Mobile Architecture](#mobile-architecture)
+- [Infrastructure](#infrastructure)
+- [Monitoring & Observability](#monitoring--observability)
+
+---
 
 ## System Overview
 
-PetForce is built as a monorepo containing:
-- Web application (React + Vite)
-- Mobile applications (React Native + Expo)
-- Shared packages (authentication, UI components)
+PetForce is a monorepo-based pet care platform built with modern web and mobile technologies. It provides a seamless cross-platform experience for families to manage their pets' health and care.
 
-```
-┌─────────────────────────────────────────┐
-│         User Interfaces                 │
-├──────────────┬──────────────────────────┤
-│   Web App    │    Mobile Apps           │
-│ (React+Vite) │ (React Native+Expo)      │
-└──────┬───────┴──────────┬───────────────┘
-       │                  │
-       └────────┬─────────┘
-                │
-        ┌───────▼──────────┐
-        │ Shared Packages  │
-        ├──────────────────┤
-        │  @petforce/auth  │
-        │  @petforce/ui    │
-        └───────┬──────────┘
-                │
-        ┌───────▼──────────┐
-        │    Supabase      │
-        ├──────────────────┤
-        │  Authentication  │
-        │  PostgreSQL DB   │
-        │  Storage         │
-        │  Real-time       │
-        └──────────────────┘
-```
+### Technology Stack
+
+**Frontend:**
+
+- **Web**: React 18.2 + TypeScript 5.3 + Vite
+- **Mobile**: React Native + Expo
+- **Styling**: Tailwind CSS (web), React Native StyleSheet (mobile)
+- **Routing**: React Router (web), React Navigation (mobile)
+
+**Backend:**
+
+- **BaaS**: Supabase (PostgreSQL + Authentication + Storage)
+- **API Layer**: Edge Functions (Deno runtime)
+- **Real-time**: Supabase Realtime (WebSockets)
+
+**State Management:**
+
+- Zustand (global state)
+- React Query / SWR (server state)
+- AsyncStorage (mobile persistence)
+
+**Infrastructure:**
+
+- **Deployment**: AWS ECS Fargate, Kubernetes
+- **CDN**: CloudFlare
+- **Monitoring**: DataDog, CloudWatch, Prometheus
+- **CI/CD**: GitHub Actions
+
+---
 
 ## Architecture Principles
 
-### 1. Code Reusability
+### 1. Mobile-First
 
-- **Shared Packages**: Common logic in `packages/` folder
-- **Cross-Platform**: Maximum code sharing between web and mobile
-- **Component Library**: Reusable UI components
+60-80% of users are on mobile devices. Mobile experience is prioritized:
 
-### 2. Type Safety
+- Offline-first data caching
+- Touch-optimized interfaces (44pt minimum)
+- Platform-specific optimizations
+- Deep linking support
+- Push notifications
 
-- **TypeScript Everywhere**: All code is TypeScript
-- **Strict Mode**: Strict TypeScript configuration
-- **Type-Safe APIs**: Full type coverage for API calls
+### 2. Monorepo Structure
 
-### 3. Modularity
+Benefits:
 
-- **Feature-Based Structure**: Code organized by features
-- **Dependency Injection**: Loose coupling between modules
-- **Plugin Architecture**: Extensible design
-
-### 4. Performance
-
-- **Code Splitting**: Dynamic imports for lazy loading
-- **Memoization**: React.memo and useMemo
-- **Optimized Bundles**: Tree shaking and minification
-
-### 5. Security
-
-- **Secure by Default**: Security best practices
-- **Input Validation**: All user input validated
-- **HTTPS Only**: Encrypted connections
-- **Token Rotation**: Automatic token refresh
-
-## Detailed Architecture
-
-### Frontend Architecture
-
-#### Web Application
-
-**Technology Stack:**
-- React 18.2 for UI
-- React Router 6.21 for navigation
-- Tailwind CSS for styling
-- Framer Motion for animations
-- Vite for build tooling
-
-**Structure:**
-```
-apps/web/src/
-├── components/           # Reusable UI components
-│   └── ui/              # Base components (Button, Input, Card)
-├── features/            # Feature modules
-│   └── auth/
-│       ├── components/  # Feature-specific components
-│       ├── pages/       # Page components
-│       └── hooks/       # Custom hooks (future)
-├── navigation/          # Routing configuration (future)
-└── test/               # Testing utilities
-```
-
-**Design Patterns:**
-- **Component Composition**: Small, composable components
-- **Custom Hooks**: Reusable stateful logic
-- **Render Props**: Flexible component APIs (where needed)
-- **HOC**: Cross-cutting concerns (minimal use)
-
-#### Mobile Application
-
-**Technology Stack:**
-- React Native for iOS/Android
-- React Navigation for navigation
-- Expo for development platform
-- expo-local-authentication for biometrics
-
-**Structure:**
-```
-apps/mobile/src/
-├── components/          # Mobile UI components
-│   └── ui/             # Base components
-├── features/           # Feature modules
-│   └── auth/
-│       ├── components/ # Auth components
-│       ├── screens/    # Screen components
-│       └── navigation/ # Feature navigation
-└── navigation/         # App navigation
-```
-
-**Platform-Specific Code:**
-- Conditional imports for platform APIs
-- StyleSheet for native styling
-- Platform-specific components when needed
-
-### Backend Architecture
-
-**Supabase Services:**
+- Code sharing between web and mobile
+- Atomic changes across platforms
+- Single source of truth for types
+- Simplified dependency management
 
 ```
-┌──────────────────────────────────────┐
-│         Supabase Backend             │
-├──────────────────────────────────────┤
-│                                      │
-│  ┌────────────────────────────────┐ │
-│  │      Authentication            │ │
-│  ├────────────────────────────────┤ │
-│  │ - Email/Password               │ │
-│  │ - Magic Links                  │ │
-│  │ - OAuth (Google, Apple)        │ │
-│  │ - JWT Token Management         │ │
-│  └────────────────────────────────┘ │
-│                                      │
-│  ┌────────────────────────────────┐ │
-│  │      PostgreSQL Database       │ │
-│  ├────────────────────────────────┤ │
-│  │ - User profiles                │ │
-│  │ - Pet data (future)            │ │
-│  │ - Health records (future)      │ │
-│  └────────────────────────────────┘ │
-│                                      │
-│  ┌────────────────────────────────┐ │
-│  │      Storage                   │ │
-│  ├────────────────────────────────┤ │
-│  │ - Pet photos (future)          │ │
-│  │ - Document uploads (future)    │ │
-│  └────────────────────────────────┘ │
-│                                      │
-│  ┌────────────────────────────────┐ │
-│  │      Real-time                 │ │
-│  ├────────────────────────────────┤ │
-│  │ - Live updates (future)        │ │
-│  │ - Notifications (future)       │ │
-│  └────────────────────────────────┘ │
-│                                      │
-└──────────────────────────────────────┘
+PetForce/
+├── apps/
+│   ├── web/              # Web application
+│   └── mobile/           # Mobile application
+└── packages/
+    ├── auth/             # Shared authentication logic
+    ├── supabase/         # Supabase client
+    └── ui/               # Shared UI components
 ```
 
-### Shared Packages
+### 3. Type Safety
 
-#### @petforce/auth
+- TypeScript everywhere
+- Shared types between frontend and backend
+- Database types generated from schema
+- Runtime validation with Zod
 
-Authentication package shared between web and mobile.
+### 4. Security by Default
 
-**Responsibilities:**
-- API functions for auth operations
-- React hooks for auth state
-- Zustand store for global state
-- Token management
-- Session persistence
+- No sensitive data in logs (automatic PII redaction)
+- Authentication required for all operations
+- Row-level security in database
+- Rate limiting on all APIs
+- HTTPS only
 
-**Structure:**
+### 5. Performance First
+
+- Code splitting and lazy loading
+- Image optimization
+- Database query optimization
+- Redis caching
+- CDN for static assets
+
+---
+
+## High-Level Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        Web[Web App<br/>React + Vite]
+        Mobile[Mobile App<br/>React Native + Expo]
+    end
+
+    subgraph "CDN Layer"
+        CloudFlare[CloudFlare CDN]
+    end
+
+    subgraph "Load Balancer"
+        ALB[Application Load Balancer]
+    end
+
+    subgraph "Application Layer"
+        App1[App Instance 1]
+        App2[App Instance 2]
+        App3[App Instance 3]
+    end
+
+    subgraph "Caching Layer"
+        Redis[Redis Cache]
+    end
+
+    subgraph "Backend Services"
+        Supabase[Supabase<br/>Auth + DB + Storage]
+    end
+
+    subgraph "Monitoring"
+        DataDog[DataDog]
+        CloudWatch[CloudWatch]
+    end
+
+    Web -->|HTTPS| CloudFlare
+    Mobile -->|HTTPS| CloudFlare
+    CloudFlare --> ALB
+    ALB --> App1
+    ALB --> App2
+    ALB --> App3
+    App1 <--> Redis
+    App2 <--> Redis
+    App3 <--> Redis
+    App1 <--> Supabase
+    App2 <--> Supabase
+    App3 <--> Supabase
+    App1 --> DataDog
+    App2 --> DataDog
+    App3 --> DataDog
+    App1 --> CloudWatch
+    App2 --> CloudWatch
+    App3 --> CloudWatch
+
+    style Web fill:#4fc3f7
+    style Mobile fill:#4fc3f7
+    style CloudFlare fill:#ffcc80
+    style ALB fill:#a5d6a7
+    style App1 fill:#4fc3f7
+    style App2 fill:#4fc3f7
+    style App3 fill:#4fc3f7
+    style Redis fill:#ef5350
+    style Supabase fill:#9575cd
+    style DataDog fill:#ffa726
+    style CloudWatch fill:#ffa726
 ```
-packages/auth/src/
-├── api/                # API functions
-│   ├── auth.ts        # Email/password auth
-│   ├── magic-link.ts  # Magic link auth
-│   ├── oauth.ts       # OAuth auth
-│   └── biometrics.ts  # Biometric auth
-├── hooks/             # React hooks
+
+---
+
+## Frontend Architecture
+
+### Component Structure
+
+```
+src/
+├── features/                # Feature-based organization
+│   ├── auth/
+│   │   ├── components/      # Feature-specific components
+│   │   ├── pages/           # Route-level components
+│   │   ├── hooks/           # Custom hooks
+│   │   └── types/           # TypeScript types
+│   └── households/
+│       ├── components/
+│       ├── pages/
+│       ├── hooks/
+│       └── types/
+├── components/              # Shared components
+│   ├── ui/                  # Generic UI components
+│   └── layout/              # Layout components
+├── hooks/                   # Shared hooks
+├── utils/                   # Utility functions
+├── api/                     # API client layer
+├── stores/                  # Zustand stores
+└── types/                   # Global TypeScript types
+```
+
+### Design Patterns
+
+**1. Feature-Based Organization**
+
+Organize by feature/domain rather than technical role:
+
+```
+✅ Good (Feature-based)
+features/
+├── auth/
+│   ├── LoginForm.tsx
 │   ├── useAuth.ts
-│   ├── useOAuth.ts
-│   ├── useMagicLink.ts
-│   └── useBiometrics.ts
-├── stores/            # State management
-│   └── authStore.ts   # Zustand store
-├── types/             # TypeScript types
-│   └── auth.ts
-└── utils/             # Utilities
-    ├── storage.ts     # Token storage
-    ├── validation.ts  # Input validation
-    ├── logger.ts      # Structured logging
-    └── metrics.ts     # Metrics collection
+│   └── auth-api.ts
+└── households/
+    ├── HouseholdCard.tsx
+    ├── useHousehold.ts
+    └── household-api.ts
+
+❌ Bad (Role-based)
+components/
+├── LoginForm.tsx
+└── HouseholdCard.tsx
+hooks/
+├── useAuth.ts
+└── useHousehold.ts
+api/
+├── auth-api.ts
+└── household-api.ts
 ```
 
-**Email Confirmation State Management:**
+**2. Custom Hooks for Logic**
 
-Users created via email/password registration go through these states:
+Extract reusable logic into custom hooks:
 
-```
-┌─────────────┐
-│ Registration│
-│  Initiated  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────────┐
-│ User Created        │
-│ email_confirmed: ❌ │  ← User exists in database but unconfirmed
-│ confirmationRequired│
-└──────┬──────────────┘
-       │
-       │  Verification email sent
-       │
-       ▼
-┌─────────────────────┐
-│ Pending Confirmation│
-│ User checks email   │
-└──────┬──────────────┘
-       │
-       │  User clicks link
-       │
-       ▼
-┌─────────────────────┐
-│ Email Confirmed     │
-│ email_confirmed: ✅ │  ← User can now log in
-└──────┬──────────────┘
-       │
-       ▼
-┌─────────────────────┐
-│ Login Allowed       │
-└─────────────────────┘
-```
-
-**Key Implementation Details:**
-
-1. **Registration returns confirmation state**:
-   ```typescript
-   {
-     success: true,
-     confirmationRequired: true, // ← Frontend knows to show email page
-     message: "Please check your email to verify..."
-   }
-   ```
-
-2. **Login checks email_confirmed_at**:
-   ```typescript
-   if (user.email_confirmed_at === null) {
-     return {
-       success: false,
-       error: {
-         code: 'EMAIL_NOT_CONFIRMED',
-         message: 'Please verify your email...'
-       }
-     };
-   }
-   ```
-
-3. **All state transitions are logged** with unique request IDs for tracing
-
-4. **Metrics track confirmation funnel**:
-   - Registration rate
-   - Confirmation rate (% who click link)
-   - Time to confirm (minutes)
-   - Unconfirmed login attempts
-
-**Platform Detection:**
 ```typescript
-const isReactNative =
-  typeof navigator !== 'undefined' &&
-  navigator.product === 'ReactNative';
+// hooks/useHousehold.ts
+export function useHousehold(householdId: string) {
+  const [household, setHousehold] = useState<Household | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-// Use platform-specific code
-if (isReactNative) {
-  // React Native implementation
-} else {
-  // Web implementation
+  useEffect(() => {
+    loadHousehold(householdId)
+      .then(setHousehold)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [householdId]);
+
+  return { household, loading, error };
 }
 ```
 
-#### @petforce/ui (Future)
+**3. Container/Presenter Pattern**
 
-Shared UI components and design tokens.
+Separate data fetching from presentation:
 
-**Will Include:**
-- Design tokens (colors, typography, spacing)
-- Utility functions
-- Shared constants
-- Theme configuration
+```typescript
+// Container (smart component)
+export function HouseholdDashboard() {
+  const { household, loading } = useHousehold();
+
+  if (loading) return <Loading />;
+  if (!household) return <NotFound />;
+
+  return <HouseholdView household={household} />;
+}
+
+// Presenter (dumb component)
+interface HouseholdViewProps {
+  household: Household;
+}
+
+export function HouseholdView({ household }: HouseholdViewProps) {
+  return (
+    <div>
+      <h1>{household.name}</h1>
+      {/* Pure presentation logic */}
+    </div>
+  );
+}
+```
+
+---
+
+## Backend Architecture
+
+### Supabase as Backend
+
+We use Supabase as our Backend-as-a-Service (BaaS):
+
+**Advantages:**
+
+- Managed PostgreSQL database
+- Built-in authentication
+- Real-time subscriptions
+- File storage
+- Edge Functions (serverless)
+- Automatic API generation
+- Row-level security
+
+**Services Used:**
+
+1. **Database**: PostgreSQL 15
+2. **Authentication**: Email, Magic Link, OAuth (Google, Apple)
+3. **Storage**: File uploads for pet photos
+4. **Realtime**: WebSocket subscriptions
+5. **Edge Functions**: Custom business logic
+
+### Database Design
+
+See [Database Schema](#database-design) section for details.
+
+### Edge Functions
+
+Custom serverless functions for complex logic:
+
+```
+supabase/
+└── functions/
+    ├── create-household/        # Household creation
+    ├── join-household/           # Join request handling
+    ├── send-notification/        # Push notifications
+    └── generate-analytics/       # Analytics computation
+```
+
+**Example Edge Function:**
+
+```typescript
+// supabase/functions/create-household/index.ts
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+serve(async (req) => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const { name, description } = await req.json();
+  const authHeader = req.headers.get("Authorization")!;
+
+  // Verify JWT token
+  const {
+    data: { user },
+  } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
+  // Create household
+  const { data: household, error } = await supabase
+    .from("households")
+    .insert({
+      name,
+      description,
+      leader_id: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+    });
+  }
+
+  return new Response(JSON.stringify({ household }), {
+    status: 201,
+    headers: { "Content-Type": "application/json" },
+  });
+});
+```
+
+---
+
+## Database Design
+
+### Schema Overview
+
+```sql
+-- Core Tables
+users                    # User accounts (Supabase Auth)
+households               # Household entities
+household_members        # Membership relationships
+household_join_requests  # Join requests
+pets                     # Pet profiles (future)
+```
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    users ||--o{ households : creates
+    users ||--o{ household_members : "belongs to"
+    users ||--o{ household_join_requests : requests
+    households ||--o{ household_members : has
+    households ||--o{ household_join_requests : receives
+    households ||--o{ pets : contains
+
+    users {
+        uuid id PK
+        string email
+        timestamp created_at
+        timestamp email_confirmed_at
+    }
+
+    households {
+        uuid id PK
+        string name
+        text description
+        string invite_code
+        timestamp invite_code_expires_at
+        uuid leader_id FK
+        timestamp created_at
+    }
+
+    household_members {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        enum role
+        enum status
+        timestamp joined_at
+    }
+
+    household_join_requests {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        enum status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    pets {
+        uuid id PK
+        uuid household_id FK
+        string name
+        enum species
+        date birth_date
+        timestamp created_at
+    }
+```
+
+### Row-Level Security (RLS)
+
+All tables use RLS for data access control:
+
+```sql
+-- Example: household_members table
+CREATE POLICY "Users can view their own household memberships"
+ON household_members
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Household leaders can manage members"
+ON household_members
+FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM household_members hm
+    WHERE hm.household_id = household_members.household_id
+      AND hm.user_id = auth.uid()
+      AND hm.role = 'leader'
+  )
+);
+```
+
+### Indexes
+
+Performance-critical indexes:
+
+```sql
+-- Household lookups
+CREATE INDEX idx_households_invite_code ON households(invite_code);
+CREATE INDEX idx_households_leader_id ON households(leader_id);
+
+-- Member lookups
+CREATE INDEX idx_household_members_household_id ON household_members(household_id);
+CREATE INDEX idx_household_members_user_id ON household_members(user_id);
+
+-- Join request lookups
+CREATE INDEX idx_join_requests_household_id ON household_join_requests(household_id);
+CREATE INDEX idx_join_requests_user_id ON household_join_requests(user_id);
+CREATE INDEX idx_join_requests_status ON household_join_requests(status);
+```
+
+---
+
+## Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Supabase
+    participant Database
+
+    User->>App: Enter email/password
+    App->>Supabase: signIn(email, password)
+    Supabase->>Database: Verify credentials
+    Database-->>Supabase: User data
+    Supabase->>Supabase: Generate JWT token
+    Supabase-->>App: { user, session, token }
+    App->>App: Store token in localStorage
+    App->>App: Store user in Zustand
+    App-->>User: Redirect to dashboard
+
+    Note over User,Database: Subsequent requests include token
+
+    User->>App: Access protected resource
+    App->>Supabase: GET /api/households (+ token)
+    Supabase->>Supabase: Verify JWT
+    Supabase->>Database: Query with RLS (auth.uid())
+    Database-->>Supabase: Filtered data
+    Supabase-->>App: Response
+    App-->>User: Display data
+```
+
+### Token Management
+
+- **Access Token**: JWT, expires in 1 hour
+- **Refresh Token**: Long-lived, expires in 30 days
+- **Automatic Refresh**: SDK handles token refresh
+- **Storage**: localStorage (web), SecureStore (mobile)
+
+---
+
+## Household Management
+
+### Household Creation Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant API
+    participant Database
+    participant Cache
+
+    User->>App: Fill household form
+    App->>API: POST /api/households/create
+    API->>API: Validate input
+    API->>Database: BEGIN TRANSACTION
+    API->>Database: INSERT INTO households
+    API->>Database: INSERT INTO household_members (leader)
+    API->>Database: Generate invite code
+    API->>Database: COMMIT TRANSACTION
+    Database-->>API: Household created
+    API->>Cache: Cache household (5min TTL)
+    API->>Cache: Cache member list
+    API-->>App: { household, inviteCode }
+    App->>App: Update Zustand store
+    App-->>User: Show success + invite code
+```
+
+### Household Join Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant API
+    participant Database
+    participant Leader
+    participant Push
+
+    User->>App: Enter invite code / Scan QR
+    App->>API: POST /api/households/join
+    API->>Database: Validate invite code
+    API->>Database: Check expiration
+    API->>Database: INSERT join request
+    Database-->>API: Request created
+    API->>Push: Notify household leader
+    API-->>App: { status: 'pending' }
+    App-->>User: "Request sent, awaiting approval"
+
+    Leader->>Push: Receive notification
+    Leader->>App: View join requests
+    Leader->>API: POST /api/households/approve-request
+    API->>Database: UPDATE request status
+    API->>Database: INSERT household member
+    Database-->>API: Member added
+    API->>Push: Notify requester (approved)
+    API-->>Leader: Success
+    App-->>User: "You've been added to household"
+```
+
+---
 
 ## State Management
 
-### Local State
+### Zustand Stores
 
-- **React State**: Component-level state with `useState`
-- **Refs**: DOM references and mutable values with `useRef`
-- **Context**: Limited use for theme/i18n
+We use Zustand for global state management:
 
-### Global State
-
-- **Zustand**: Lightweight global state
-  - Auth state (`useAuthStore`)
-  - User preferences (future)
-  - App settings (future)
-
-**Auth Store Structure:**
 ```typescript
+// stores/authStore.ts
 interface AuthState {
-  // State
   user: User | null;
-  tokens: AuthTokens | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  isHydrated: boolean;
-
-  // Actions
+  session: Session | null;
+  loading: boolean;
   setUser: (user: User | null) => void;
-  setTokens: (tokens: AuthTokens | null) => Promise<void>;
+  setSession: (session: Session | null) => void;
   logout: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  session: null,
+  loading: true,
+  setUser: (user) => set({ user }),
+  setSession: (session) => set({ session }),
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ user: null, session: null });
+  },
+}));
+```
+
+### State Architecture
+
+```
+Global State (Zustand)
+├── authStore          # User authentication state
+├── householdStore     # Current household state
+└── uiStore            # UI state (modals, toasts)
+
+Server State (React Query)
+├── useHouseholds()    # Household list
+├── useHousehold()     # Single household
+└── useMembers()       # Household members
+
+Local State (useState)
+└── Component-specific state
+```
+
+---
+
+## Caching Strategy
+
+### Multi-Layer Caching
+
+1. **Browser Cache** (Web)
+   - Service Worker for offline support
+   - LocalStorage for user preferences
+   - IndexedDB for large datasets
+
+2. **Mobile Cache** (React Native)
+   - AsyncStorage for data persistence
+   - Memory cache for frequently accessed data
+   - 5-minute TTL for household data
+
+3. **Server Cache** (Redis)
+   - Household data (5 minutes)
+   - Member lists (5 minutes)
+   - API responses (1 minute)
+
+### Cache Invalidation
+
+```typescript
+// Invalidate cache on mutation
+async function createHousehold(input: CreateHouseholdInput) {
+  const household = await api.createHousehold(input);
+
+  // Invalidate React Query cache
+  queryClient.invalidateQueries(["households"]);
+
+  // Invalidate server cache
+  await redis.del(`households:user:${user.id}`);
+
+  return household;
 }
 ```
 
-### Server State (Future)
-
-- **React Query**: Server state management
-  - Caching
-  - Background refetching
-  - Optimistic updates
-
-## Navigation
-
-### Web (React Router)
-
-```typescript
-<Routes>
-  <Route path="/" element={<Navigate to="/auth/welcome" />} />
-
-  {/* Public routes */}
-  <Route path="/auth/*" element={<AuthNavigator />} />
-
-  {/* Protected routes */}
-  <Route path="/dashboard" element={
-    <ProtectedRoute>
-      <Dashboard />
-    </ProtectedRoute>
-  } />
-</Routes>
-```
-
-### Mobile (React Navigation)
-
-```typescript
-<NavigationContainer>
-  <Stack.Navigator>
-    {isAuthenticated ? (
-      <Stack.Screen name="App" component={AppNavigator} />
-    ) : (
-      <Stack.Screen name="Auth" component={AuthNavigator} />
-    )}
-  </Stack.Navigator>
-</NavigationContainer>
-```
-
-## Data Flow
-
-### Authentication Flow
-
-```
-User Action (Login)
-       ↓
-Component (LoginPage)
-       ↓
-Hook (useAuth)
-       ↓
-API Function (loginWithPassword)
-       ↓
-Supabase API
-       ↓
-Store Update (setUser, setTokens)
-       ↓
-UI Update (redirect to dashboard)
-```
-
-### Form Submission Flow
-
-```
-User Input
-       ↓
-Controlled Component (Input value)
-       ↓
-Local Validation
-       ↓
-Form Submit Handler
-       ↓
-API Call with Loading State
-       ↓
-Success: Update State + Navigate
-Error: Show Error Message
-```
+---
 
 ## Security Architecture
 
-### Authentication
+### Authentication Security
 
-- **JWT Tokens**: Secure token-based auth
-- **Token Refresh**: Automatic refresh before expiry
-- **Secure Storage**:
-  - Web: sessionStorage (with httpOnly cookies future)
-  - Mobile: Keychain (iOS) / Keystore (Android)
+- Passwords hashed with bcrypt (Supabase default)
+- JWT tokens signed with HS256
+- Token rotation on refresh
+- Rate limiting on auth endpoints (5 attempts per 5 minutes)
 
-### Authorization
+### API Security
 
-- **Route Guards**: Protected routes check auth state
-- **API Guards**: All API calls include auth headers
-- **Role-Based**: (Future) Check user roles/permissions
+- All endpoints require authentication
+- CORS configured for allowed origins only
+- Rate limiting (100 requests per minute)
+- Input validation with Zod
+- SQL injection prevention (parameterized queries)
+- XSS prevention (React auto-escaping)
 
-### Data Validation
+### Data Security
 
-- **Input Validation**: Client-side + server-side
-- **Type Safety**: TypeScript prevents type errors
-- **Sanitization**: XSS prevention
+- Row-level security on all tables
+- PII automatically redacted in logs
+- Passwords never logged
+- Sensitive data encrypted at rest (Supabase default)
+- TLS for all data in transit
 
-### Security Best Practices
+See [Security Documentation](./SECURITY.md) for complete security policies.
 
-- HTTPS everywhere
-- No sensitive data in localStorage (web)
-- Secure password requirements
-- Rate limiting (server-side)
-- CORS configuration
+---
 
-## Testing Architecture
+## Mobile Architecture
 
-### Test Types
+### React Native + Expo
 
-1. **Unit Tests**: Individual functions/components
-2. **Integration Tests**: Feature flows
-3. **E2E Tests**: Complete user journeys (future)
+**Why Expo:**
 
-### Test Infrastructure
+- Simplified development workflow
+- Over-the-air updates
+- Native module management
+- Built-in services (camera, notifications, storage)
 
+### Mobile-Specific Features
+
+1. **Offline-First**
+   - AsyncStorage for data caching
+   - Queue failed requests for retry
+   - Optimistic UI updates
+
+2. **Deep Linking**
+   - URL scheme: `petforce://`
+   - Universal Links (iOS): `https://petforce.app/`
+   - App Links (Android): `https://petforce.app/`
+
+3. **Push Notifications**
+   - Expo Notifications API
+   - Household join requests
+   - Leadership changes
+   - Important updates
+
+4. **QR Code Scanning**
+   - expo-camera for QR scanning
+   - Instant household joining
+   - Share QR codes for invites
+
+See [Mobile Documentation](../apps/mobile/HOUSEHOLD_MOBILE.md) for details.
+
+---
+
+## Infrastructure
+
+### Deployment Architecture
+
+**Web Application:**
+
+- Docker containers
+- AWS ECS Fargate or Kubernetes
+- Auto-scaling (3-10 instances)
+- Blue/Green deployments
+
+**Mobile Application:**
+
+- EAS Build (Expo)
+- OTA updates for minor changes
+- App Store / Play Store for major releases
+
+### CI/CD Pipeline
+
+```yaml
+# GitHub Actions workflow
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm test
+      - run: npm run lint
+      - run: npm run typecheck
+
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to staging
+        run: ./scripts/deploy-staging.sh
+
+  deploy-production:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to production
+        run: ./scripts/deploy-production.sh
 ```
-Test Pyramid (Target)
-     /\
-    /E2E\         10% - Critical paths
-   /─────\
-  / Integ.\       30% - Feature flows
- /─────────\
-/   Unit    \     60% - Components & utils
-─────────────
-```
 
-### Mocking Strategy
+See [Infrastructure Documentation](../infrastructure/deploy.md) for complete deployment guide.
 
-- Mock external APIs (Supabase)
-- Mock navigation
-- Mock platform APIs (biometrics)
-- Use test fixtures for data
+---
 
-## Performance Considerations
+## Monitoring & Observability
 
-### Web Optimization
+### Logging Strategy
 
-- Code splitting by route
-- Lazy loading components
-- Image optimization
-- Bundle size monitoring
+- **Structured logging** (JSON format)
+- **Correlation IDs** for request tracing
+- **Automatic PII redaction**
+- **Business event logging**
 
-### Mobile Optimization
+### Metrics
 
-- FlatList for long lists
-- Image caching
-- Background task optimization
-- Memory management
+- **Application metrics**: Error rate, latency, throughput
+- **Business metrics**: Household creation rate, join success rate
+- **Infrastructure metrics**: CPU, memory, disk usage
 
-### General Optimizations
+### Alerting
 
-- Memoization (React.memo, useMemo, useCallback)
-- Debouncing user input
-- Pagination for large datasets
-- Optimistic UI updates
+- **Critical**: Error rate > 10/sec, database down
+- **High**: High latency, low join success rate
+- **Medium**: Slow operations, cache misses
 
-## Deployment Architecture
+See [Logging Documentation](../docs/logging/README.md) for complete observability guide.
 
-### Web Deployment
-
-```
-GitHub
-  ↓ (push to main)
-CI/CD Pipeline
-  ↓ (build + test)
-Vercel/Netlify
-  ↓ (deploy)
-Production
-```
-
-### Mobile Deployment
-
-```
-GitHub
-  ↓ (push to main)
-EAS Build
-  ↓ (build)
-App Store / Play Store
-  ↓ (review + publish)
-Production
-```
-
-## Monitoring & Analytics (Future)
-
-### Error Tracking
-- Sentry for error monitoring
-- Custom error boundaries
-- Automatic error reporting
-
-### Analytics
-- Mixpanel / Amplitude
-- User behavior tracking
-- Feature usage metrics
-
-### Performance Monitoring
-- Web Vitals
-- Custom performance marks
-- Bundle size tracking
-
-## Future Architecture Improvements
-
-### Short Term
-- [ ] Add React Query for server state
-- [ ] Implement error boundaries
-- [ ] Add analytics integration
-- [ ] Set up CI/CD pipelines
-
-### Long Term
-- [ ] Microservices architecture
-- [ ] GraphQL API layer
-- [ ] Edge functions for complex logic
-- [ ] Real-time collaboration features
+---
 
 ## Design Decisions
+
+### Why Supabase?
+
+- **Fast development**: Built-in auth, database, storage
+- **Type safety**: Generated TypeScript types
+- **Real-time**: WebSocket subscriptions
+- **Security**: Row-level security
+- **Scalability**: Managed infrastructure
+
+### Why Monorepo?
+
+- **Code sharing**: 40% code reuse between web and mobile
+- **Type safety**: Shared types across platforms
+- **Atomic changes**: Update web and mobile together
+- **Simplified CI/CD**: Single pipeline for all apps
 
 ### Why Zustand over Redux?
 
 - **Simpler API**: Less boilerplate
-- **Better TypeScript**: Type inference
-- **Smaller Bundle**: Lightweight
-- **Good Enough**: Meets current needs
-
-### Why Supabase over Custom Backend?
-
-- **Faster Development**: Ready-to-use features
-- **Cost Effective**: Free tier generous
-- **Scalable**: Can upgrade as needed
-- **Less Maintenance**: Managed service
-
-### Why Monorepo?
-
-- **Code Sharing**: DRY principles
-- **Consistent Tooling**: Same build tools
-- **Easier Refactoring**: Cross-package changes
-- **Atomic Commits**: Related changes together
-
-### Why TypeScript?
-
-- **Type Safety**: Catch errors early
-- **Better DX**: Autocomplete and IntelliSense
-- **Self-Documenting**: Types as documentation
-- **Refactoring**: Safe code changes
+- **Better TypeScript**: Native TS support
+- **Smaller bundle**: 3KB vs 12KB (Redux + toolkit)
+- **Faster**: No HOCs or providers
+- **Easier testing**: Simple store creation
 
 ---
 
-**Last Updated**: January 24, 2026
-**Maintained by**: PetForce Development Team
+## Future Architecture
+
+### Planned Improvements
+
+1. **Microservices** (when scale requires)
+   - Extract auth service
+   - Extract notification service
+   - Extract analytics service
+
+2. **GraphQL** (for complex queries)
+   - Replace REST with GraphQL
+   - Real-time subscriptions
+   - Better mobile performance
+
+3. **Serverless Functions** (for compute-heavy tasks)
+   - Analytics computation
+   - Report generation
+   - Image processing
+
+4. **Event-Driven Architecture**
+   - Event bus (AWS EventBridge or Kafka)
+   - Async processing
+   - Better scalability
+
+---
+
+## Related Documentation
+
+- [Git Workflow](./GIT_WORKFLOW.md)
+- [Testing Guide](../TESTING.md)
+- [Contributing Guide](../CONTRIBUTING.md)
+- [Infrastructure Guide](../infrastructure/deploy.md)
+- [Logging Guide](./logging/README.md)
+
+---
+
+Built with ❤️ by the PetForce Engineering Team
+
+**Architecture evolves with needs. Start simple, scale when necessary.**
