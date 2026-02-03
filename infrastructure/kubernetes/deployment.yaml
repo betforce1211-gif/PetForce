@@ -1,0 +1,433 @@
+# PetForce Kubernetes Deployment Manifests
+#
+# Deploy with: kubectl apply -f infrastructure/kubernetes/
+#
+# Services:
+# - Web Application (Next.js/React)
+# - API Server (Node.js/Express)
+# - Redis Cache
+# - Nginx Ingress
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: petforce
+  labels:
+    app: petforce
+    environment: production
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petforce-config
+  namespace: petforce
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  APP_URL: "https://petforce.app"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  RATE_LIMITING_ENABLED: "true"
+  ANALYTICS_ENABLED: "true"
+
+---
+# Secret for sensitive data
+# Note: Base64 encode all values before applying
+# Example: echo -n 'your-secret' | base64
+apiVersion: v1
+kind: Secret
+metadata:
+  name: petforce-secrets
+  namespace: petforce
+type: Opaque
+data:
+  SUPABASE_URL: <base64-encoded-url>
+  SUPABASE_ANON_KEY: <base64-encoded-key>
+  SUPABASE_SERVICE_ROLE_KEY: <base64-encoded-key>
+  REDIS_PASSWORD: <base64-encoded-password>
+  JWT_SECRET: <base64-encoded-secret>
+  ENCRYPTION_KEY: <base64-encoded-key>
+  DATADOG_API_KEY: <base64-encoded-key>
+  SENTRY_DSN: <base64-encoded-dsn>
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: petforce
+  labels:
+    app: redis
+    tier: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: cache
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petforce-secrets
+                  key: REDIS_PASSWORD
+          command:
+            - redis-server
+            - --requirepass
+            - $(REDIS_PASSWORD)
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc
+
+---
+# Redis PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: petforce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gp3
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: petforce
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: redis
+  selector:
+    app: redis
+
+---
+# Web Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petforce-web
+  namespace: petforce
+  labels:
+    app: petforce-web
+    tier: frontend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: petforce-web
+  template:
+    metadata:
+      labels:
+        app: petforce-web
+        tier: frontend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: web
+          image: <your-registry>/petforce-web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: petforce-config
+                  key: NODE_ENV
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: petforce-config
+                  key: PORT
+            - name: APP_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: petforce-config
+                  key: APP_URL
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: petforce-secrets
+                  key: SUPABASE_URL
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: petforce-secrets
+                  key: SUPABASE_ANON_KEY
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: petforce-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: petforce-config
+                  key: REDIS_PORT
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petforce-secrets
+                  key: REDIS_PASSWORD
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+      imagePullSecrets:
+        - name: registry-credentials
+
+---
+# Web Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: petforce-web-service
+  namespace: petforce
+  labels:
+    app: petforce-web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: petforce-web
+
+---
+# HorizontalPodAutoscaler for Web
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: petforce-web-hpa
+  namespace: petforce
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: petforce-web
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Ingress (nginx-ingress-controller)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: petforce-ingress
+  namespace: petforce
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - petforce.app
+        - www.petforce.app
+      secretName: petforce-tls
+  rules:
+    - host: petforce.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: petforce-web-service
+                port:
+                  number: 80
+    - host: www.petforce.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: petforce-web-service
+                port:
+                  number: 80
+
+---
+# PodDisruptionBudget for Web
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: petforce-web-pdb
+  namespace: petforce
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: petforce-web
+
+---
+# NetworkPolicy for Web
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: petforce-web-network-policy
+  namespace: petforce
+spec:
+  podSelector:
+    matchLabels:
+      app: petforce-web
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443 # Allow HTTPS to Supabase
+
+---
+# ServiceMonitor for Prometheus (if using Prometheus Operator)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: petforce-web-metrics
+  namespace: petforce
+  labels:
+    app: petforce-web
+spec:
+  selector:
+    matchLabels:
+      app: petforce-web
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

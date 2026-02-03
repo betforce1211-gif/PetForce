@@ -1,504 +1,780 @@
-# Monitoring Alerts Configuration
-# For PagerDuty, Datadog, CloudWatch
+# PetForce Monitoring & Alerting Configuration
+#
+# This file defines comprehensive monitoring and alerting for PetForce infrastructure.
+#
+# Coverage:
+# - Application performance (error rate, latency, throughput)
+# - Database health (connections, query performance, replication)
+# - Redis cache (hit rate, memory, evictions)
+# - Infrastructure (CPU, memory, disk, network)
+# - Security (authentication failures, rate limiting)
+# - Business metrics (household creation, API usage)
+# - Cost monitoring
+#
+# Platforms:
+# - DataDog (primary APM and infrastructure monitoring)
+# - AWS CloudWatch (AWS resource monitoring)
+# - Prometheus (Kubernetes metrics)
+#
+# Notification Channels:
+# - PagerDuty (P0/P1 critical alerts)
+# - Slack (all alerts)
+# - Email (daily summaries)
 
-version: "1.0"
+---
+# DataDog Monitors
+# Deploy with: datadog-cli monitor apply -f alerts.yaml
 
-# ===========================================================================
-# ALERT CHANNELS
-# ===========================================================================
-channels:
+datadog_monitors:
+  # Application Performance Monitors
+
+  - name: "[P0] High Error Rate - Household API"
+    type: "metric alert"
+    query: "avg(last_5m):sum:household.api.errors{env:production} by {endpoint}.as_rate() > 10"
+    message: |
+      **High error rate detected in Household API**
+
+      Error rate: {{value}} errors/sec
+      Endpoint: {{endpoint.name}}
+
+      **Impact**: Users cannot create/join households
+      **Action Required**: Check application logs and database connectivity
+
+      Runbook: https://docs.petforce.app/runbooks/high-error-rate
+
+      @pagerduty-critical @slack-alerts
+    tags:
+      - "service:household-api"
+      - "severity:critical"
+      - "team:platform"
+    priority: 1
+    thresholds:
+      critical: 10
+      warning: 5
+    notify_no_data: true
+    no_data_timeframe: 10
+
+  - name: "[P1] High API Latency - Household Operations"
+    type: "metric alert"
+    query: "avg(last_5m):avg:household.api.latency{env:production} by {endpoint} > 2000"
+    message: |
+      **High latency detected in Household API**
+
+      Latency: {{value}}ms (p95)
+      Endpoint: {{endpoint.name}}
+
+      **Impact**: Slow user experience
+      **Action Required**: Check database query performance and connection pool
+
+      Runbook: https://docs.petforce.app/runbooks/high-latency
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:household-api"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 2000
+      warning: 1000
+
+  - name: "[P1] High Memory Usage - Web Application"
+    type: "metric alert"
+    query: "avg(last_10m):avg:system.mem.used{env:production,service:petforce-web} / avg:system.mem.total{env:production,service:petforce-web} * 100 > 85"
+    message: |
+      **High memory usage detected**
+
+      Memory usage: {{value}}%
+      Service: petforce-web
+
+      **Impact**: Risk of OOM kills and service degradation
+      **Action Required**: Check for memory leaks and scale if needed
+
+      Runbook: https://docs.petforce.app/runbooks/high-memory
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:petforce-web"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 85
+      warning: 75
+
+  - name: "[P2] High CPU Usage - Web Application"
+    type: "metric alert"
+    query: "avg(last_10m):avg:system.cpu.user{env:production,service:petforce-web} > 80"
+    message: |
+      **High CPU usage detected**
+
+      CPU usage: {{value}}%
+      Service: petforce-web
+
+      **Impact**: Slow response times
+      **Action Required**: Check for CPU-intensive operations and scale if needed
+
+      @slack-alerts
+    tags:
+      - "service:petforce-web"
+      - "severity:medium"
+      - "team:platform"
+    priority: 3
+    thresholds:
+      critical: 80
+      warning: 65
+
+  # Database Monitors
+
+  - name: "[P0] Database Connection Pool Exhausted"
+    type: "metric alert"
+    query: "avg(last_5m):avg:supabase.pool.available_connections{env:production} < 5"
+    message: |
+      **Database connection pool nearly exhausted**
+
+      Available connections: {{value}}
+
+      **Impact**: API requests will fail or timeout
+      **Action Required**:
+      1. Check for connection leaks
+      2. Review slow queries
+      3. Consider scaling connection pool
+
+      Runbook: https://docs.petforce.app/runbooks/db-connection-pool
+
+      @pagerduty-critical @slack-alerts
+    tags:
+      - "service:database"
+      - "severity:critical"
+      - "team:platform"
+    priority: 1
+    thresholds:
+      critical: 5
+      warning: 10
+
+  - name: "[P1] Slow Database Queries"
+    type: "metric alert"
+    query: "avg(last_10m):avg:supabase.query.duration{env:production} by {query_name} > 5000"
+    message: |
+      **Slow database queries detected**
+
+      Query duration: {{value}}ms
+      Query: {{query_name}}
+
+      **Impact**: Slow API responses
+      **Action Required**: Review query execution plan and add indexes if needed
+
+      Runbook: https://docs.petforce.app/runbooks/slow-queries
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:database"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 5000
+      warning: 3000
+
+  - name: "[P0] Database Connection Failures"
+    type: "metric alert"
+    query: "avg(last_5m):sum:supabase.connection.errors{env:production}.as_rate() > 5"
+    message: |
+      **Database connection failures**
+
+      Error rate: {{value}} errors/sec
+
+      **Impact**: Complete service outage
+      **Action Required**: Check database status and network connectivity
+
+      Runbook: https://docs.petforce.app/runbooks/db-connection-failure
+
+      @pagerduty-critical @slack-alerts
+    tags:
+      - "service:database"
+      - "severity:critical"
+      - "team:platform"
+    priority: 1
+    thresholds:
+      critical: 5
+      warning: 2
+
+  # Redis Cache Monitors
+
+  - name: "[P1] Low Redis Cache Hit Rate"
+    type: "metric alert"
+    query: "avg(last_15m):(sum:redis.stats.keyspace_hits{env:production} / (sum:redis.stats.keyspace_hits{env:production} + sum:redis.stats.keyspace_misses{env:production})) * 100 < 70"
+    message: |
+      **Low Redis cache hit rate**
+
+      Hit rate: {{value}}%
+
+      **Impact**: Increased database load and slower responses
+      **Action Required**: Review cache TTLs and cache warming strategy
+
+      @slack-alerts
+    tags:
+      - "service:redis"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 70
+      warning: 80
+
+  - name: "[P1] High Redis Memory Usage"
+    type: "metric alert"
+    query: "avg(last_10m):avg:redis.mem.used{env:production} / avg:redis.mem.maxmemory{env:production} * 100 > 85"
+    message: |
+      **High Redis memory usage**
+
+      Memory usage: {{value}}%
+
+      **Impact**: Risk of cache evictions and performance degradation
+      **Action Required**: Review cache size limits and eviction policy
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:redis"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 85
+      warning: 75
+
+  - name: "[P2] High Redis Eviction Rate"
+    type: "metric alert"
+    query: "avg(last_10m):sum:redis.keys.evicted{env:production}.as_rate() > 100"
+    message: |
+      **High Redis eviction rate**
+
+      Eviction rate: {{value}} keys/sec
+
+      **Impact**: Reduced cache effectiveness
+      **Action Required**: Consider increasing Redis memory or optimizing cache usage
+
+      @slack-alerts
+    tags:
+      - "service:redis"
+      - "severity:medium"
+      - "team:platform"
+    priority: 3
+    thresholds:
+      critical: 100
+      warning: 50
+
+  # Business Metrics Monitors
+
+  - name: "[P1] Household Creation Failures"
+    type: "metric alert"
+    query: "avg(last_15m):sum:household.creation.failures{env:production}.as_rate() > 5"
+    message: |
+      **High household creation failure rate**
+
+      Failure rate: {{value}} failures/min
+
+      **Impact**: Users cannot create households
+      **Action Required**: Check application logs and database constraints
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:household-api"
+      - "severity:high"
+      - "team:product"
+    priority: 2
+    thresholds:
+      critical: 5
+      warning: 2
+
+  - name: "[P2] Low Household Join Success Rate"
+    type: "metric alert"
+    query: "avg(last_30m):(sum:household.join.success{env:production} / (sum:household.join.success{env:production} + sum:household.join.failures{env:production})) * 100 < 85"
+    message: |
+      **Low household join success rate**
+
+      Success rate: {{value}}%
+
+      **Impact**: Users having trouble joining households
+      **Action Required**: Review join flow and invite code validation
+
+      @slack-alerts
+    tags:
+      - "service:household-api"
+      - "severity:medium"
+      - "team:product"
+    priority: 3
+    thresholds:
+      critical: 85
+      warning: 90
+
+  # Security Monitors
+
+  - name: "[P0] High Authentication Failure Rate"
+    type: "metric alert"
+    query: "avg(last_5m):sum:auth.login.failures{env:production}.as_rate() > 20"
+    message: |
+      **High authentication failure rate**
+
+      Failure rate: {{value}} failures/sec
+
+      **Impact**: Possible credential stuffing attack
+      **Action Required**: Review authentication logs and consider rate limiting
+
+      Runbook: https://docs.petforce.app/runbooks/auth-failures
+
+      @pagerduty-critical @slack-alerts
+    tags:
+      - "service:auth"
+      - "severity:critical"
+      - "team:security"
+    priority: 1
+    thresholds:
+      critical: 20
+      warning: 10
+
+  - name: "[P1] Rate Limit Exceeded"
+    type: "metric alert"
+    query: "avg(last_10m):sum:rate_limit.exceeded{env:production} by {ip_address}.as_rate() > 100"
+    message: |
+      **High rate limit exceeded count**
+
+      IP: {{ip_address}}
+      Rate: {{value}} requests/sec
+
+      **Impact**: Possible abuse or DoS attempt
+      **Action Required**: Review IP and consider blocking if malicious
+
+      @slack-alerts
+    tags:
+      - "service:api"
+      - "severity:high"
+      - "team:security"
+    priority: 2
+    thresholds:
+      critical: 100
+      warning: 50
+
+  # Infrastructure Monitors
+
+  - name: "[P0] Service Health Check Failing"
+    type: "service check"
+    query: '"http.can_connect".over("env:production","service:petforce-web").by("instance").last(4).count_by_status()'
+    message: |
+      **Service health check failing**
+
+      Instance: {{instance}}
+
+      **Impact**: Service is down or unreachable
+      **Action Required**: Check service logs and container status
+
+      Runbook: https://docs.petforce.app/runbooks/service-down
+
+      @pagerduty-critical @slack-alerts
+    tags:
+      - "service:petforce-web"
+      - "severity:critical"
+      - "team:platform"
+    priority: 1
+    thresholds:
+      critical: 3
+      warning: 2
+
+  - name: "[P1] High Disk Usage"
+    type: "metric alert"
+    query: "avg(last_10m):avg:system.disk.used{env:production,device:/} / avg:system.disk.total{env:production,device:/} * 100 > 85"
+    message: |
+      **High disk usage**
+
+      Disk usage: {{value}}%
+      Device: /
+
+      **Impact**: Risk of disk full and service failures
+      **Action Required**: Clean up logs and temporary files, or expand disk
+
+      @pagerduty-high @slack-alerts
+    tags:
+      - "service:infrastructure"
+      - "severity:high"
+      - "team:platform"
+    priority: 2
+    thresholds:
+      critical: 85
+      warning: 75
+
+  - name: "[P2] SSL Certificate Expiring Soon"
+    type: "metric alert"
+    query: "avg(last_1h):min:http.ssl.days_left{env:production} < 14"
+    message: |
+      **SSL certificate expiring soon**
+
+      Days left: {{value}}
+
+      **Impact**: Service will become inaccessible when cert expires
+      **Action Required**: Renew SSL certificate
+
+      @slack-alerts
+    tags:
+      - "service:infrastructure"
+      - "severity:medium"
+      - "team:platform"
+    priority: 3
+    thresholds:
+      critical: 7
+      warning: 14
+
+  # Cost Monitoring
+
+  - name: "[P2] High AWS Cost Increase"
+    type: "metric alert"
+    query: "avg(last_1d):avg:aws.estimated.charges{env:production} - avg:aws.estimated.charges{env:production}.rollup(avg, 604800) > 50"
+    message: |
+      **Unexpected AWS cost increase**
+
+      Cost increase: ${{value}} vs last week
+
+      **Action Required**: Review AWS Cost Explorer for anomalies
+
+      @slack-alerts
+    tags:
+      - "service:infrastructure"
+      - "severity:medium"
+      - "team:platform"
+    priority: 3
+    thresholds:
+      critical: 100
+      warning: 50
+
+---
+# AWS CloudWatch Alarms
+# Deploy with: aws cloudwatch put-metric-alarm --cli-input-json file://alarm.json
+
+cloudwatch_alarms:
+  - AlarmName: "PetForce-ECS-HighCPU"
+    AlarmDescription: "ECS service CPU utilization is too high"
+    MetricName: "CPUUtilization"
+    Namespace: "AWS/ECS"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 80.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "ServiceName"
+        Value: "petforce-web-service"
+      - Name: "ClusterName"
+        Value: "petforce-production"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+    TreatMissingData: "notBreaching"
+
+  - AlarmName: "PetForce-ECS-HighMemory"
+    AlarmDescription: "ECS service memory utilization is too high"
+    MetricName: "MemoryUtilization"
+    Namespace: "AWS/ECS"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 85.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "ServiceName"
+        Value: "petforce-web-service"
+      - Name: "ClusterName"
+        Value: "petforce-production"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+
+  - AlarmName: "PetForce-ALB-HighLatency"
+    AlarmDescription: "Application Load Balancer target response time is high"
+    MetricName: "TargetResponseTime"
+    Namespace: "AWS/ApplicationELB"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 2.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "LoadBalancer"
+        Value: "app/petforce-alb/xyz123"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+
+  - AlarmName: "PetForce-ALB-High5xxErrors"
+    AlarmDescription: "Application Load Balancer has high 5xx error rate"
+    MetricName: "HTTPCode_Target_5XX_Count"
+    Namespace: "AWS/ApplicationELB"
+    Statistic: "Sum"
+    Period: 300
+    EvaluationPeriods: 1
+    Threshold: 10.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "LoadBalancer"
+        Value: "app/petforce-alb/xyz123"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-critical"
+    TreatMissingData: "notBreaching"
+
+  - AlarmName: "PetForce-RDS-HighCPU"
+    AlarmDescription: "RDS instance CPU is too high"
+    MetricName: "CPUUtilization"
+    Namespace: "AWS/RDS"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 80.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "DBInstanceIdentifier"
+        Value: "petforce-postgres-prod"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+
+  - AlarmName: "PetForce-RDS-LowFreeStorage"
+    AlarmDescription: "RDS instance is running out of storage"
+    MetricName: "FreeStorageSpace"
+    Namespace: "AWS/RDS"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 1
+    Threshold: 10737418240.0 # 10 GB in bytes
+    ComparisonOperator: "LessThanThreshold"
+    Dimensions:
+      - Name: "DBInstanceIdentifier"
+        Value: "petforce-postgres-prod"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-critical"
+
+  - AlarmName: "PetForce-ElastiCache-HighCPU"
+    AlarmDescription: "ElastiCache Redis CPU is too high"
+    MetricName: "CPUUtilization"
+    Namespace: "AWS/ElastiCache"
+    Statistic: "Average"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 75.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "CacheClusterId"
+        Value: "petforce-redis-prod"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+
+  - AlarmName: "PetForce-ElastiCache-HighEvictions"
+    AlarmDescription: "ElastiCache Redis has high eviction rate"
+    MetricName: "Evictions"
+    Namespace: "AWS/ElastiCache"
+    Statistic: "Sum"
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 1000.0
+    ComparisonOperator: "GreaterThanThreshold"
+    Dimensions:
+      - Name: "CacheClusterId"
+        Value: "petforce-redis-prod"
+    AlarmActions:
+      - "arn:aws:sns:us-east-1:ACCOUNT_ID:petforce-alerts"
+
+---
+# Prometheus Alert Rules
+# For Kubernetes deployments with Prometheus Operator
+
+prometheus_rules:
+  - name: petforce-alerts
+    interval: 30s
+    rules:
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="petforce"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Pod {{ $labels.pod }} is crash looping"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last 5 minutes"
+          runbook_url: "https://docs.petforce.app/runbooks/pod-crash-looping"
+
+      - alert: PodNotReady
+        expr: sum by (namespace, pod) (kube_pod_status_phase{namespace="petforce",phase!~"Running|Succeeded"}) > 0
+        for: 10m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Pod {{ $labels.pod }} not ready"
+          description: "Pod {{ $labels.pod }} has been in a non-ready state for more than 10 minutes"
+
+      - alert: DeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas{namespace="petforce"} != kube_deployment_status_replicas_available{namespace="petforce"}
+        for: 10m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} replica mismatch"
+          description: "Deployment {{ $labels.deployment }} has {{ $value }} replicas but should have {{ $labels.spec_replicas }}"
+
+      - alert: HighPodMemoryUsage
+        expr: (sum(container_memory_working_set_bytes{namespace="petforce"}) by (pod) / sum(container_spec_memory_limit_bytes{namespace="petforce"}) by (pod) * 100) > 85
+        for: 5m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Pod {{ $labels.pod }} high memory usage"
+          description: "Pod {{ $labels.pod }} is using {{ $value }}% of its memory limit"
+
+      - alert: HighPodCPUUsage
+        expr: (sum(rate(container_cpu_usage_seconds_total{namespace="petforce"}[5m])) by (pod) / sum(container_spec_cpu_quota{namespace="petforce"}/container_spec_cpu_period{namespace="petforce"}) by (pod) * 100) > 85
+        for: 10m
+        labels:
+          severity: medium
+          team: platform
+        annotations:
+          summary: "Pod {{ $labels.pod }} high CPU usage"
+          description: "Pod {{ $labels.pod }} is using {{ $value }}% of its CPU limit"
+
+      - alert: PersistentVolumeUsage
+        expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "PersistentVolume {{ $labels.persistentvolumeclaim }} high usage"
+          description: "PersistentVolume {{ $labels.persistentvolumeclaim }} is {{ $value }}% full"
+
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Node {{ $labels.node }} not ready"
+          description: "Node {{ $labels.node }} has been in NotReady state for more than 5 minutes"
+
+      - alert: NodeMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Node {{ $labels.node }} under memory pressure"
+          description: "Node {{ $labels.node }} is experiencing memory pressure"
+
+      - alert: NodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Node {{ $labels.node }} under disk pressure"
+          description: "Node {{ $labels.node }} is experiencing disk pressure"
+
+---
+# Notification Channels Configuration
+
+notification_channels:
   pagerduty:
     critical:
-      service_key: "${PAGERDUTY_SERVICE_KEY_CRITICAL}"
-      description: "Critical alerts for P0 incidents"
-    warning:
-      service_key: "${PAGERDUTY_SERVICE_KEY_WARNING}"
-      description: "Warning alerts for P1 incidents"
+      integration_key: "{{ PAGERDUTY_CRITICAL_KEY }}"
+      urgency: high
+      escalation_policy: "Platform On-Call"
+
+    high:
+      integration_key: "{{ PAGERDUTY_HIGH_KEY }}"
+      urgency: low
+      escalation_policy: "Platform On-Call"
 
   slack:
-    incidents:
-      webhook_url: "${SLACK_WEBHOOK_INCIDENTS}"
-      channel: "#petforce-incidents"
     alerts:
-      webhook_url: "${SLACK_WEBHOOK_ALERTS}"
+      webhook_url: "{{ SLACK_ALERTS_WEBHOOK }}"
       channel: "#petforce-alerts"
+      username: "PetForce Monitoring"
+      icon_emoji: ":rotating_light:"
+
+    critical:
+      webhook_url: "{{ SLACK_CRITICAL_WEBHOOK }}"
+      channel: "#petforce-critical"
+      username: "PetForce Critical"
+      icon_emoji: ":fire:"
+      mention: "@channel"
 
   email:
-    oncall:
-      recipients: ["oncall@petforce.app"]
-    engineering:
-      recipients: ["engineering@petforce.app"]
+    daily_summary:
+      recipients:
+        - "platform-team@petforce.app"
+      schedule: "0 9 * * *" # 9 AM daily
+      include:
+        - alert_summary
+        - performance_metrics
+        - cost_summary
 
-# ===========================================================================
-# CRITICAL ALERTS (P0) - Immediate Response Required
-# ===========================================================================
-alerts:
-  # ---------------------------------------------------------------------------
-  # API Health
-  # ---------------------------------------------------------------------------
-  - name: "High Error Rate"
-    description: "API error rate exceeds 5% for 5 minutes"
-    severity: critical
-    condition:
-      metric: household.error_rate
-      operator: ">"
-      threshold: 5
-      evaluation_period: 5m
-      datapoints_to_alarm: 2
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-      - email:oncall
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#high-error-rate"
-    tags:
-      - service:household-api
-      - severity:critical
-      - category:availability
+---
+# Alert Escalation Policies
 
-  - name: "API Availability Below SLO"
-    description: "API success rate below 99.9% (SLO violation)"
-    severity: critical
-    condition:
-      metric: household.requests.success_rate
-      operator: "<"
-      threshold: 99.9
-      evaluation_period: 10m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#high-error-rate"
-
-  # ---------------------------------------------------------------------------
-  # Latency
-  # ---------------------------------------------------------------------------
-  - name: "High Latency (p99)"
-    description: "p99 latency exceeds 1 second for 10 minutes"
-    severity: critical
-    condition:
-      metric: household.latency.p99
-      operator: ">"
-      threshold: 1000
-      evaluation_period: 10m
-      datapoints_to_alarm: 3
-    channels:
-      - pagerduty:warning
-      - slack:alerts
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#high-latency"
-    tags:
-      - service:household-api
-      - severity:warning
-      - category:performance
-
-  - name: "Extremely High Latency (p99)"
-    description: "p99 latency exceeds 5 seconds (unacceptable)"
-    severity: critical
-    condition:
-      metric: household.latency.p99
-      operator: ">"
-      threshold: 5000
-      evaluation_period: 5m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-      - email:oncall
-
-  # ---------------------------------------------------------------------------
-  # Database
-  # ---------------------------------------------------------------------------
-  - name: "Database Connection Pool Exhausted"
-    description: "Available database connections below 2"
-    severity: critical
-    condition:
-      metric: postgresql.connections.available
-      operator: "<"
-      threshold: 2
-      evaluation_period: 2m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#database-connection-pool-exhausted"
-    tags:
-      - service:database
-      - severity:critical
-
-  - name: "Database Connection Pool High Usage"
-    description: "Database connections usage above 80%"
-    severity: warning
-    condition:
-      metric: postgresql.connections.used_percentage
-      operator: ">"
-      threshold: 80
-      evaluation_period: 5m
-    channels:
-      - slack:alerts
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#database-connection-pool-exhausted"
-
-  - name: "Slow Database Queries"
-    description: "p99 query latency exceeds 500ms"
-    severity: warning
-    condition:
-      metric: postgresql.query.duration.p99
-      operator: ">"
-      threshold: 500
-      evaluation_period: 10m
-    channels:
-      - slack:alerts
-      - email:engineering
-
-  - name: "Database Down"
-    description: "Unable to connect to database"
-    severity: critical
-    condition:
-      metric: postgresql.health
-      operator: "=="
-      threshold: 0
-      evaluation_period: 1m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-      - email:oncall
-
-  # ---------------------------------------------------------------------------
-  # Infrastructure
-  # ---------------------------------------------------------------------------
-  - name: "High CPU Usage"
-    description: "CPU utilization above 80% for 10 minutes"
-    severity: warning
-    condition:
-      metric: system.cpu.usage
-      operator: ">"
-      threshold: 80
-      evaluation_period: 10m
-      datapoints_to_alarm: 3
-    channels:
-      - slack:alerts
-    tags:
-      - service:household-api
-      - severity:warning
-      - category:infrastructure
-
-  - name: "Critical CPU Usage"
-    description: "CPU utilization above 95% for 5 minutes"
-    severity: critical
-    condition:
-      metric: system.cpu.usage
-      operator: ">"
-      threshold: 95
-      evaluation_period: 5m
-    channels:
-      - pagerduty:warning
-      - slack:incidents
-
-  - name: "High Memory Usage"
-    description: "Memory utilization above 85% for 10 minutes"
-    severity: warning
-    condition:
-      metric: system.memory.usage
-      operator: ">"
-      threshold: 85
-      evaluation_period: 10m
-    channels:
-      - slack:alerts
-
-  - name: "Critical Memory Usage"
-    description: "Memory utilization above 95%"
-    severity: critical
-    condition:
-      metric: system.memory.usage
-      operator: ">"
-      threshold: 95
-      evaluation_period: 2m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#memory-leak"
-
-  - name: "Disk Space Low"
-    description: "Disk usage above 80%"
-    severity: warning
-    condition:
-      metric: system.disk.usage
-      operator: ">"
-      threshold: 80
-      evaluation_period: 5m
-    channels:
-      - slack:alerts
-
-  - name: "Disk Space Critical"
-    description: "Disk usage above 90%"
-    severity: critical
-    condition:
-      metric: system.disk.usage
-      operator: ">"
-      threshold: 90
-      evaluation_period: 2m
-    channels:
-      - pagerduty:warning
-      - slack:incidents
-
-  # ---------------------------------------------------------------------------
-  # Redis
-  # ---------------------------------------------------------------------------
-  - name: "Redis High Latency"
-    description: "Redis latency exceeds 10ms"
-    severity: warning
-    condition:
-      metric: redis.latency.avg
-      operator: ">"
-      threshold: 10
-      evaluation_period: 5m
-    channels:
-      - slack:alerts
-
-  - name: "Redis Connection Failed"
-    description: "Unable to connect to Redis"
-    severity: critical
-    condition:
-      metric: redis.health
-      operator: "=="
-      threshold: 0
-      evaluation_period: 1m
-    channels:
-      - pagerduty:critical
-      - slack:incidents
-
-  - name: "Redis Memory High"
-    description: "Redis memory usage above 80%"
-    severity: warning
-    condition:
-      metric: redis.memory.usage
-      operator: ">"
-      threshold: 80
-      evaluation_period: 10m
-    channels:
-      - slack:alerts
-
-  # ---------------------------------------------------------------------------
-  # Rate Limiting
-  # ---------------------------------------------------------------------------
-  - name: "High Rate Limit Violations"
-    description: "Rate limit violations exceed 100 per hour"
-    severity: warning
-    condition:
-      metric: household.rate_limit.violations
-      operator: ">"
-      threshold: 100
-      evaluation_period: 1h
-    channels:
-      - slack:alerts
-    runbook: "https://github.com/petforce/infra/blob/main/docs/runbook.md#rate-limit-violations"
-
-  - name: "Extreme Rate Limit Violations"
-    description: "Potential DDoS attack - rate limits exceeded 1000 times/hour"
-    severity: critical
-    condition:
-      metric: household.rate_limit.violations
-      operator: ">"
-      threshold: 1000
-      evaluation_period: 1h
-    channels:
-      - pagerduty:warning
-      - slack:incidents
-      - email:oncall
-
-  # ---------------------------------------------------------------------------
-  # Business Metrics
-  # ---------------------------------------------------------------------------
-  - name: "Zero Household Creations"
-    description: "No households created in the last 2 hours (possible outage)"
-    severity: warning
-    condition:
-      metric: household.created.count
-      operator: "=="
-      threshold: 0
-      evaluation_period: 2h
-    channels:
-      - slack:alerts
-    # Only alert during business hours (8am-8pm EST)
-    time_restrictions:
-      type: time-of-day
-      restrictions:
-        - start_time: "08:00"
-          end_time: "20:00"
-          timezone: "America/New_York"
-
-  - name: "High Join Request Rejection Rate"
-    description: "More than 30% of join requests rejected in last hour"
-    severity: warning
-    condition:
-      formula: "(rejected / total) * 100"
-      operator: ">"
-      threshold: 30
-      evaluation_period: 1h
-    channels:
-      - slack:alerts
-      - email:engineering
-    # This could indicate a UX issue or security problem
-
-  - name: "Retention Rate Drop"
-    description: "Retention rate dropped below 80%"
-    severity: warning
-    condition:
-      metric: household.retention_rate
-      operator: "<"
-      threshold: 80
-      evaluation_period: 24h
-    channels:
-      - slack:alerts
-      - email:engineering
-
-  # ---------------------------------------------------------------------------
-  # Security
-  # ---------------------------------------------------------------------------
-  - name: "Suspicious Authentication Failures"
-    description: "High number of authentication failures from single IP"
-    severity: warning
-    condition:
-      metric: auth.failures.per_ip
-      operator: ">"
-      threshold: 10
-      evaluation_period: 5m
-      group_by: client_ip
-    channels:
-      - slack:alerts
-      - email:oncall
-    tags:
-      - category:security
-
-  - name: "Mass Data Export"
-    description: "Unusually high number of data exports"
-    severity: warning
-    condition:
-      metric: household.data_exports.count
-      operator: ">"
-      threshold: 100
-      evaluation_period: 1h
-    channels:
-      - slack:alerts
-      - email:oncall
-    tags:
-      - category:security
-      - type:data-exfiltration
-
-# ===========================================================================
-# COMPOSITE ALERTS
-# ===========================================================================
-composite_alerts:
-  - name: "Service Degradation"
-    description: "Multiple indicators of service degradation"
-    severity: warning
-    conditions:
-      - metric: household.error_rate
-        operator: ">"
-        threshold: 2
-      - metric: household.latency.p99
-        operator: ">"
-        threshold: 800
-    operator: AND
-    channels:
-      - slack:alerts
-
-  - name: "Database Under Stress"
-    description: "Multiple database health indicators degraded"
-    severity: critical
-    conditions:
-      - metric: postgresql.connections.used_percentage
-        operator: ">"
-        threshold: 85
-      - metric: postgresql.query.duration.p99
-        operator: ">"
-        threshold: 500
-      - metric: postgresql.deadlocks
-        operator: ">"
-        threshold: 5
-    operator: OR
-    channels:
-      - pagerduty:warning
-      - slack:incidents
-
-# ===========================================================================
-# ANOMALY DETECTION
-# ===========================================================================
-anomaly_alerts:
-  - name: "Anomalous Request Rate"
-    description: "Request rate deviates significantly from normal pattern"
-    severity: warning
-    metric: household.requests.count
-    algorithm: agile
-    deviations: 3
-    direction: both
-    evaluation_period: 15m
-    channels:
-      - slack:alerts
-
-  - name: "Anomalous Error Rate"
-    description: "Error rate spike detected"
-    severity: critical
-    metric: household.errors.count
-    algorithm: agile
-    deviations: 2
-    direction: above
-    evaluation_period: 5m
-    channels:
-      - pagerduty:warning
-      - slack:incidents
-
-# ===========================================================================
-# MAINTENANCE WINDOWS
-# ===========================================================================
-maintenance_windows:
-  - name: "Weekly Maintenance"
-    description: "Suppress non-critical alerts during weekly maintenance"
-    schedule:
-      day_of_week: Sunday
-      start_time: "02:00"
-      end_time: "04:00"
-      timezone: "UTC"
-    suppress_alerts:
-      - "High CPU Usage"
-      - "High Memory Usage"
-      - "Zero Household Creations"
-
-  - name: "Database Backup Window"
-    description: "Daily database backup - expect brief performance dip"
-    schedule:
-      daily: true
-      start_time: "03:00"
-      end_time: "03:30"
-      timezone: "UTC"
-    suppress_alerts:
-      - "Slow Database Queries"
-      - "High Database CPU"
-
-# ===========================================================================
-# ALERT POLICIES
-# ===========================================================================
-policies:
-  auto_resolve:
-    enabled: true
-    timeout: 1h
-    description: "Auto-resolve alerts after 1 hour if condition clears"
-
-  escalation:
-    enabled: true
+escalation_policies:
+  - name: "P0 - Critical"
+    description: "Service outage or data loss"
     steps:
-      - delay: 0m
-        notify:
-          - slack:alerts
-      - delay: 15m
-        notify:
-          - pagerduty:warning
-      - delay: 30m
-        notify:
-          - pagerduty:critical
-          - email:oncall
+      - notify: ["pagerduty-critical", "slack-critical"]
+        delay: 0
+      - notify: ["platform-lead"]
+        delay: 300 # 5 minutes
+      - notify: ["engineering-manager"]
+        delay: 600 # 10 minutes
+      - notify: ["cto"]
+        delay: 1800 # 30 minutes
 
-  notification_throttling:
-    enabled: true
-    max_notifications_per_hour: 10
-    description: "Prevent alert fatigue by throttling repeat notifications"
+  - name: "P1 - High"
+    description: "Severe degradation"
+    steps:
+      - notify: ["pagerduty-high", "slack-alerts"]
+        delay: 0
+      - notify: ["platform-lead"]
+        delay: 600 # 10 minutes
 
-  grouping:
-    enabled: true
-    timeout: 15m
-    description: "Group related alerts within 15 minute window"
+  - name: "P2 - Medium"
+    description: "Moderate impact"
+    steps:
+      - notify: ["slack-alerts"]
+        delay: 0
+      - notify: ["platform-team-email"]
+        delay: 1800 # 30 minutes
+
+  - name: "P3 - Low"
+    description: "Minor issues"
+    steps:
+      - notify: ["slack-alerts"]
+        delay: 0
+
+---
+# Runbook Links
+
+runbooks:
+  high-error-rate: "https://docs.petforce.app/runbooks/high-error-rate"
+  high-latency: "https://docs.petforce.app/runbooks/high-latency"
+  high-memory: "https://docs.petforce.app/runbooks/high-memory"
+  db-connection-pool: "https://docs.petforce.app/runbooks/db-connection-pool"
+  slow-queries: "https://docs.petforce.app/runbooks/slow-queries"
+  db-connection-failure: "https://docs.petforce.app/runbooks/db-connection-failure"
+  auth-failures: "https://docs.petforce.app/runbooks/auth-failures"
+  service-down: "https://docs.petforce.app/runbooks/service-down"
+  pod-crash-looping: "https://docs.petforce.app/runbooks/pod-crash-looping"
+
+---
+# Alert Testing
+
+# Test alerts with:
+# datadog-cli monitor mute <monitor-id>
+# datadog-cli monitor test <monitor-id>
+#
+# For Prometheus:
+# kubectl -n monitoring exec -it prometheus-0 -- promtool test rules alerts.yaml
+#
+# For CloudWatch:
+# aws cloudwatch set-alarm-state --alarm-name "PetForce-ECS-HighCPU" --state-value ALARM --state-reason "Testing alert"
