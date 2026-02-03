@@ -3,24 +3,36 @@
  *
  * Component for displaying household invite codes with QR generation.
  *
- * PLACEHOLDER IMPLEMENTATION
- * This component requires QR code generation libraries.
- * Install dependencies:
- * - npm install react-native-qrcode-svg react-native-svg
- * OR for Expo:
- * - npx expo install react-native-qrcode-svg react-native-svg expo-sharing expo-media-library
+ * Features:
+ * - QR code generation with branding
+ * - Copy to clipboard
+ * - Share via system share sheet
+ * - Save QR code to photos
+ * - Deep link encoding
+ * - Expand/collapse QR code view
  *
- * TODO:
- * - Implement QR code generation
- * - Add share functionality (Share API)
- * - Add save to photos (CameraRoll/MediaLibrary)
- * - Brand QR code with PetForce logo
- * - Add collapse/expand state
+ * Dependencies:
+ * - react-native-qrcode-svg (QR generation)
+ * - react-native-svg (SVG support)
+ * - expo-sharing (Share functionality)
+ * - expo-media-library (Save to photos)
  */
 
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
+import { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  Alert,
+  Share as RNShare,
+} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import QRCode from 'react-native-qrcode-svg';
+import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
 
 export interface InviteCodeDisplayProps {
   inviteCode: string;
@@ -29,12 +41,12 @@ export interface InviteCodeDisplayProps {
 }
 
 /**
- * Invite Code Display Component (Placeholder)
+ * Invite Code Display with QR Code Generation
  *
  * @example
  * ```tsx
  * <InviteCodeDisplay
- *   inviteCode="ZEDER-ALPHA"
+ *   inviteCode="ZEDER-ALPHA-KILO"
  *   householdName="The Zeder House"
  *   expiresAt="2026-03-01T00:00:00Z"
  * />
@@ -47,26 +59,85 @@ export function InviteCodeDisplay({
 }: InviteCodeDisplayProps) {
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const qrRef = useRef<any>(null);
+
+  // Generate deep link URL for QR code
+  const deepLinkURL = `petforce://household/join?code=${inviteCode}&name=${encodeURIComponent(householdName)}`;
 
   const handleCopy = () => {
     Clipboard.setString(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    Alert.alert('Copied!', 'Invite code copied to clipboard');
   };
 
-  const handleShare = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Share functionality will be available soon. For now, copy the code and share it manually.'
-    );
+  const handleShare = async () => {
+    try {
+      const message = `Join ${householdName} on PetForce!\n\nInvite Code: ${inviteCode}\n\nOr scan the QR code to join instantly.`;
+
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        await RNShare.share({
+          message,
+          title: `Join ${householdName}`,
+        });
+      } else {
+        Alert.alert('Share', message);
+      }
+    } catch (error) {
+      console.error('Failed to share', error);
+      Alert.alert('Error', 'Failed to share invite code');
+    }
   };
 
-  const handleDownload = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Download QR code functionality will be available soon.'
-    );
+  const handleDownload = async () => {
+    if (!qrRef.current) {
+      Alert.alert('Error', 'QR code not ready. Please try again.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Request media library permissions
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant photo library permission to save QR codes.'
+        );
+        setSaving(false);
+        return;
+      }
+
+      // Generate QR code as data URL
+      qrRef.current.toDataURL(async (dataURL: string) => {
+        try {
+          // Save to temporary file
+          const filename = `${householdName.replace(/\s+/g, '-')}-invite-qr.png`;
+          const fileUri = `${FileSystem.cacheDirectory}${filename}`;
+
+          await FileSystem.writeAsStringAsync(fileUri, dataURL, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          // Save to media library
+          const asset = await MediaLibrary.createAssetAsync(fileUri);
+          await MediaLibrary.createAlbumAsync('PetForce', asset, false);
+
+          Alert.alert('Success', 'QR code saved to your photos!');
+        } catch (err) {
+          console.error('Failed to save QR code', err);
+          Alert.alert('Error', 'Failed to save QR code to photos');
+        } finally {
+          setSaving(false);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to download QR code', error);
+      Alert.alert('Error', 'Failed to save QR code');
+      setSaving(false);
+    }
   };
 
   const handleToggleQR = () => {
@@ -87,7 +158,7 @@ export function InviteCodeDisplay({
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton} onPress={handleCopy} testID="copy-button">
-          <Text style={styles.actionButtonText}>{copied ? 'Copied!' : 'Copy Code'}</Text>
+          <Text style={styles.actionButtonText}>{copied ? '✓ Copied!' : 'Copy Code'}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
@@ -95,46 +166,57 @@ export function InviteCodeDisplay({
           testID="qr-button"
         >
           <Text style={styles.actionButtonText}>
-            {showQR ? 'Hide QR Code' : 'Show QR Code'}
+            {showQR ? 'Hide QR' : 'Show QR'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* QR Code Placeholder */}
+      {/* QR Code */}
       {showQR && (
         <View style={styles.qrContainer}>
-          <View style={styles.qrPlaceholder}>
-            <Text style={styles.qrIcon}>📱</Text>
-            <Text style={styles.qrTitle}>QR Code Coming Soon</Text>
-            <Text style={styles.qrDescription}>
-              QR code generation will be available in a future update.
+          {/* QR Code with PetForce Branding */}
+          <View style={styles.qrWrapper}>
+            <View style={styles.qrCodeContainer}>
+              <QRCode
+                value={deepLinkURL}
+                size={200}
+                color="#047857"
+                backgroundColor="#FFFFFF"
+                logo={require('../../../../assets/icon.png')}
+                logoSize={40}
+                logoBackgroundColor="#FFFFFF"
+                logoMargin={2}
+                logoBorderRadius={8}
+                getRef={(ref) => (qrRef.current = ref)}
+              />
+            </View>
+            <Text style={styles.qrHouseholdName}>{householdName}</Text>
+            <Text style={styles.qrInstructions}>
+              Scan this QR code with your camera or PetForce app to join
             </Text>
           </View>
 
+          {/* QR Actions */}
           <View style={styles.qrActions}>
             <TouchableOpacity
               style={styles.qrActionButton}
               onPress={handleShare}
               testID="share-button"
             >
+              <Text style={styles.qrActionIcon}>📤</Text>
               <Text style={styles.qrActionButtonText}>Share</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.qrActionButton}
               onPress={handleDownload}
+              disabled={saving}
               testID="download-button"
             >
-              <Text style={styles.qrActionButtonText}>Download</Text>
+              <Text style={styles.qrActionIcon}>💾</Text>
+              <Text style={styles.qrActionButtonText}>
+                {saving ? 'Saving...' : 'Save to Photos'}
+              </Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Implementation Notes */}
-          <View style={styles.notes}>
-            <Text style={styles.notesTitle}>Implementation Requirements:</Text>
-            <Text style={styles.notesText}>• react-native-qrcode-svg</Text>
-            <Text style={styles.notesText}>• react-native-svg</Text>
-            <Text style={styles.notesText}>• Share API (react-native-share or Expo Sharing)</Text>
-            <Text style={styles.notesText}>• MediaLibrary for save to photos</Text>
           </View>
         </View>
       )}
@@ -150,17 +232,21 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
+    fontWeight: '600',
     color: '#065F46',
     textAlign: 'center',
     marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   code: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#047857',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     textAlign: 'center',
     marginBottom: 4,
+    letterSpacing: 2,
   },
   expiry: {
     fontSize: 13,
@@ -191,62 +277,59 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#10B981',
   },
-  qrPlaceholder: {
+  qrWrapper: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 32,
+    padding: 24,
     alignItems: 'center',
     marginBottom: 16,
-    minHeight: 240,
-    justifyContent: 'center',
   },
-  qrIcon: {
-    fontSize: 48,
-    marginBottom: 12,
+  qrCodeContainer: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 16,
   },
-  qrTitle: {
+  qrHouseholdName: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  qrDescription: {
-    fontSize: 14,
+  qrInstructions: {
+    fontSize: 13,
     color: '#6B7280',
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   qrActions: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 16,
   },
   qrActionButton: {
     flex: 1,
     backgroundColor: '#059669',
     paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
     minHeight: 44,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  qrActionIcon: {
+    fontSize: 16,
   },
   qrActionButtonText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  notes: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-  },
-  notesTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#065F46',
-    marginBottom: 6,
-  },
-  notesText: {
-    fontSize: 11,
-    color: '#047857',
-    marginBottom: 3,
   },
 });
