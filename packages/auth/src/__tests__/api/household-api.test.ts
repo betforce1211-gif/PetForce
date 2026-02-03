@@ -109,6 +109,7 @@ vi.mock('../../analytics/household-events', () => ({
   trackJoinRequestRejected: vi.fn(),
   trackMemberRemoved: vi.fn(),
   trackMemberLeft: vi.fn(),
+  trackHouseholdLeft: vi.fn(),
   trackLeadershipTransferred: vi.fn(),
   trackInviteCodeRegenerated: vi.fn(),
 }));
@@ -1270,11 +1271,9 @@ describe('Household API', () => {
             })
           })
         },
-        // 3. Update member status (leaving member)
+        // 3. Update household leader_id (happens first in implementation)
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        // 4. Update household leader_id
-        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        // 5. Update new leader role (household_id, user_id)
+        // 4. Update new leader role (household_id, user_id)
         {
           update: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
@@ -1285,6 +1284,8 @@ describe('Household API', () => {
             })
           })
         },
+        // 5. Remove user's membership (happens last in implementation)
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
@@ -1328,11 +1329,9 @@ describe('Household API', () => {
             })
           })
         },
-        // 3. Update member status (leaving member)
+        // 3. Update household leader_id (happens first in implementation)
         { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        // 4. Update household leader_id
-        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
-        // 5. Update new leader role (household_id, user_id)
+        // 4. Update new leader role (household_id, user_id)
         {
           update: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
@@ -1343,6 +1342,8 @@ describe('Household API', () => {
             })
           })
         },
+        // 5. Remove user's membership (happens last in implementation)
+        { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ data: null, error: null }) },
       ];
       let callIndex = 0;
       mockSupabase.from.mockImplementation(() => mockCalls[callIndex++]);
