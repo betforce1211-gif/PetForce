@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type { FunnelDataPoint } from '@petforce/auth/api/household-analytics-api';
+import type { FunnelDataPoint } from '@petforce/auth';
 
 export interface JoinFunnelChartProps {
   data: FunnelDataPoint[];

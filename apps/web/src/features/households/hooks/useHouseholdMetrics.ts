@@ -11,10 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import {
-  getHouseholdMetrics,
-  type HouseholdMetrics,
-} from '@petforce/auth/api/household-analytics-api';
+import { getHouseholdMetrics, type HouseholdMetrics } from '@petforce/auth';
 
 export interface UseHouseholdMetricsResult {
   metrics: HouseholdMetrics | null;

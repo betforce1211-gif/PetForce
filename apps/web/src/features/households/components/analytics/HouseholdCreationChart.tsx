@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type { TimelineDataPoint } from '@petforce/auth/api/household-analytics-api';
+import type { TimelineDataPoint } from '@petforce/auth';
 
 export interface HouseholdCreationChartProps {
   data: TimelineDataPoint[];

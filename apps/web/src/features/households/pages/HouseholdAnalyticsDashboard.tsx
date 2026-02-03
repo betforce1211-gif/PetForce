@@ -16,7 +16,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHouseholdStore, useAuthStore } from '@petforce/auth';
-import { exportHouseholdAnalytics, downloadCSV } from '@petforce/auth/api/household-analytics-api';
+import { exportHouseholdAnalytics, downloadCSV } from '@petforce/auth';
 import { useHouseholdMetrics } from '../hooks/useHouseholdMetrics';
 import {
   MetricCard,

@@ -1267,7 +1267,7 @@ export async function regenerateInviteCode(
     // Use distributed lock to prevent concurrent regeneration (Samantha's P0 Security Requirement)
     const lockResource = `household:regenerate_code:${request.householdId}`;
     let newInviteCode: string;
-    let newExpiresAt: string;
+    let newExpiresAt: string | null;
 
     try {
       const result = await withLock(lockResource, async () => {

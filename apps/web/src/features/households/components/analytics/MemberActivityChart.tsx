@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type { ActivityDataPoint } from '@petforce/auth/api/household-analytics-api';
+import type { ActivityDataPoint } from '@petforce/auth';
 
 export interface MemberActivityChartProps {
   data: ActivityDataPoint[];
