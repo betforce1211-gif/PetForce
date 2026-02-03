@@ -12,17 +12,29 @@ import {
   CONFETTI_COLORS,
   ICON_SIZES,
 } from '@/config/ui-constants';
-import { getInnerHeight } from '@petforce/auth';
+import { getInnerHeight, useAuthStore } from '@petforce/auth';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
   const [showConfetti, setShowConfetti] = useState(false);
+  const { user, isLoading } = useAuthStore();
 
   useEffect(() => {
     // Trigger confetti animation after a brief delay
     const timer = setTimeout(() => setShowConfetti(true), ANIMATION_TIMINGS.CONFETTI_DELAY);
     return () => clearTimeout(timer);
   }, []);
+
+  // Debug: Log auth state when page loads
+  useEffect(() => {
+    console.log('✉️ VERIFY EMAIL PAGE:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      isLoading,
+      url: window.location.href,
+    });
+  }, [user, isLoading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4 relative overflow-hidden">

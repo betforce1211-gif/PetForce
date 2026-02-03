@@ -41,7 +41,7 @@ export const PASSWORD_STRENGTH_COLORS = {
  */
 export const REDIRECT_PATHS = {
   AUTH_CALLBACK: '/auth/callback',
-  AUTH_VERIFY: '/auth/verify',
+  AUTH_VERIFY: '/auth/verify-email',
   PASSWORD_RESET: '/auth/reset-password',
   NATIVE_CALLBACK: 'petforce://auth/callback',
 } as const;

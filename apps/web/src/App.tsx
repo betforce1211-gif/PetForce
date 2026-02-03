@@ -57,6 +57,7 @@ function App() {
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/verify" element={<Navigate to="/auth/verify-email" replace />} />
         <Route path="/auth/verify-pending" element={<EmailVerificationPendingPage />} />
 
         {/* OAuth and Magic Link callback handlers */}
