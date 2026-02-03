@@ -210,11 +210,28 @@ export async function login(
       email: data.email,
     });
 
+    console.log('🔐 LOGIN ATTEMPT:', {
+      email: data.email,
+      requestId,
+      timestamp: new Date().toISOString(),
+    });
+
     const supabase = getSupabaseClient();
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
+    });
+
+    console.log('🔐 SUPABASE RESPONSE:', {
+      hasError: !!error,
+      hasSession: !!authData?.session,
+      hasUser: !!authData?.user,
+      error: error ? {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+      } : null,
     });
 
     if (error) {
