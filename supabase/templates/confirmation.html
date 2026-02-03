@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to PetForce!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f7fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+
+          <!-- Header with gradient -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #2D9B87 0%, #4ECDC4 100%); padding: 40px 40px 30px; text-align: center;">
+              <div style="font-size: 48px; margin-bottom: 10px;">🐾</div>
+              <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold;">Welcome to the PetForce Family!</h1>
+            </td>
+          </tr>
+
+          <!-- Main content -->
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #2D3748; font-size: 24px; margin: 0 0 20px; font-weight: 600;">Hi there! 👋</h2>
+
+              <p style="color: #4A5568; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                We're so excited to have you join our community of pet lovers! You're just one click away from starting your collaborative pet care journey.
+              </p>
+
+              <p style="color: #4A5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+                Click the button below to verify your email and unlock all the features that make pet care easier for you and your family.
+              </p>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 20px 0;">
+                    <a href="{{ .ConfirmationURL }}"
+                       style="display: inline-block; background-color: #2D9B87; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 6px rgba(45, 155, 135, 0.3);">
+                      Verify My Email 🎉
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- What's next section -->
+              <div style="background-color: #EDF2F7; border-radius: 8px; padding: 24px; margin: 30px 0;">
+                <h3 style="color: #2D3748; font-size: 18px; margin: 0 0 16px; font-weight: 600;">What's next?</h3>
+                <ul style="color: #4A5568; font-size: 15px; line-height: 1.8; margin: 0; padding-left: 20px;">
+                  <li style="margin-bottom: 8px;">Create or join a household for your pets</li>
+                  <li style="margin-bottom: 8px;">Invite family members to collaborate on pet care</li>
+                  <li style="margin-bottom: 8px;">Track who fed the dogs, gave medicine to the cat, and more!</li>
+                  <li style="margin-bottom: 0;">Set up temporary access for pet sitters and daycare</li>
+                </ul>
+              </div>
+
+              <!-- Help text -->
+              <p style="color: #718096; font-size: 14px; line-height: 1.6; margin: 30px 0 0;">
+                If the button doesn't work, copy and paste this link into your browser:<br>
+                <a href="{{ .ConfirmationURL }}" style="color: #2D9B87; word-break: break-all;">{{ .ConfirmationURL }}</a>
+              </p>
+
+              <div style="border-top: 1px solid #E2E8F0; margin-top: 30px; padding-top: 20px;">
+                <p style="color: #A0AEC0; font-size: 13px; line-height: 1.5; margin: 0;">
+                  This link will expire in 24 hours for security purposes. If you didn't create a PetForce account, you can safely ignore this email.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #F7FAFC; padding: 30px 40px; text-align: center; border-top: 1px solid #E2E8F0;">
+              <p style="color: #2D9B87; font-size: 20px; font-weight: 600; margin: 0 0 10px;">
+                Can't wait to see you inside! 🐕 🐈 🐦
+              </p>
+              <p style="color: #718096; font-size: 14px; margin: 0;">
+                The PetForce Team
+              </p>
+              <p style="color: #A0AEC0; font-size: 12px; margin: 15px 0 0;">
+                Making pet care a family affair, one paw at a time.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

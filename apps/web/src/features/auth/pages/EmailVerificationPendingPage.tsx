@@ -136,7 +136,7 @@ export function EmailVerificationPendingPage() {
 
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-heading">
-                Check your email
+                Check your email to verify and join the PetForce family! 🎉
               </h1>
               <div className="space-y-2">
                 <p className="text-gray-600">
@@ -146,7 +146,7 @@ export function EmailVerificationPendingPage() {
                   {email}
                 </p>
                 <p className="text-gray-600 mt-3">
-                  Click the link in the email to activate your account and start using PetForce.
+                  Click the link in the email to activate your account and start your pet care journey with us.
                 </p>
               </div>
             </div>
