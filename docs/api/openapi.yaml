@@ -1,0 +1,889 @@
+openapi: 3.0.3
+info:
+  title: PetForce API
+  description: |
+    REST API for PetForce pet care platform.
+
+    ## Authentication
+    All endpoints (except health checks and auth) require JWT Bearer token authentication.
+
+    ## Rate Limiting
+    - Authenticated: 100 requests/minute
+    - Anonymous: 10 requests/minute
+
+    ## Versioning
+    Current version: v1
+  version: 1.0.0
+  contact:
+    name: PetForce API Support
+    url: https://github.com/betforce1211-gif/PetForce
+    email: api@petforce.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.petforce.app/v1
+    description: Production server
+  - url: https://staging-api.petforce.app/v1
+    description: Staging server
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Authentication
+    description: User authentication and session management
+  - name: Households
+    description: Household management
+  - name: Members
+    description: Household member management
+  - name: Join Requests
+    description: Household join request management
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check if API is running
+      tags:
+        - Health
+      operationId: healthCheck
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                    description: Uptime in seconds
+                  version:
+                    type: string
+                    example: 1.0.0
+
+  /health/ready:
+    get:
+      summary: Readiness check
+      description: Check if API is ready to accept requests
+      tags:
+        - Health
+      operationId: readinessCheck
+      responses:
+        "200":
+          description: API is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: healthy
+                      redis:
+                        type: string
+                        example: healthy
+        "503":
+          description: API is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/signup:
+    post:
+      summary: Create new account
+      description: Register a new user account
+      tags:
+        - Authentication
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePassword123!
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Log in with email and password
+      tags:
+        - Authentication
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /households:
+    get:
+      summary: List households
+      description: Get all households for the authenticated user
+      tags:
+        - Households
+      operationId: listHouseholds
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: role
+          in: query
+          description: Filter by user role
+          schema:
+            type: string
+            enum: [leader, member]
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [active, removed]
+      responses:
+        "200":
+          description: List of households
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Household"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      summary: Create household
+      description: Create a new household
+      tags:
+        - Households
+      operationId: createHousehold
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: The Smith Family
+                description:
+                  type: string
+                  maxLength: 500
+                  example: Our household with 2 dogs and 1 cat
+      responses:
+        "201":
+          description: Household created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /households/{householdId}:
+    get:
+      summary: Get household
+      description: Get household details
+      tags:
+        - Households
+      operationId: getHousehold
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      responses:
+        "200":
+          description: Household details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HouseholdDetailed"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      summary: Update household
+      description: Update household details (leader only)
+      tags:
+        - Households
+      operationId: updateHousehold
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+      responses:
+        "200":
+          description: Household updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      summary: Delete household
+      description: Delete household (leader only)
+      tags:
+        - Households
+      operationId: deleteHousehold
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      responses:
+        "204":
+          description: Household deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/regenerate-code:
+    post:
+      summary: Regenerate invite code
+      description: Generate new invite code (leader only)
+      tags:
+        - Households
+      operationId: regenerateInviteCode
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expiresInDays:
+                  type: integer
+                  default: 30
+                  minimum: 1
+                  maximum: 365
+      responses:
+        "200":
+          description: New invite code generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inviteCode:
+                    type: string
+                    example: SMITH-ALPHA-BRAVO
+                  inviteCodeExpiresAt:
+                    type: string
+                    format: date-time
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/join:
+    post:
+      summary: Request to join household
+      description: Submit join request with invite code
+      tags:
+        - Join Requests
+      operationId: joinHousehold
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - inviteCode
+              properties:
+                inviteCode:
+                  type: string
+                  example: SMITH-ALPHA-BRAVO
+      responses:
+        "201":
+          description: Join request submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  request:
+                    $ref: "#/components/schemas/JoinRequest"
+                  message:
+                    type: string
+                    example: Join request submitted. Awaiting leader approval.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Already a member or pending request exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /households/{householdId}/members:
+    get:
+      summary: List members
+      description: Get all household members
+      tags:
+        - Members
+      operationId: listMembers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Member"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/members/{userId}:
+    delete:
+      summary: Remove member
+      description: Remove member from household (leader only)
+      tags:
+        - Members
+      operationId: removeMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Member removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/requests:
+    get:
+      summary: List pending requests
+      description: Get all pending join requests (leader only)
+      tags:
+        - Join Requests
+      operationId: listJoinRequests
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+      responses:
+        "200":
+          description: List of pending requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/JoinRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/requests/{requestId}/approve:
+    post:
+      summary: Approve join request
+      description: Approve pending join request (leader only)
+      tags:
+        - Join Requests
+      operationId: approveJoinRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Request approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  member:
+                    $ref: "#/components/schemas/Member"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /households/{householdId}/requests/{requestId}/reject:
+    post:
+      summary: Reject join request
+      description: Reject pending join request (leader only)
+      tags:
+        - Join Requests
+      operationId: rejectJoinRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/HouseholdId"
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Request rejected
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from authentication endpoint
+
+  parameters:
+    HouseholdId:
+      name: householdId
+      in: path
+      required: true
+      description: Household UUID
+      schema:
+        type: string
+        format: uuid
+
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    Household:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        inviteCode:
+          type: string
+          pattern: "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}$"
+          example: SMITH-ALPHA-BRAVO
+        inviteCodeExpiresAt:
+          type: string
+          format: date-time
+        leaderId:
+          type: string
+          format: uuid
+        memberCount:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - inviteCode
+        - leaderId
+        - memberCount
+        - createdAt
+        - updatedAt
+
+    HouseholdDetailed:
+      allOf:
+        - $ref: "#/components/schemas/Household"
+        - type: object
+          properties:
+            leader:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                email:
+                  type: string
+                  format: email
+                fullName:
+                  type: string
+            members:
+              type: array
+              items:
+                $ref: "#/components/schemas/Member"
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        householdId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [leader, member]
+        status:
+          type: string
+          enum: [active, removed]
+        joinedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            fullName:
+              type: string
+      required:
+        - id
+        - userId
+        - householdId
+        - role
+        - status
+        - joinedAt
+
+    JoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        householdId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            fullName:
+              type: string
+      required:
+        - id
+        - householdId
+        - userId
+        - status
+        - createdAt
+        - updatedAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            emailConfirmed:
+              type: boolean
+        session:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: JWT access token
+            refreshToken:
+              type: string
+              description: JWT refresh token
+            expiresAt:
+              type: string
+              format: date-time
+      required:
+        - user
+        - session
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Validation failed
+            details:
+              type: object
+            timestamp:
+              type: string
+              format: date-time
+            path:
+              type: string
+            requestId:
+              type: string
+          required:
+            - code
+            - message
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Authentication token is required
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: FORBIDDEN
+              message: You do not have permission to perform this action
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: NOT_FOUND
+              message: Household not found
+
+security:
+  - bearerAuth: []
