@@ -122,14 +122,25 @@ class DatadogAdapter implements MonitoringAdapter {
  * Sends errors and events to Sentry
  */
 class SentryAdapter implements MonitoringAdapter {
-  private dsn: string;
+  private sentryKey: string;
+  private sentryHost: string;
+  private projectId: string;
   private environment: string;
 
   constructor(config: MonitoringConfig) {
     if (!config.apiKey) {
       throw new Error('Sentry DSN required');
     }
-    this.dsn = config.apiKey;
+
+    // Parse DSN: https://KEY@HOST/PROJECT_ID
+    const dsnMatch = config.apiKey.match(/^https?:\/\/([^@]+)@([^\/]+)\/(.+)$/);
+    if (!dsnMatch) {
+      throw new Error('Invalid Sentry DSN format');
+    }
+
+    this.sentryKey = dsnMatch[1];
+    this.sentryHost = dsnMatch[2];
+    this.projectId = dsnMatch[3];
     this.environment = config.environment || 'production';
   }
 
@@ -177,10 +188,18 @@ class SentryAdapter implements MonitoringAdapter {
 
   private sendToSentry(payload: any): void {
     if (typeof fetch !== 'undefined') {
-      fetch(this.dsn, {
+      // Sentry ingestion endpoint
+      const url = `https://${this.sentryHost}/api/${this.projectId}/store/`;
+
+      // Generate auth header
+      const timestamp = Math.floor(Date.now() / 1000);
+      const authHeader = `Sentry sentry_version=7, sentry_key=${this.sentryKey}, sentry_timestamp=${timestamp}`;
+
+      fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Sentry-Auth': authHeader,
         },
         body: JSON.stringify(payload),
       }).catch((err) => {
