@@ -253,7 +253,12 @@ export async function login(
     // Check email confirmation status (addresses the bug!)
     const isConfirmed = authData.user.email_confirmed_at !== null;
 
-    if (!isConfirmed) {
+    // DEVELOPMENT MODE: Skip email verification check in development
+    const isDevelopment = process.env.NODE_ENV === 'development' ||
+                         import.meta.env?.MODE === 'development' ||
+                         import.meta.env?.DEV === true;
+
+    if (!isConfirmed && !isDevelopment) {
       // Log unconfirmed login attempt
       logger.authEvent('login_rejected_unconfirmed', requestId, {
         userId: authData.user.id,
@@ -268,6 +273,15 @@ export async function login(
           message: 'Please verify your email address before logging in. Check your inbox for the verification link.',
         },
       };
+    }
+
+    // Log if bypassing email verification in development
+    if (!isConfirmed && isDevelopment) {
+      logger.warn('DEVELOPMENT MODE: Bypassing email verification check', {
+        requestId,
+        userId: authData.user.id,
+        email: data.email,
+      });
     }
 
     // Log successful login
