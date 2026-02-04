@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentry Test - Send First Error</title>
+  <script
+    src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+    button {
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      font-size: 1.5em;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    button:hover {
+      background: #ff6b81;
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .status {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      display: none;
+    }
+    .status.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Sentry Test</h1>
+    <p>Click the button below to send your first error to Sentry!</p>
+
+    <button onclick="throwError()">
+      Break the world
+    </button>
+
+    <div class="status" id="status">
+      <p id="statusText"></p>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Sentry (v8 API) - CORRECT DSN
+    Sentry.init({
+      dsn: 'https://48e223edad869076554be572bb836cc4@o4510824642052096.ingest.us.sentry.io/4510824680849408',
+      environment: 'development',
+      tracesSampleRate: 1.0,
+      // Integrations are automatically included in v8
+    });
+
+    console.log('✅ Sentry initialized with CORRECT DSN!');
+    console.log('Sentry version:', Sentry.SDK_VERSION);
+    console.log('Project ID: 4510824680849408');
+
+    function throwError() {
+      const status = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+
+      status.classList.add('show');
+      statusText.innerHTML = '💥 Throwing error...<br><small>This is your first error!</small>';
+
+      // Wait a moment so user can see the status
+      setTimeout(() => {
+        // This is the exact error Sentry expects
+        throw new Error('This is your first error!');
+      }, 500);
+    }
+
+    // Also send the error on page load after 2 seconds
+    setTimeout(() => {
+      console.log('🎯 Auto-sending first error in 2 seconds...');
+    }, 2000);
+  </script>
+</body>
+</html>

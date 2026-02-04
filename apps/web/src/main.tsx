@@ -6,7 +6,7 @@ import './index.css';
 
 // Initialize Sentry for error tracking
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN || 'https://2d0745b0438865662b5e818c85015bde@o4510824642052096.ingest.us.sentry.io/4510824667938816',
+  dsn: import.meta.env.VITE_SENTRY_DSN || 'https://48e223edad869076554be572bb836cc4@o4510824642052096.ingest.us.sentry.io/4510824680849408',
   environment: import.meta.env.MODE || 'development',
   integrations: [
     Sentry.browserTracingIntegration(),
