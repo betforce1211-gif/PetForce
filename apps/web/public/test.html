@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sentry Test - FINAL</title>
+  <script src="https://browser.sentry-cdn.com/8.40.0/bundle.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    button {
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 30px 60px;
+      font-size: 24px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    button:hover { background: #ff6b81; }
+  </style>
+</head>
+<body>
+  <button onclick="throwError()">CLICK ME NOW</button>
+
+  <script>
+    // Initialize Sentry
+    Sentry.init({
+      dsn: 'https://48e223edad869076554be572bb836cc4@o4510824642052096.ingest.us.sentry.io/4510824680849408',
+      environment: 'development',
+    });
+
+    console.log('✅ Sentry ready');
+
+    function throwError() {
+      console.log('💥 Throwing error...');
+      throw new Error('This is your first error!');
+    }
+
+    // Auto-throw after 2 seconds
+    setTimeout(() => {
+      console.log('🎯 Auto-throwing in 2 seconds...');
+      setTimeout(throwError, 2000);
+    }, 100);
+  </script>
+</body>
+</html>

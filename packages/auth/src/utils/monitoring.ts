@@ -309,10 +309,22 @@ export function createMonitoringService(): MonitoringService {
     return (typeof process !== 'undefined' && process.env?.[key]) || defaultValue;
   };
 
-  const backend = (getEnv('MONITORING_BACKEND', 'console')) as MonitoringBackend;
-  const apiKey = getEnv('MONITORING_API_KEY');
-  const environment = getEnv('NODE_ENV', 'development');
-  const service = getEnv('SERVICE_NAME', 'petforce-auth');
+  // In browser, use hardcoded DSN; in Node, use env vars
+  const backend = isBrowser
+    ? 'sentry' as MonitoringBackend
+    : (getEnv('MONITORING_BACKEND', 'console')) as MonitoringBackend;
+
+  const apiKey = isBrowser
+    ? 'https://48e223edad869076554be572bb836cc4@o4510824642052096.ingest.us.sentry.io/4510824680849408'
+    : getEnv('MONITORING_API_KEY');
+
+  const environment = isBrowser
+    ? 'development'
+    : getEnv('NODE_ENV', 'development');
+
+  const service = isBrowser
+    ? 'petforce-web'
+    : getEnv('SERVICE_NAME', 'petforce-auth');
 
   return new MonitoringService({
     backend,
