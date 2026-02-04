@@ -86,7 +86,7 @@ export function AuthTogglePanel() {
           >
             {activeMode === 'login' ? (
               <section aria-label="Sign in to your account">
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <h2 className="text-2xl font-bold text-gray-900 mb-0.5 font-heading">
                     Welcome Back!
                   </h2>
@@ -94,12 +94,12 @@ export function AuthTogglePanel() {
                 </div>
 
                 {/* SSO Buttons */}
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <SSOButtons onSuccess={handleLoginSuccess} />
                 </div>
 
                 {/* Divider */}
-                <div className="relative my-2">
+                <div className="relative my-1.5">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>
@@ -117,7 +117,7 @@ export function AuthTogglePanel() {
               </section>
             ) : (
               <section aria-label="Create a new account">
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <h2 className="text-2xl font-bold text-gray-900 mb-0.5 font-heading">
                     Join the Family
                   </h2>
@@ -125,12 +125,12 @@ export function AuthTogglePanel() {
                 </div>
 
                 {/* SSO Buttons */}
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <SSOButtons onSuccess={handleLoginSuccess} />
                 </div>
 
                 {/* Divider */}
-                <div className="relative my-2">
+                <div className="relative my-1.5">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>

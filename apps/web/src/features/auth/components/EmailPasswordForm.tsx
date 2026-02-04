@@ -90,19 +90,15 @@ export function EmailPasswordForm({
       const result = await registerWithPassword({ email, password });
 
       if (result.success) {
-        // Show success message
+        // Navigate immediately with success message in router state
         if (result.confirmationRequired) {
-          setSuccessMessage('Thank you for registering! Please check your email for a verification link.');
-          // Navigate after delay to allow screenshot
-          setTimeout(() => {
-            navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`);
-          }, 100);
+          navigate(`/auth/verify-pending?email=${encodeURIComponent(email)}`, {
+            state: {
+              message: 'Thank you for registering! Please check your email for a verification link.'
+            }
+          });
         } else {
-          setSuccessMessage('Account created successfully!');
-          // Navigate after delay to allow screenshot
-          setTimeout(() => {
-            onSuccess?.();
-          }, 100);
+          onSuccess?.();
         }
       }
     } else {
@@ -119,7 +115,7 @@ export function EmailPasswordForm({
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="space-y-2.5"
+      className="space-y-2"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -201,7 +197,7 @@ export function EmailPasswordForm({
       <AnimatePresence>
         {passwordMismatchError && (
           <motion.div
-            className="p-3 border rounded-lg text-sm bg-red-50 border-red-200 text-red-700"
+            className="p-2 border rounded-lg text-sm bg-red-50 border-red-200 text-red-700"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -278,7 +274,7 @@ export function EmailPasswordForm({
       <AnimatePresence>
         {successMessage && (
           <motion.div
-            className="p-3 border rounded-lg text-sm bg-green-50 border-green-200 text-green-700"
+            className="p-2 border rounded-lg text-sm bg-green-50 border-green-200 text-green-700"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

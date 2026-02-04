@@ -211,11 +211,14 @@ test.describe('Registration Flow - New User Success', () => {
     await page.getByRole('textbox', { name: 'Password*', exact: true }).fill('TestP@ssw0rd123!');
     await page.getByLabel('Confirm password').fill('TestP@ssw0rd123!');
     
-    // Submit
-    await page.getByRole('button', { name: 'Create account' }).click();
-    
-    // Assert redirects to verification pending page
-    await expect(page).toHaveURL(/\/auth\/verify-pending/, { timeout: 10000 });
+    // Submit and wait for navigation simultaneously
+    await Promise.all([
+      page.waitForURL(/\/auth\/verify-pending/, { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create account' }).click()
+    ]);
+
+    // Assert we're on verification pending page
+    await expect(page).toHaveURL(/\/auth\/verify-pending/);
     
     // Assert email parameter is in URL
     await expect(page).toHaveURL(new RegExp(encodeURIComponent(newEmail)));

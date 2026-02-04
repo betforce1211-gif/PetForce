@@ -43,8 +43,9 @@ export const ApiMocking = {
 
         console.log(`✅ Mocking POST /auth/v1/signup for: ${email}`);
 
-        // Add realistic delay to allow loading states to be visible
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Add minimal delay to allow loading states to be visible (configurable via env)
+        const delay = parseInt(process.env.PLAYWRIGHT_MOCK_DELAY || '50', 10);
+        await new Promise(resolve => setTimeout(resolve, delay));
 
         // Simulate duplicate email error for known test email
         if (email === 'existing@petforce.test') {
