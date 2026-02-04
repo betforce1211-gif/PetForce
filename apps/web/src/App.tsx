@@ -20,7 +20,6 @@ import {
   HouseholdSettingsPage,
   HouseholdAnalyticsDashboard,
 } from './features/households/pages';
-import { SentryErrorButton } from './components/SentryErrorButton';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -43,7 +42,6 @@ if (finalUrl && (finalPublishableKey || finalAnonKey)) {
 function App() {
   return (
     <BrowserRouter>
-      <SentryErrorButton />
       <Routes>
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/auth" replace />} />
